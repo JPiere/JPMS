@@ -354,7 +354,7 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 			{
 				//JPIERE-0450 plugin of Desktop -- Start
 				ServiceQuery query = new ServiceQuery();
-				query.put("desktop", className);
+				query.put("ZK_DESKTOP_CLASS", className);
 
 				List<IDesktop> iDesktops = Service.locator().list(IDesktop.class,query).getServices();
 				for(IDesktop iDesktop:iDesktops)
