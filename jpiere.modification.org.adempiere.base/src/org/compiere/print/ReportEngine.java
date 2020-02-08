@@ -1012,7 +1012,17 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 	{
 		try
 		{
-			Writer fw = new OutputStreamWriter(new FileOutputStream(file, false), Ini.getCharset()); // teo_sarca: save using adempiere charset [ 1658127 ]
+			//JPIERE-452 Export CSV with BOM -- Start
+			FileOutputStream fos = new FileOutputStream(file, false);
+			fos.write( 0xef );
+			fos.write( 0xbb );
+			fos.write( 0xbf );
+
+			Writer fw = new OutputStreamWriter(fos, Ini.getCharset());
+			//Writer fw = new OutputStreamWriter(new FileOutputStream(file, false), Ini.getCharset()); // teo_sarca: save using adempiere charset [ 1658127 ]
+
+			//JPIERE-452 Export CSV with BOM -- End
+
 			return createCSV (new BufferedWriter(fw), delimiter, language);
 		}
 		catch (FileNotFoundException fnfe)
