@@ -1346,19 +1346,17 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
 
 		if(!toolbar.getButton("Attachment").isInvalidated())//JPIERE-0437
-			toolbar.getButton("Attachment").setPressed(adTabbox.getSelectedGridTab().hasAttachment());
+			toolbar.setPressed("Attachment",adTabbox.getSelectedGridTab().hasAttachment());
 
 		//JPIERE-0436 JPiere Attachment File
 		if(!toolbar.getButton("JPiereAttachment").isDisabled())
-			toolbar.getButton("JPiereAttachment").setPressed(hasAttachment(adTabbox.getSelectedGridTab()));
+			toolbar.setPressed("PostIt",adTabbox.getSelectedGridTab().hasPostIt());
 
 		if(!toolbar.getButton("PostIt").isInvalidated())//JPIERE-0437
 			toolbar.getButton("PostIt").setPressed(adTabbox.getSelectedGridTab().hasPostIt());
 
 		if(!toolbar.getButton("Chat").isInvalidated())//JPIERE-0437
-			toolbar.getButton("Chat").setPressed(adTabbox.getSelectedGridTab().hasChat());
-
-		toolbar.getButton("Find").setPressed(adTabbox.getSelectedGridTab().isQueryActive());
+			toolbar.setPressed("Chat",adTabbox.getSelectedGridTab().hasChat());
 
 		if (toolbar.isPersonalLock)
 		{
@@ -1729,13 +1727,13 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         	if(!toolbar.getButton("Chat").isInvalidated())//JPIERE-0437
         	{
         		toolbar.enableChat(true);
-        		toolbar.getButton("Chat").setPressed(adTabbox.getSelectedGridTab().hasChat());
+        		toolbar.setPressed("Chat",adTabbox.getSelectedGridTab().hasChat());
         	}
 
         	if(!toolbar.getButton("PostIt").isInvalidated())//JPIERE-0437
         	{
                 toolbar.enablePostIt(true);
-                toolbar.getButton("PostIt").setPressed(adTabbox.getSelectedGridTab().hasPostIt());
+                toolbar.setPressed("PostIt",adTabbox.getSelectedGridTab().hasPostIt());
         	}
 
         }
@@ -2052,15 +2050,19 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
         clearTitleRelatedContext();
 
-        onSave(false, false, new Callback<Boolean>() {
-
-			@Override
-			public void onCallback(Boolean result) {
-				if (result) {
-					doOnFind();
+        // The record was not changed locally
+        if (adTabbox.getDirtyADTabpanel() == null) {
+        	doOnFind();
+        } else {
+        	onSave(false, false, new Callback<Boolean>() {
+				@Override
+				public void onCallback(Boolean result) {
+					if (result) {
+						doOnFind();
+					}
 				}
-			}
-		});
+			});
+   	 	}
     }
 
 	private void doOnFind() {
@@ -2191,11 +2193,15 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
     	if (dirtyTabpanel != null) {
     		focusToTabpanel(dirtyTabpanel);
     		//ensure row indicator is not lost
-    		RowRenderer<Object[]> renderer = dirtyTabpanel.getGridView().getListbox().getRowRenderer();
-    		GridTabRowRenderer gtr = (GridTabRowRenderer)renderer;
-    		org.zkoss.zul.Row row = gtr.getCurrentRow();
-    		if (row != null)
-    			gtr.setCurrentRow(row);
+    		if (dirtyTabpanel.getGridView() != null && 
+    				dirtyTabpanel.getGridView().getListbox() != null &&
+    				dirtyTabpanel.getGridView().getListbox().getRowRenderer() != null) {
+    			RowRenderer<Object[]> renderer = dirtyTabpanel.getGridView().getListbox().getRowRenderer();
+    			GridTabRowRenderer gtr = (GridTabRowRenderer)renderer;
+    			org.zkoss.zul.Row row = gtr.getCurrentRow();
+    			if (row != null)
+    				gtr.setCurrentRow(row);
+    		}
     	}
     	else
     		focusToActivePanel();
@@ -2414,6 +2420,14 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 		//other error will be catch in the dataStatusChanged event
 	}
 
+	private void showLastWarning() {
+		String msg = CLogger.retrieveWarningString(null);
+		if (msg != null)
+		{
+			statusBar.setStatusLine(Msg.getMsg(Env.getCtx(), msg), true);
+		}
+	}
+
 	/**
 	 * @see ToolbarListener#onSaveCreate()
 	 */
@@ -2493,9 +2507,11 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 				if (result)
 				{
 		        	//error will be catch in the dataStatusChanged event
-		            adTabbox.getSelectedGridTab().dataDelete();
+		            boolean success = adTabbox.getSelectedGridTab().dataDelete();
 		            adTabbox.getSelectedGridTab().dataRefreshAll(true, true);
 		    		adTabbox.getSelectedGridTab().refreshParentTabs();
+		    		if (!success)
+		    			showLastWarning();
 
 		            adTabbox.getSelectedTabpanel().dynamicDisplay(0);
 		            focusToActivePanel();
