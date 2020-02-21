@@ -62,7 +62,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.adempiere.exceptions.AdempiereException;
 import org.adempiere.pdf.Document;
 import org.adempiere.print.export.PrintDataExcelExporter;
-import org.adempiere.print.export.PrintDataXLSXExporter;
 import org.apache.ecs.XhtmlDocument;
 import org.apache.ecs.xhtml.a;
 import org.apache.ecs.xhtml.script;
@@ -91,14 +90,12 @@ import org.compiere.model.MRole;
 import org.compiere.model.MTable;
 import org.compiere.model.PrintInfo;
 import org.compiere.print.layout.LayoutEngine;
-import org.compiere.print.layout.PrintDataEvaluatee;
 import org.compiere.process.ProcessInfo;
 import org.compiere.process.ServerProcessCtl;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
-import org.compiere.util.Evaluator;
 import org.compiere.util.FragmentDisplayType;		//JPIERE-3 Import FragmentDisplayType to ReportEngine
 import org.compiere.util.Ini;
 import org.compiere.util.KeyNamePair;				//JPIERE-3 Import KeyNamePair to ReportEngine
@@ -852,7 +849,7 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 							td td = new td();
 							tr.addElement(td);
 							Object obj = m_printData.getNode(Integer.valueOf(item.getAD_Column_ID()));
-							if (obj == null || !isDisplayPFItem(item)){
+							if (obj == null){
 								td.addElement("&nbsp;");
 								if (colSuppressRepeats != null && colSuppressRepeats[printColIndex]){
 									preValues[printColIndex] = null;
@@ -1087,7 +1084,7 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 							printColIndex++;
 							Object obj = m_printData.getNode(Integer.valueOf(item.getAD_Column_ID()));
 							String data = "";
-							if (obj == null || !isDisplayPFItem(item)){
+							if (obj == null){
 								if (colSuppressRepeats != null && colSuppressRepeats[printColIndex]){
 									preValues[printColIndex] = null;
 								}
@@ -1352,44 +1349,6 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 		}
 	}	//	getXLS
 
-	/**************************************************************************
-	 * 	Create XLSX file.
-	 * 	(created in temporary storage)
-	 *	@return XLSX file
-	 */
-	public File getXLSX()
-	{
-		return getXLSX(null);
-	}	//	getXLSX
-
-	/**
-	 * 	Create XLSX file.
-	 * 	@param file file
-	 *	@return XLSX file
-	 */
-	public File getXLSX(File file)
-	{
-		try
-		{
-			if (file == null)
-				file = File.createTempFile (makePrefix(getName()), ".xlsx");
-		}
-		catch (IOException e)
-		{
-			log.log(Level.SEVERE, "", e);
-		}
-		try 
-		{
-			createXLSX(file, Env.getLanguage(getCtx()));
-			return file;
-		} 
-		catch (Exception e)
-		{
-			log.log(Level.SEVERE, "", e);
-			return null;
-		}
-	}	//	getXLSX
-	
 	/**
 	 * 	Create PDF File
 	 * 	@param file file
@@ -1552,20 +1511,6 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 		exp.export(outFile, language);
 	}
 
-	/**
-	 * Create ExcelX file
-	 * @param outFile output file
-	 * @param language
-	 * @throws Exception if error
-	 */
-	public void createXLSX(File outFile, Language language)
-	throws Exception
-	{
-		Boolean [] colSuppressRepeats = m_layout == null || m_layout.colSuppressRepeats == null? LayoutEngine.getColSuppressRepeats(m_printFormat):m_layout.colSuppressRepeats;
-		PrintDataXLSXExporter exp = new PrintDataXLSXExporter(getPrintData(), getPrintFormat(), colSuppressRepeats);
-		exp.export(outFile, language);
-	}
-	
 	/**************************************************************************
 	 * 	Get Report Engine for process info
 	 *	@param ctx context
@@ -2422,16 +2367,8 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 			return String.format(CSS_SELECTOR_TEMPLATE, index + 1);
 		}
 	}
+
 	
-	private boolean isDisplayPFItem(MPrintFormatItem item)
-	{
-		if(Util.isEmpty(item.getDisplayLogic()))
-			return true;
-		
-		return Evaluator.evaluateLogic(new PrintDataEvaluatee(null, m_printData), item.getDisplayLogic());
-	}
-
-
 	/**
 	 * Get C_Currency_ID
 	 * JPIERE-3 Add ReportEngine#getC_Currency_ID()
