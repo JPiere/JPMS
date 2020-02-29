@@ -843,6 +843,21 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 									}
 								}
 							}
+
+							//JPIERE-0453: Set HTML Width by px - Start
+							int cIndex = item.get_ColumnIndex("JP_HTML_Width_PX");
+							if(cIndex > -1)
+							{
+								Object width = item.get_Value(cIndex) ;
+								if(width != null)
+								{
+									int  JP_HTML_Width_PX = ((Integer)width).intValue();
+									if(JP_HTML_Width_PX > 0)
+										th.setStyle("width:" + JP_HTML_Width_PX + "px");
+								}
+							}
+							//JPiere-0453-End
+
 						}
 						else
 						{
@@ -2368,7 +2383,7 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 		}
 	}
 
-	
+
 	/**
 	 * Get C_Currency_ID
 	 * JPIERE-3 Add ReportEngine#getC_Currency_ID()
