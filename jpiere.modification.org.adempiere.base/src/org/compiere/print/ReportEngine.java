@@ -646,6 +646,30 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 			table table = new table();
 			if (cssPrefix != null)
 				table.setClass(cssPrefix + "-table");
+
+
+			//JPIERE-0453: Set HTML Width of Report - Start
+			int columnIndex = m_printFormat.get_ColumnIndex("JP_HTML_Width");//JP_HTML_LengthUOM
+			if(columnIndex > -1)
+			{
+				Object reportWidth = m_printFormat.get_Value(columnIndex) ;
+				if(reportWidth != null)
+				{
+					int  JP_HTML_Width_Report = ((Integer)reportWidth).intValue();
+					if(JP_HTML_Width_Report > 0)
+					{
+						if(Util.isEmpty(m_printFormat.get_ValueAsString("JP_HTML_LengthUOM")))
+						{
+							table.setStyle("width:" + JP_HTML_Width_Report + "px");//PX is Default.
+						}else {
+							table.setStyle("width:" + JP_HTML_Width_Report + m_printFormat.get_ValueAsString("JP_HTML_LengthUOM"));
+						}
+
+					}
+				}
+			}
+			//JPiere-0453-End
+
 			//
 			//
 			table.setNeedClosingTag(false);
@@ -844,16 +868,24 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 								}
 							}
 
-							//JPIERE-0453: Set HTML Width by px - Start
-							int cIndex = item.get_ColumnIndex("JP_HTML_Width_PX");
+							//JPIERE-0453: Set HTML Width of Column - Start
+							int cIndex = item.get_ColumnIndex("JP_HTML_Width");
 							if(cIndex > -1)
 							{
-								Object width = item.get_Value(cIndex) ;
-								if(width != null)
+								Object columnWidth = item.get_Value(cIndex) ;
+								if(columnWidth != null)
 								{
-									int  JP_HTML_Width_PX = ((Integer)width).intValue();
-									if(JP_HTML_Width_PX > 0)
-										th.setStyle("width:" + JP_HTML_Width_PX + "px");
+									int  JP_HTML_Width_Column= ((Integer)columnWidth).intValue();
+									if(JP_HTML_Width_Column> 0)
+									{
+										if(Util.isEmpty(item.get_ValueAsString("JP_HTML_LengthUOM")))
+										{
+											th.setStyle("width:" + JP_HTML_Width_Column + "px");//PX is Default
+										}else {
+											th.setStyle("width:" + JP_HTML_Width_Column + item.get_ValueAsString("JP_HTML_LengthUOM"));
+										}
+
+									}
 								}
 							}
 							//JPiere-0453-End
