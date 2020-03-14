@@ -250,6 +250,9 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
     private String          m_whereUserQuery;
     private ToolBar advancedPanelToolBar;
 
+    /**IDEMPIERE-4085*/
+    private int m_AD_UserQuery_ID = 0;    
+
     /**
      * FindPanel Constructor
      * @param targetWindowNo targetWindowNo
@@ -637,7 +640,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 		//user query
 		userQueries = MUserQuery.get(Env.getCtx(), m_AD_Tab_ID);
 		for (int i = 0; i < userQueries.length; i++)
-			fQueryName.appendItem(userQueries[i].getName());
+			fQueryName.appendItem(userQueries[i].getName(), userQueries[i].getAD_UserQuery_ID());
 		fQueryName.setValue("");
 		fQueryName.addEventListener(Events.ON_SELECT, this);
 
@@ -1346,41 +1349,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
             }
             else if (event.getTarget() == fQueryName)
             {
-            	m_whereUserQuery = null;
-    			showAdvanced();
-            	btnSave.setDisabled(false);
-	        	btnShare.setDisabled(false);
-            	int index = fQueryName.getSelectedIndex();
-            	if(index < 0) return;
-            	if (winMain.getComponent().getSelectedIndex() != 1)
-            	{
-            		winMain.getComponent().setSelectedIndex(1);
-            		btnSave.setDisabled(m_AD_Tab_ID <= 0);
-            		btnShare.setDisabled(m_AD_Tab_ID <= 0);
-            		historyCombo.setSelectedItem(null);
-            		fQueryName.setReadonly(false);
-            	}
-            	msgLabel.setText("");
-
-            	if(index == 0)
-            	{ // no query - wipe and start over.
-            		List<?> rowList = advancedPanel.getChildren();
-            		for (int rowIndex = rowList.size() - 1; rowIndex >= 1; rowIndex--)
-            			rowList.remove(rowIndex);
-            		createFields();
-            	}
-    			else {
-    				MUserQuery uq = userQueries[index-1];
-    				// If global query do not allow other users to save the query 
-    				if (uq.getAD_User_ID() != Env.getAD_User_ID(Env.getCtx())) {
-    			        if (!MRole.PREFERENCETYPE_Client.equals(MRole.getDefault().getPreferenceType()) ||
-    			        		uq.getAD_Client_ID() != Env.getAD_Client_ID(Env.getCtx())) {
-    			        	btnSave.setDisabled(true);
-    			        	btnShare.setDisabled(true);
-    			        }
-    				}
-    				parseUserQuery(userQueries[index-1]);
-    			}
+            	onSelectedQueryChanged();
     		}
     		else if (event.getTarget() instanceof Tab) {
     			if (winMain.getComponent().getSelectedIndex() == 1) {
@@ -1430,8 +1399,8 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 
                 if ("btnOkSimple".equals(btn.getName()))
                 {
+                    fQueryName.setSelectedIndex(0);
                     cmd_ok_Simple();
-                    fQueryName.setValue("");
                     if (advancedPanel != null) {
                     	advancedPanel.getItems().clear();
                     }
@@ -1504,6 +1473,44 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 
     }   //  onEvent
 
+    public void onSelectedQueryChanged() {
+    	m_whereUserQuery = null;
+		showAdvanced();
+    	btnSave.setDisabled(false);
+    	btnShare.setDisabled(false);
+    	int index = fQueryName.getSelectedIndex();
+    	if(index < 0) return;
+    	if (winMain.getComponent().getSelectedIndex() != 1) 
+    	{
+    		winMain.getComponent().setSelectedIndex(1);
+    		btnSave.setDisabled(m_AD_Tab_ID <= 0);
+    		btnShare.setDisabled(m_AD_Tab_ID <= 0);
+    		historyCombo.setSelectedItem(null);
+    		fQueryName.setReadonly(false); 
+    	}
+    	msgLabel.setText("");
+
+    	if(index == 0) 
+    	{ // no query - wipe and start over.
+    		List<?> rowList = advancedPanel.getChildren();
+    		for (int rowIndex = rowList.size() - 1; rowIndex >= 1; rowIndex--)
+    			rowList.remove(rowIndex);
+    		createFields();
+    	}
+		else {
+			MUserQuery uq = userQueries[index-1];
+			// If global query do not allow other users to save the query 
+			if (uq.getAD_User_ID() != Env.getAD_User_ID(Env.getCtx())) {
+		        if (!MRole.PREFERENCETYPE_Client.equals(MRole.getDefault().getPreferenceType()) ||
+		        		uq.getAD_Client_ID() != Env.getAD_Client_ID(Env.getCtx())) {
+		        	btnSave.setDisabled(true);
+		        	btnShare.setDisabled(true);
+		        }
+			}
+			parseUserQuery(userQueries[index-1]);
+		}
+    }
+
 	private void onSimpleTabSelected() {
 		historyCombo.setDisabled(false);
 	}
@@ -1517,6 +1524,9 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 
     private void parseUserQuery(MUserQuery userQuery)
     {
+    	if (userQuery == null) 
+    		return;
+
     	String code = userQuery.getCode();
     	if (code.startsWith("@SQL=")) {
 			m_whereUserQuery = "(" + code.substring(code.indexOf("=")+1, code.length()) + ")";
@@ -2018,10 +2028,11 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 		userQueries = MUserQuery.get(Env.getCtx(), m_AD_Tab_ID);
 		fQueryName.getItems().clear();
 		boolean selected = false;
-		fQueryName.appendItem(m_sNew);
+		fQueryName.appendItem(m_sNew, 0);  
 		for (int i = 0; i < userQueries.length; i++)
 		{
 			Comboitem ci = fQueryName.appendItem(userQueries[i].getName());
+			ci.setValue(userQueries[i].getAD_UserQuery_ID());
 			if(value.equals(userQueries[i].getName()))
 			{
 				fQueryName.setSelectedItem(ci);
@@ -2332,6 +2343,13 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
           dispose();
     }   //  cmd_ok_Advanced
 
+    /**
+     * Simulate the user query selection and click ok
+     */
+    public void advancedOkClick() {
+    	onSelectedQueryChanged();
+    	cmd_ok_Advanced();
+    }
 
     /**
      *  Get the number of records of target tab
@@ -2764,4 +2782,21 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 		advancedPanel.setVisible(true);
 	}
 
+	public int getAD_UserQuery_ID() {
+		if (fQueryName.getSelectedIndex() <= 0 || userQueries[fQueryName.getSelectedIndex()-1] == null)
+			m_AD_UserQuery_ID = 0;
+		else if (m_AD_UserQuery_ID != userQueries[fQueryName.getSelectedIndex()-1].getAD_UserQuery_ID())
+			m_AD_UserQuery_ID = userQueries[fQueryName.getSelectedIndex()-1].getAD_UserQuery_ID();
+		return m_AD_UserQuery_ID;
+	}
+
+	public void setAD_UserQuery_ID(int AD_UserQuery_ID) {
+		m_AD_UserQuery_ID = AD_UserQuery_ID;
+		for (Comboitem li : fQueryName.getItems()) {
+			if (m_AD_UserQuery_ID == (Integer) li.getValue()) {
+				fQueryName.setSelectedItem(li);
+				break;
+			}
+		}
+	}
 }   //  FindPanel
