@@ -78,7 +78,7 @@ import org.compiere.model.MDunningRunEntry;
 import org.compiere.model.MInOut;
 import org.compiere.model.MInventory;
 import org.compiere.model.MInvoice;
-import org.compiere.model.MLocation;				//JPIERE-3 Import MLocation to ReportEngine
+import org.compiere.model.MLocation;				//JPIERE-0003 Import MLocation to ReportEngine
 import org.compiere.model.MMovement;
 import org.compiere.model.MOrder;
 import org.compiere.model.MPaySelectionCheck;
@@ -87,6 +87,7 @@ import org.compiere.model.MProject;
 import org.compiere.model.MQuery;
 import org.compiere.model.MRfQResponse;
 import org.compiere.model.MRole;
+import org.compiere.model.MSysConfig; //JPIERE-0452
 import org.compiere.model.MTable;
 import org.compiere.model.PrintInfo;
 import org.compiere.print.layout.LayoutEngine;
@@ -96,9 +97,9 @@ import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
-import org.compiere.util.FragmentDisplayType;		//JPIERE-3 Import FragmentDisplayType to ReportEngine
+import org.compiere.util.FragmentDisplayType;		//JPIERE-0003 Import FragmentDisplayType to ReportEngine
 import org.compiere.util.Ini;
-import org.compiere.util.KeyNamePair;				//JPIERE-3 Import KeyNamePair to ReportEngine
+import org.compiere.util.KeyNamePair;				//JPIERE-0003 Import KeyNamePair to ReportEngine
 import org.compiere.util.Language;
 import org.compiere.util.Msg;
 import org.compiere.util.NamePair;
@@ -1059,18 +1060,25 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 	{
 		try
 		{
-			//JPIERE-452 Export CSV with BOM -- Start
-			FileOutputStream fos = new FileOutputStream(file, false);
-			fos.write( 0xef );
-			fos.write( 0xbb );
-			fos.write( 0xbf );
+			//JPIERE-0452 Export CSV with BOM -- Start
+	        if(MSysConfig.getBooleanValue("JP_EXPORT_CSV_WITH_BOM", false, Env.getAD_Client_ID(Env.getCtx()))) //JPiere function
+	        {
+	        	FileOutputStream fos = new FileOutputStream(file, false);
 
-			Writer fw = new OutputStreamWriter(fos, Ini.getCharset());
-			//Writer fw = new OutputStreamWriter(new FileOutputStream(file, false), Ini.getCharset()); // teo_sarca: save using adempiere charset [ 1658127 ]
+				fos.write( 0xef );
+				fos.write( 0xbb );
+				fos.write( 0xbf );
+				Writer fw = new OutputStreamWriter(fos, Ini.getCharset());
+				return createCSV (new BufferedWriter(fw), delimiter, language);
 
-			//JPIERE-452 Export CSV with BOM -- End
+	        }else {	//iDempiere Standard function
 
-			return createCSV (new BufferedWriter(fw), delimiter, language);
+	        	Writer fw = new OutputStreamWriter(new FileOutputStream(file, false), Ini.getCharset()); // teo_sarca: save using adempiere charset [ 1658127 ]
+	        	return createCSV (new BufferedWriter(fw), delimiter, language);
+
+	        }
+			//JPIERE-0452 Export CSV with BOM -- End
+
 		}
 		catch (FileNotFoundException fnfe)
 		{
