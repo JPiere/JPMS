@@ -17,7 +17,7 @@
 
 package org.adempiere.webui.window;
 
-import static org.compiere.model.SystemIDs.REFERENCE_YESNO;
+import static org.compiere.model.SystemIDs.*;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
@@ -87,6 +87,7 @@ import org.compiere.model.MLookupInfo;
 import org.compiere.model.MProduct;
 import org.compiere.model.MQuery;
 import org.compiere.model.MRole;
+import org.compiere.model.MSysConfig;//JPIERE-0181
 import org.compiere.model.MTable;
 import org.compiere.model.MUserQuery;
 import org.compiere.util.AdempiereSystemError;
@@ -132,7 +133,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 	 *
 	 */
 	private static final long serialVersionUID = -2476692172080549315L;
-	
+
 	private static final String FIND_ROW_EDITOR = "find.row.editor";
 
 	private static final String FIND_ROW_EDITOR_TO = "find.row.editor.to";
@@ -252,7 +253,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
     private ToolBar advancedPanelToolBar;
 
     /**IDEMPIERE-4085*/
-    private int m_AD_UserQuery_ID = 0;    
+    private int m_AD_UserQuery_ID = 0;
 
     /**
      * FindPanel Constructor
@@ -343,26 +344,38 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
     		}
     	}
 
-    	//JPIERE-0181 : Start
-    	if(whereExtended != null && whereExtended.contains(m_tableName+"_ID = 0"))//Window of New Record only
-    	{
-    		m_total = 0;
-    		return false;
+        //JPIERE-0181:Start
+        if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT", false, Env.getAD_Client_ID(Env.getCtx()))) //iDempiere Standard function
+        {
+           	m_minRecords = minRecords;
+    		m_total = getNoOfRecords(null, false);
+    		if (m_total < m_minRecords)
+        	{
+            	return false;
+       		}
 
-    	}else if(MTable.get(m_simpleCtx, findFields[0].getGridTab().getAD_Table_ID()).isHighVolume() //High Volumne Table
-    			|| findFields[0].getGridTab().getGridWindow().getWindowType().equals("T")){ //Transaction Window
+        }else { //JPiere function
 
-    		m_total = 10;
-    		;//Nothing to do;
+	    	if(whereExtended != null && whereExtended.contains(m_tableName+"_ID = 0"))//Window of New Record only
+	    	{
+	    		m_total = 0;
+	    		return false;
 
-    	}else{
+	    	}else if(MTable.get(m_simpleCtx, findFields[0].getGridTab().getAD_Table_ID()).isHighVolume() //High Volumne Table
+	    			|| findFields[0].getGridTab().getGridWindow().getWindowType().equals("T")){ //Transaction Window
 
-	    	m_minRecords = minRecords;
-	    	m_total = getNoOfRecords(null, false);
-	    	if (m_total < m_minRecords)
-	        {
-	            return false;
-	        }
+	    		m_total = 10;
+	    		;//Nothing to do;
+
+	    	}else{
+
+		    	m_minRecords = minRecords;
+		    	m_total = getNoOfRecords(null, false);
+		    	if (m_total < m_minRecords)
+		        {
+		            return false;
+		        }
+	    	}
     	}
     	//JPIERE-0181 : Finish
 
@@ -656,9 +669,9 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         div.appendChild(btnShare);
 
         //Show share button only for roles with preference level = Client
-        if (!MRole.PREFERENCETYPE_Client.equals(MRole.getDefault().getPreferenceType())) 
+        if (!MRole.PREFERENCETYPE_Client.equals(MRole.getDefault().getPreferenceType()))
         	btnShare.setVisible(false);
-        	
+
         fQueryName.setStyle("margin-left: 3px; margin-right: 3px; position: relative; vertical-align: middle;");
 
         msgLabel = new Label("");
@@ -695,10 +708,21 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         winMain.addTab(tabPanel, Msg.getMsg(Env.getCtx(), "Advanced").replaceAll("&", ""), false, false);
         initSimple();
         initAdvanced();
-        /** START DEVCOFFEE **/
-        statusBar.setClass("statusbar");
-//        layout.appendChild(statusBar); //JPIERE-0181:Comment Out - IDEMPIERE-1643 Adding a status bar for FindWindow
-        /** START DEVCOFFEE **/
+
+
+        //JPIERE-0181:Start
+        if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT", false, Env.getAD_Client_ID(Env.getCtx()))) //iDempiere Standard function
+        {
+            /** START DEVCOFFEE **/
+        	statusBar.setClass("statusbar");
+        	layout.appendChild(statusBar);
+            /** START DEVCOFFEE **/
+        }else {
+
+        	;//Noting to do;
+        }
+      //JPIERE-0181:End
+
 
     } // initPanel
 
@@ -874,22 +898,30 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         }
 
         gridFieldList = null;
-        m_total = getNoOfRecords(null, false);
 
         //JPIERE-0181:Start
-        if(m_whereExtended != null && m_whereExtended.contains(m_tableName+"_ID = 0"))
+        if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT", false, Env.getAD_Client_ID(Env.getCtx()))) //iDempiere Standard function
         {
-        	m_total = 0;
-        }else{
-        	m_total = 10;
+        	m_total = getNoOfRecords(null, false);
+            /** START DEVCOFFEE **/
+        	//	Get Total
+    		setStatusDB (m_total);
+    		statusBar.setStatusLine("");
+    		/** END DEVCOFFEE **/
+
+        }else {
+
+            if(m_whereExtended != null && m_whereExtended.contains(m_tableName+"_ID = 0"))
+            {
+            	m_total = 0;
+            }else{
+            	m_total = 10;
+            }
+
+            statusBar.setStatusLine("");
         }
         //JPIERE-0181:Finish
 
-        /** START DEVCOFFEE **/
-    	//	Get Total
-		setStatusDB (m_total);
-		statusBar.setStatusLine("");
-		/** END DEVCOFFEE **/
     }   //  initFind
 
     /**
@@ -1484,17 +1516,17 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
     	btnShare.setDisabled(false);
     	int index = fQueryName.getSelectedIndex();
     	if(index < 0) return;
-    	if (winMain.getComponent().getSelectedIndex() != 1) 
+    	if (winMain.getComponent().getSelectedIndex() != 1)
     	{
     		winMain.getComponent().setSelectedIndex(1);
     		btnSave.setDisabled(m_AD_Tab_ID <= 0);
     		btnShare.setDisabled(m_AD_Tab_ID <= 0);
     		historyCombo.setSelectedItem(null);
-    		fQueryName.setReadonly(false); 
+    		fQueryName.setReadonly(false);
     	}
     	msgLabel.setText("");
 
-    	if(index == 0) 
+    	if(index == 0)
     	{ // no query - wipe and start over.
     		List<?> rowList = advancedPanel.getChildren();
     		for (int rowIndex = rowList.size() - 1; rowIndex >= 1; rowIndex--)
@@ -1503,7 +1535,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
     	}
 		else {
 			MUserQuery uq = userQueries[index-1];
-			// If global query do not allow other users to save the query 
+			// If global query do not allow other users to save the query
 			if (uq.getAD_User_ID() != Env.getAD_User_ID(Env.getCtx())) {
 		        if (!MRole.PREFERENCETYPE_Client.equals(MRole.getDefault().getPreferenceType()) ||
 		        		uq.getAD_Client_ID() != Env.getAD_Client_ID(Env.getCtx())) {
@@ -1528,7 +1560,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 
     private void parseUserQuery(MUserQuery userQuery)
     {
-    	if (userQuery == null) 
+    	if (userQuery == null)
     		return;
 
     	String code = userQuery.getCode();
@@ -1668,7 +1700,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 		//
 		m_query = new MQuery(m_tableName);
 		m_query.addRestriction(Env.parseContext(Env.getCtx(), m_targetWindowNo, m_whereExtended, false));
-		
+
 		if (m_whereUserQuery == null) {
 			StringBuilder code = new StringBuilder();
 
@@ -1865,7 +1897,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 						uq.set_ValueOfColumn("AD_User_ID", Env.getAD_User_ID(Env.getCtx())); // required set_Value for System=0 user
 					}
 					if (shareAllUsers)
-						uq.set_ValueOfColumn("AD_User_ID", null); 
+						uq.set_ValueOfColumn("AD_User_ID", null);
 
 				} else	if (code.length() <= 0){ // Delete the query
 					if (uq == null)
@@ -1961,7 +1993,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
                     	m_query.addRestriction(clause);
                     	continue;
                     }
-                    
+
                     //
                     // Be more permissive for String columns
                     if (isSearchLike(field))
@@ -2032,7 +2064,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 		userQueries = MUserQuery.get(Env.getCtx(), m_AD_Tab_ID);
 		fQueryName.getItems().clear();
 		boolean selected = false;
-		fQueryName.appendItem(m_sNew, 0);  
+		fQueryName.appendItem(m_sNew, 0);
 		for (int i = 0; i < userQueries.length; i++)
 		{
 			Comboitem ci = fQueryName.appendItem(userQueries[i].getName());
@@ -2781,7 +2813,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 		advancedPanelToolBar.setVisible(false);
 		advancedPanel.setVisible(false);
 	}
-	
+
 	private void showAdvanced() {
 		advancedPanelToolBar.setVisible(true);
 		advancedPanel.setVisible(true);
