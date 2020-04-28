@@ -2301,9 +2301,11 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         //  save pending
         cmd_saveSimple(false, false);
 
+        /** JPIERE-0181 unnecessary count
         //  Test for no records
         if (getNoOfRecords(m_query, true) != 0)
           dispose();
+        */
 
     }   //  cmd_ok_Simple
 
@@ -2376,8 +2378,11 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         	addHistoryRestriction(historyCombo.getSelectedItem());
         }
 
+        /** JPIERE-0181 unnecessary count
         if (getNoOfRecords(m_query, true) != 0)
           dispose();
+        */
+
     }   //  cmd_ok_Advanced
 
     /**
