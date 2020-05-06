@@ -17,9 +17,8 @@
 
 package org.adempiere.webui.adwindow;
 
-import static org.compiere.model.MSysConfig.ZK_GRID_AFTER_FIND;
-import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_REDO;
-import static org.compiere.model.SystemIDs.PROCESS_AD_CHANGELOG_UNDO;
+import static org.compiere.model.MSysConfig.*;
+import static org.compiere.model.SystemIDs.*;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -1349,8 +1348,8 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 			toolbar.setPressed("Attachment",adTabbox.getSelectedGridTab().hasAttachment());
 
 		//JPIERE-0436 JPiere Attachment File
-		if(!toolbar.getButton("JPiereAttachment").isDisabled())
-			toolbar.setPressed("PostIt",adTabbox.getSelectedGridTab().hasPostIt());
+		if(toolbar.getButton("JPiereAttachment") != null && !toolbar.getButton("JPiereAttachment").isDisabled())
+			toolbar.setPressed("JPiereAttachment",hasAttachment( adTabbox.getSelectedGridTab()) );
 
 		if(!toolbar.getButton("PostIt").isInvalidated())//JPIERE-0437
 			toolbar.getButton("PostIt").setPressed(adTabbox.getSelectedGridTab().hasPostIt());
@@ -1376,7 +1375,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
             toolbar.enableCustomize(adtab.isGridView());
         }
 
-		toolbar.setPressed("Find",adTabbox.getSelectedGridTab().isQueryActive() || 
+		toolbar.setPressed("Find",adTabbox.getSelectedGridTab().isQueryActive() ||
 				(!isNewRow && (m_onlyCurrentRows || m_onlyCurrentDays > 0)));
 
 		toolbar.refreshUserQuery(adTabbox.getSelectedGridTab().getAD_Tab_ID(), findWindow != null ? findWindow.getAD_UserQuery_ID() : 0);
@@ -1700,7 +1699,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         	}
 
             //JPIERE-0436 JPiere Attachemnt File
-            if(!toolbar.getButton("JPiereAttachment").isInvalidated())
+            if(toolbar.getButton("JPiereAttachment") != null && !toolbar.getButton("JPiereAttachment").isInvalidated())
             {
             	toolbar.getButton("JPiereAttachment").setDisabled(false);
     			toolbar.getButton("JPiereAttachment").setPressed(hasAttachment(adTabbox.getSelectedGridTab()));
@@ -1709,7 +1708,8 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         else
         {
             toolbar.enableAttachment(false);
-            toolbar.getButton("JPiereAttachment").setDisabled(true); //JPIERE-0436 JPiere Attachemnt File
+            if(toolbar.getButton("JPiereAttachment") != null)				//JPIERE-0436 JPiere Attachemnt File
+            	toolbar.getButton("JPiereAttachment").setDisabled(true); 	//JPIERE-0436 JPiere Attachemnt File
         }
 
         // Check Chat and PostIt
@@ -1762,7 +1762,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         toolbar.enableZoomAcross(!isNewRow);
         toolbar.enableActiveWorkflows(!isNewRow);
         toolbar.enableRequests(!isNewRow);
-		toolbar.setPressed("Find", adTabbox.getSelectedGridTab().isQueryActive() || 
+		toolbar.setPressed("Find", adTabbox.getSelectedGridTab().isQueryActive() ||
 				(!isNewRow && (m_onlyCurrentRows || m_onlyCurrentDays > 0)));
 		toolbar.refreshUserQuery(adTabbox.getSelectedGridTab().getAD_Tab_ID(), findWindow != null ? findWindow.getAD_UserQuery_ID() : 0);
 
@@ -2196,7 +2196,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
     	if (dirtyTabpanel != null) {
     		focusToTabpanel(dirtyTabpanel);
     		//ensure row indicator is not lost
-    		if (dirtyTabpanel.getGridView() != null && 
+    		if (dirtyTabpanel.getGridView() != null &&
     				dirtyTabpanel.getGridView().getListbox() != null &&
     				dirtyTabpanel.getGridView().getListbox().getRowRenderer() != null) {
     			RowRenderer<Object[]> renderer = dirtyTabpanel.getGridView().getListbox().getRowRenderer();
@@ -2812,10 +2812,10 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
     					doOnQueryChange();
     				}
     			}
-    		});        	
+    		});
         }
 	}
-	
+
 	/**
 	 * Simulate opening the Find Window, selecting a user query and click ok
 	 */
@@ -2829,7 +2829,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 					adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getTableName(),
 					adTabbox.getSelectedGridTab().getWhereExtended(), findFields, 1, adTabbox.getSelectedGridTab().getAD_Tab_ID());
 
-			setupEmbeddedFindwindow();	        
+			setupEmbeddedFindwindow();
 			if (!findWindow.initialize()) {
 				if (findWindow.getTotalRecords() == 0) {
 					FDialog.info(curWindowNo, getComponent(), "NoRecordsFound");
