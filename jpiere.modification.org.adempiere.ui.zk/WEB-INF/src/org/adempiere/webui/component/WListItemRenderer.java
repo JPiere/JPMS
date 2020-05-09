@@ -297,14 +297,17 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 						if(info != null && m_Currency != null)
 						{
 							ColumnInfo columnInfo = info[columnIndex];
-							if(columnInfo.getGridField().getVO().displayType == DisplayType.Amount
-									|| columnInfo.getGridField().getVO().displayType == DisplayType.CostPrice)
+							if(columnInfo.getGridField() != null && columnInfo.getGridField().getVO() !=null)
 							{
-								if(columnInfo.getGridField().getVO().displayType == DisplayType.Amount)
+								if(columnInfo.getGridField().getVO().displayType == DisplayType.Amount
+										|| columnInfo.getGridField().getVO().displayType == DisplayType.CostPrice)
 								{
-									format.setMinimumFractionDigits(m_Currency.getStdPrecision());
-								}else {
-									format.setMinimumFractionDigits(m_Currency.getCostingPrecision());
+									if(columnInfo.getGridField().getVO().displayType == DisplayType.Amount)
+									{
+										format.setMinimumFractionDigits(m_Currency.getStdPrecision());
+									}else {
+										format.setMinimumFractionDigits(m_Currency.getCostingPrecision());
+									}
 								}
 							}
 						}
@@ -926,6 +929,9 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 			{
 				for(int i = 0; i < info.length; i++)
 				{
+					if(info[i].getColumnName()==null)
+						break;
+
 					if(info[i].getColumnName().equals("C_Currency_ID"))
 					{
 						C_Currency_ColumnIndex =  i;
