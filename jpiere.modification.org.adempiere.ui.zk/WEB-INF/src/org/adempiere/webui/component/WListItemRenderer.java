@@ -293,20 +293,23 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 					else
 					{
 						//JPIERE-0455 InfoWindow Currency Fractiion Control --- Start
-						ColumnInfo[] info = table.getLayout();
-						if(info != null && m_Currency != null)
+						if(table != null)
 						{
-							ColumnInfo columnInfo = info[columnIndex];
-							if(columnInfo.getGridField() != null && columnInfo.getGridField().getVO() !=null)
+							ColumnInfo[] info = table.getLayout();
+							if(info != null && m_Currency != null)
 							{
-								if(columnInfo.getGridField().getVO().displayType == DisplayType.Amount
-										|| columnInfo.getGridField().getVO().displayType == DisplayType.CostPrice)
+								ColumnInfo columnInfo = info[columnIndex];
+								if(columnInfo.getGridField() != null && columnInfo.getGridField().getVO() != null)
 								{
-									if(columnInfo.getGridField().getVO().displayType == DisplayType.Amount)
+									if(columnInfo.getGridField().getVO().displayType == DisplayType.Amount
+											|| columnInfo.getGridField().getVO().displayType == DisplayType.CostPrice)
 									{
-										format.setMinimumFractionDigits(m_Currency.getStdPrecision());
-									}else {
-										format.setMinimumFractionDigits(m_Currency.getCostingPrecision());
+										if(columnInfo.getGridField().getVO().displayType == DisplayType.Amount)
+										{
+											format.setMinimumFractionDigits(m_Currency.getStdPrecision());
+										}else {
+											format.setMinimumFractionDigits(m_Currency.getCostingPrecision());
+										}
 									}
 								}
 							}
@@ -918,7 +921,7 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 
 	private void setCurrency(WListbox table,int rowIndex,Object data)
 	{
-		if(rowIndex == 0)
+		if(rowIndex == 0 && table != null)
 		{
 			//Initialize per page because display logic;
 			C_Currency_ColumnIndex = -1;
