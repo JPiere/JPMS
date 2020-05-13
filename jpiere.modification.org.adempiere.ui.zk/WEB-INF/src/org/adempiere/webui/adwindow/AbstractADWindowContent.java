@@ -1352,7 +1352,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 			toolbar.setPressed("JPiereAttachment",hasAttachment( adTabbox.getSelectedGridTab()) );
 
 		if(!toolbar.getButton("PostIt").isInvalidated())//JPIERE-0437
-			toolbar.getButton("PostIt").setPressed(adTabbox.getSelectedGridTab().hasPostIt());
+			toolbar.setPressed("PostIt",adTabbox.getSelectedGridTab().hasPostIt());
 
 		if(!toolbar.getButton("Chat").isInvalidated())//JPIERE-0437
 			toolbar.setPressed("Chat",adTabbox.getSelectedGridTab().hasChat());
@@ -2715,7 +2715,12 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 			if (adTabbox.getSelectedGridTab().getRecord_ID() <= 0)
 				return;
 			else
-				AEnv.startWorkflowProcess(adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getRecord_ID());
+				try {
+					AEnv.startWorkflowProcess(adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getRecord_ID());
+				} catch (Exception e) {
+					CLogger.get().saveError("Error", e);
+					throw new ApplicationException(e.getMessage(), e);
+				}
 		}
 	}
 	//
