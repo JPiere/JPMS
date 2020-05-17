@@ -237,49 +237,55 @@ public abstract class AbstractExcelExporter
 		//JPIERE-0463:Fraction control of Amount and CostPrice --- Start
 		if(C_Currency_ColumnIndex > -1 &&( DisplayType.Amount ==displayType || DisplayType.CostPrice ==displayType) )
 		{
-			String ISO_CODE = (String)getValueAt(row, C_Currency_ColumnIndex);
-
-			String key = "cell-"+col+"-"+displayType+"-"+ISO_CODE;
-			HSSFCellStyle cs = m_styles.get(key);
-			if (cs == null)
+			Object obj = getValueAt(row, C_Currency_ColumnIndex);
+			if(obj instanceof String)
 			{
-				cs = m_workbook.createCellStyle();
-				HSSFFont font = getFont(false);
-				cs.setFont(font);
-				// Border
-//				cs.setBorderLeft(BorderStyle.THIN);		//JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
-//				cs.setBorderTop(BorderStyle.THIN);		//JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
-//				cs.setBorderRight(BorderStyle.THIN);	//JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
-//				cs.setBorderBottom(BorderStyle.THIN);	//JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
+				String ISO_CODE = (String)getValueAt(row, C_Currency_ColumnIndex);
 
-				MCurrency currency = MCurrency.get(getCtx(), ISO_CODE);
-				if(currency != null)
+				String key = "cell-"+col+"-"+displayType+"-"+ISO_CODE;
+				HSSFCellStyle cs = m_styles.get(key);
+				if (cs == null)
 				{
-					StringBuffer cellFormat = new StringBuffer("###,###");
-					if(DisplayType.Amount ==displayType)
+					cs = m_workbook.createCellStyle();
+					HSSFFont font = getFont(false);
+					cs.setFont(font);
+					// Border
+	//				cs.setBorderLeft(BorderStyle.THIN);		//JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
+	//				cs.setBorderTop(BorderStyle.THIN);		//JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
+	//				cs.setBorderRight(BorderStyle.THIN);	//JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
+	//				cs.setBorderBottom(BorderStyle.THIN);	//JPIERE-0463 would not like to import "org.apache.poi.ss.usermodel"
+
+					MCurrency currency = MCurrency.get(getCtx(), ISO_CODE);
+					if(currency != null)
 					{
-						for(int i = 0; i < currency.getStdPrecision(); i++)
+						StringBuffer cellFormat = new StringBuffer("#,###");
+						if(DisplayType.Amount ==displayType)
 						{
-							if(i == 0)
-								cellFormat = cellFormat.append(".");
-							cellFormat = cellFormat.append("0");
+							for(int i = 0; i < currency.getStdPrecision(); i++)
+							{
+								if(i == 0)
+									cellFormat = cellFormat.append(".");
+								cellFormat = cellFormat.append("0");
+							}
+
+						}else if(DisplayType.CostPrice ==displayType) {
+
+							for(int i = 0; i < currency.getCostingPrecision(); i++)
+							{
+								if(i == 0)
+									cellFormat = cellFormat.append(".");
+								cellFormat = cellFormat.append("0");
+							}
 						}
 
-					}else if(DisplayType.CostPrice ==displayType) {
-
-						for(int i = 0; i < currency.getCostingPrecision(); i++)
-						{
-							if(i == 0)
-								cellFormat = cellFormat.append(".");
-							cellFormat = cellFormat.append("0");
-						}
+						cs.setDataFormat(m_dataFormat.getFormat(cellFormat.toString()));
+						m_styles.put(key, cs);
 					}
-
-					cs.setDataFormat(m_dataFormat.getFormat(cellFormat.toString()));
-					m_styles.put(key, cs);
 				}
+
+				return cs;
 			}
-			return cs;
+
 		}//JPIERE-0463 --- End
 
 		String key = "cell-"+col+"-"+displayType;
