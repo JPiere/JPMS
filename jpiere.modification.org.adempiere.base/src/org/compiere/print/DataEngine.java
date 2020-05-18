@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MLookupFactory;
 import org.compiere.model.MQuery;
+import org.compiere.model.MReportView;
 import org.compiere.model.MRole;
 import org.compiere.model.MTable;
 import org.compiere.util.CLogMgt;
@@ -725,7 +726,7 @@ public class DataEngine
 		}
 
 		//	Add ORDER BY clause
-		if (orderColumns != null)
+		if (orderColumns != null && orderColumns.size() > 0)
 		{
 			for (int i = 0; i < orderColumns.size(); i++)
 			{
@@ -739,6 +740,15 @@ public class DataEngine
 				finalSQL.append(by);
 			}
 		}	//	order by
+		else if (format.getAD_ReportView_ID() > 0)
+		{
+			MReportView reportView = MReportView.get(Env.getCtx(),format.getAD_ReportView_ID());
+
+			if (reportView!=null && !Util.isEmpty(reportView.getOrderByClause(), true))
+			{
+				finalSQL.append(" ORDER BY ").append(reportView.getOrderByClause());
+			}
+		} // Report view order by clause.
 
 		//JPIERE-0264:Limit Report Rows
 		if(getLimitCount() > 0)
