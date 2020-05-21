@@ -427,10 +427,13 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 				{
 					GridTab parentTab = null;
 					Map<Integer, MQuery>queryMap = new TreeMap<Integer, MQuery>();
+					Map<Integer, MQuery>childrenQueryMap = new TreeMap<Integer, MQuery>();//JPIERE-0464: JPiere Zoom to Detail
 
 					for (int parentId : parentIds)
 					{
 						Map<Integer, Object[]>parentMap = new TreeMap<Integer, Object[]>();
+						Map<Integer, Object[]>childrenMap = new TreeMap<Integer, Object[]>();//JPIERE-0464: JPiere Zoom to Detail
+
 						int index = tabIndex;
 						int oldpid = parentId;
 						GridTab currentTab = gTab;
@@ -450,7 +453,15 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 										int pid = DB.getSQLValue(null, "SELECT " + pTab.getLinkColumnName() + " FROM " + pTab.getTableName() + " WHERE " + currentTab.getLinkColumnName() + " = ?", oldpid);
 										if (pid > 0)
 										{
-											parentMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
+											//JPIERE-0464: JPiere Zoom to Detail -- start
+											if(MSysConfig.getBooleanValue("JPIERE_ZOOM_TO_DETAIL", true, Env.getAD_Client_ID(Env.getCtx())))
+											{
+												parentMap.put(index, new Object[]{pTab.getLinkColumnName(), pid});
+												childrenMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
+											}else {
+												parentMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
+											}
+											//JPIERE-0464: JPiere Zoom to Detail -- end
 											oldpid = pid;
 											currentTab = pTab;
 										}
@@ -464,6 +475,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 								else
 								{
 									parentMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
+									childrenMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});//JPIERE-0464: JPiere Zoom to Detail
 								}
 							}
 						}
@@ -484,6 +496,28 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 								pquery.addRestriction((String)value[0], "=", value[1], null, null, false, 0);
 							}
 						}
+
+						//JPIERE-0464: JPiere Zoom to Detail -- start
+						if(MSysConfig.getBooleanValue("JPIERE_ZOOM_TO_DETAIL", true, Env.getAD_Client_ID(Env.getCtx())))
+						{
+							for(Map.Entry<Integer, Object[]> entry : childrenMap.entrySet())
+							{
+								GridTab pTab = gridWindow.getTab(entry.getKey());
+								Object[] value = entry.getValue();
+								MQuery pquery = childrenQueryMap.get(entry.getKey());
+								if (pquery == null)
+								{
+									pquery = new MQuery(pTab.getAD_Table_ID());
+									pquery.setZoomValue(value[1]);
+									childrenQueryMap.put(entry.getKey(), pquery);
+									pquery.addRestriction((String)value[0], "=", value[1]);
+								}
+								else
+								{
+									pquery.addRestriction((String)value[0], "=", value[1], null, null, false, 0);
+								}
+							}
+						}//JPIERE-0464 -- end
 					}
 
 					for (Map.Entry<Integer, MQuery> entry : queryMap.entrySet())
@@ -501,6 +535,51 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         					tp.query();
         					pTab.setQuery(entry.getValue());
         					tp.query();
+
+        					//JPIERE-0464: JPiere Zoom to Detail -- start
+        					if(MSysConfig.getBooleanValue("JPIERE_ZOOM_TO_DETAIL", true, Env.getAD_Client_ID(Env.getCtx())))
+    						{
+        						MQuery childQuery = childrenQueryMap.get(entry.getKey());
+            					int zoom_ID = Integer.parseInt(childQuery.getZoomValue().toString());
+
+            					int zoomColumnIndex = -1;
+            					GridTable table = pTab.getTableModel();
+            					for (int i = 0; i < table.getColumnCount(); i++)
+            					{
+            						if (table.getColumnName(i).equalsIgnoreCase(gTab.getLinkColumnName()))
+            						{
+            							zoomColumnIndex = i;
+            							break;
+            						}
+            					}
+
+                				int count = table.getRowCount();
+                				for(int i = 0; i < count; i++)
+                				{
+                					int id = -1;
+                					if (zoomColumnIndex >= 0)
+                					{
+                						Object zoomValue = table.getValueAt(i, zoomColumnIndex);
+                						if (zoomValue != null && zoomValue instanceof Number)
+                						{
+                							id = ((Number)zoomValue).intValue();
+                						}
+                					}
+                					else
+                					{
+                						id = table.getKeyID(i);
+                					}
+
+                					if (id == zoom_ID)
+                					{
+                						pTab.setCurrentRow(i);
+                						parentTab = pTab;
+                						//tp.getGridView().onPostSelectedRowChanged();
+                						break;
+                					}
+                				}
+    						}
+            				//JPIERE-0464 -- end
         				}
 					}
 
@@ -1165,7 +1244,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
 			MPInstance instance = new MPInstance(ctx, pi.getAD_PInstance_ID(), "false");
 			if (!instance.isRunAsJob()){
-				// when run as job, don't expect see its effect when close parameter panel, so don't refresh 
+				// when run as job, don't expect see its effect when close parameter panel, so don't refresh
     			onRefresh(true, false);
 			}
 
