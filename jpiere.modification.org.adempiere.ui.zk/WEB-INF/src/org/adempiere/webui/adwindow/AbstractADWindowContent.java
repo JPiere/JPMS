@@ -1849,6 +1849,17 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         	adTabbox.evaluate(e);
         }
 
+        //JPIERE-0181 & 0464 -- start
+        if(!detailTab
+        	&& MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx()))
+        	&& isMaxRecords(true, e))
+        {
+
+        	toolbar.enableNew(false);
+        	toolbar.enableCopy(false);
+        }
+        //JPIERE-0181 & 0464  -- end
+
         boolean isNewRow = adTabbox.getSelectedGridTab().getRowCount() == 0 || adTabbox.getSelectedGridTab().isNew();
         toolbar.enableArchive(!isNewRow);
         toolbar.enableZoomAcross(!isNewRow);
@@ -1993,6 +2004,12 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
     @Override
     public void onNew()
     {
+    	//JJPIERE-0181 & 0464 -- start
+    	if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx()))
+    		&& isMaxRecords(true, null))
+    		return;
+    	//JPIERE-0181 & 0464 -- end
+
     	final Callback<Boolean> postCallback = new Callback<Boolean>() {
 			@Override
 			public void onCallback(Boolean result) {
@@ -2076,6 +2093,12 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
     @Override
     public void onCopy()
     {
+    	//JJPIERE-0181 & 0464 -- start
+    	if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx()))
+    		&& isMaxRecords(true, null))
+    		return;
+    	//JPIERE-0181 & 0464 -- end
+
     	final Callback<Boolean> postCallback = new Callback<Boolean>() {
 			@Override
 			public void onCallback(Boolean result) {
@@ -2199,6 +2222,8 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 				        	onNew();
 				        else {
 				        	adTabbox.getSelectedGridTab().dataRefresh(false); // Elaine 2008/07/25
+
+				        	isMaxRecords(true, null);//JPIERE-0181 & 0464
 
 				        	if (!adTabbox.getSelectedTabpanel().isGridView()) { // See if we should force the grid view
 
@@ -3601,11 +3626,17 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 	}
 
 
+	/*
+	 * JPIERE-0436 JPiere Attachemnt File
+	 */
 	private boolean hasAttachment(GridTab gridTab)
 	{
 		return getAD_AttachmentID(gridTab) > 0;
 	}	//	hasAttachment
 
+	/*
+	 * JPIERE-0436 JPiere Attachemnt File
+	 */
 	private int getAD_AttachmentID(GridTab gridTab)
 	{
 //		if (!canHaveAttachment())
@@ -3613,4 +3644,44 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 		int recordID = gridTab.getKeyID(gridTab.getCurrentRow());
 		return MAttachmentFileRecord.getID(gridTab.getAD_Table_ID(), recordID);
 	}	//	getAttachmentID
+
+
+
+	/**
+	 *
+	 * JPIERE-0464: Improvement of Max Records Controle at Window.
+	 * JPIERE-0181: Peformace improvement to Find Widnow
+	 *
+	 * @param isDisplayDialog
+	 * @param dse
+	 * @return
+	 */
+	private boolean isMaxRecords(boolean isDisplayDialog, DataStatusEvent dse)
+	{
+		if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT", false, Env.getAD_Client_ID(Env.getCtx())))
+			return false;
+
+		int maxRow = adTabbox.getSelectedGridTab().getMaxQueryRecords();
+		if(maxRow <= 0)
+			return false;
+
+    	int rowCount =adTabbox.getSelectedGridTab().getTableModel().getRowCount();
+    	boolean isMaxRecords = rowCount >= maxRow;
+    	if(isMaxRecords &&  isDisplayDialog && (dse == null || !isDisplayedDeialog))
+    	{
+    		isDisplayedDeialog = true;
+
+        	if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx())))
+        	{
+        		FDialog.warn(adTabbox.getSelectedGridTab().getWindowNo(), null, "FindOverMax", Msg.getElement(ctx, "MaxQueryRecords")+ " : " + Integer.toString(maxRow)
+        									+ System.lineSeparator() + Msg.getMsg(ctx, "JP_FindWindow_Count_Action_Control"));
+        	}else {
+        		FDialog.warn(adTabbox.getSelectedGridTab().getWindowNo(), null, "FindOverMax", Msg.getElement(ctx, "MaxQueryRecords")+ " : " + Integer.toString(maxRow));
+        	}
+    	}
+
+		return isMaxRecords;
+	}
+
+	private boolean isDisplayedDeialog = false;//JPIERE-0464 & 0181
 }
