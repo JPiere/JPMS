@@ -21,30 +21,23 @@ import static org.compiere.model.SystemIDs.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.adempiere.base.Service;
 import org.adempiere.base.event.EventManager;
 import org.adempiere.base.event.IEventManager;
 import org.adempiere.base.event.IEventTopics;
 import org.adempiere.model.MBroadcastMessage;
-import org.adempiere.util.ServerContext;
 import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.adwindow.ADWindow;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.BusyDialog;
-import org.adempiere.webui.apps.DesktopRunnable;
 import org.adempiere.webui.apps.ProcessDialog;
 import org.adempiere.webui.apps.WReport;
-import org.adempiere.webui.component.DesktopTabpanel;
 import org.adempiere.webui.component.Tab;
 import org.adempiere.webui.component.Tabpanel;
 import org.adempiere.webui.component.ToolBar;
@@ -54,21 +47,16 @@ import org.adempiere.webui.event.DrillEvent;
 import org.adempiere.webui.event.MenuListener;
 import org.adempiere.webui.event.ZKBroadCastManager;
 import org.adempiere.webui.event.ZoomEvent;
-import org.adempiere.webui.factory.IFormFactory;
 import org.adempiere.webui.panel.ADForm;
 import org.adempiere.webui.panel.BroadcastMessageWindow;
 import org.adempiere.webui.panel.HeaderPanel;
 import org.adempiere.webui.panel.HelpController;
 import org.adempiere.webui.panel.TimeoutPanel;
-import org.adempiere.webui.session.SessionContextListener;
 import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.theme.ThemeManager;
-import org.adempiere.webui.util.IServerPushCallback;
-import org.adempiere.webui.util.ServerPushTemplate;
 import org.adempiere.webui.util.UserPreference;
 import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
-import org.compiere.Adempiere;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.I_AD_Preference;
@@ -77,8 +65,8 @@ import org.compiere.model.MPreference;
 import org.compiere.model.MQuery;
 import org.compiere.model.MRole;
 import org.compiere.model.MTable;
-import org.compiere.model.MWindow;
 import org.compiere.model.Query;
+import org.compiere.model.SystemIDs;
 import org.compiere.model.X_AD_CtxHelp;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -389,30 +377,10 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
     		layout.getDesktop().enableServerPush(true);
     	}
 
-        Runnable runnable = new Runnable() {
-			public void run() {
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {}
-
-				IServerPushCallback callback = new IServerPushCallback() {
-					public void updateUI() {
-						Properties ctx = (Properties)layout.getDesktop().getSession().getAttribute(SessionContextListener.SESSION_CTX);
-						try {
-							ServerContext.setCurrentInstance(ctx);
+        Executions.schedule(layout.getDesktop(), event -> {
 							renderHomeTab();
-							automaticOpen(ctx);
-						} finally {
-							ServerContext.dispose();
-						}
-					}
-				};
-				ServerPushTemplate template = new ServerPushTemplate(layout.getDesktop());
-				template.executeAsync(callback);
-			}
-		};
-
-		Adempiere.getThreadPoolExecutor().submit(new DesktopRunnable(runnable,layout.getDesktop()));
+        	automaticOpen(Env.getCtx());
+        }, new Event("onRenderHomeTab"));        
 
 		ToolBar toolbar = windowContainer.getToobar();
 
