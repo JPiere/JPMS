@@ -21,7 +21,6 @@ import java.lang.ref.WeakReference;
 import java.util.Enumeration;
 import java.util.List; //JPIERE-0450 plugin of Desktop
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -71,8 +70,6 @@ import org.zkoss.zk.ui.event.ClientInfoEvent;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
-import org.zkoss.zk.ui.sys.DesktopCache;
-import org.zkoss.zk.ui.sys.SessionCtrl;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Window;
 
@@ -92,8 +89,6 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 	 *
 	 */
 	private static final long serialVersionUID = -3320656546509525766L;
-
-	private static final String SAVED_CONTEXT = "saved.context";
 
 	public static final String APPLICATION_DESKTOP_KEY = "application.desktop";
 
