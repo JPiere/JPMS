@@ -2,9 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: jpiere.modification.org.adempiere.ui.zk
 Bundle-SymbolicName: jpiere.modification.org.adempiere.ui.zk;singleton:=true
-Bundle-Version: 7.1.0.qualifier
+Bundle-Version: 8.2.0.qualifier
 Bundle-Vendor: OSS ERP Solutions
-Fragment-Host: org.adempiere.ui.zk;bundle-version="7.1.0"
+Fragment-Host: org.adempiere.ui.zk;bundle-version="8.2.0"
 Automatic-Module-Name: jpiere.modification.org.adempiere.ui.zk
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Service-Component: OSGI-INF/*.xml

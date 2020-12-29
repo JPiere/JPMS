@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -673,6 +674,9 @@ public class DataEngine
 			hasLevelNo = true;
 			if (sqlSELECT.indexOf("LevelNo") == -1)
 				sqlSELECT.append("LevelNo,");
+
+			if (tableName.equals("T_Report") && sqlSELECT.indexOf("PA_ReportLine_ID") == -1)
+				sqlSELECT.append("PA_ReportLine_ID,");
 		}
 
 		/**
@@ -856,6 +860,7 @@ public class DataEngine
 		PrintDataColumn pdc = null;
 		boolean hasLevelNo = pd.hasLevelNo();
 		int levelNo = 0;
+		int reportLineID = 0;
 		//
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -864,11 +869,29 @@ public class DataEngine
 			pstmt = DB.prepareNormalReadReplicaStatement(pd.getSQL(), m_trxName);
 			rs = pstmt.executeQuery();
 
+			boolean isExistsT_Report_PA_ReportLine_ID = false;
+			if (pd.getTableName().equals("T_Report"))
+			{
+				ResultSetMetaData rsmd = rs.getMetaData();
+				for (int i = 1; i <= rsmd.getColumnCount(); i++)
+				{
+					if (rsmd.getColumnLabel(i).equalsIgnoreCase("PA_ReportLine_ID"))
+					{
+						isExistsT_Report_PA_ReportLine_ID = true;
+						break;
+					}
+				}
+			}
+
 			//	Row Loop
 			while (rs.next())
 			{
 				if (hasLevelNo)
+				{
 					levelNo = rs.getInt("LevelNo");
+					if (isExistsT_Report_PA_ReportLine_ID)
+						reportLineID = rs.getInt("PA_ReportLine_ID");
+				}
 				else
 					levelNo = 0;
 				//	Check Group Change ----------------------------------------
@@ -945,7 +968,7 @@ public class DataEngine
 
 				/** Report Summary FR [ 2011569 ]**/
 				if(!m_summary)
-					pd.addRow(false, levelNo);
+					pd.addRow(false, levelNo, reportLineID);
 				int counter = 1;
 				//	get columns
 				for (int i = 0; i < pd.getColumnInfo().length; i++)

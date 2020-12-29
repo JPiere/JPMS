@@ -153,6 +153,11 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
         else
         {
         	Clients.showBusy(null);
+        	if (session.getAttribute(CLIENT_INFO) != null)
+        	{
+        		clientInfo = (ClientInfo) session.getAttribute(CLIENT_INFO);
+        	}
+        	getRoot().addEventListener(Events.ON_CLIENT_INFO, this);
         	//use echo event to make sure server push have been started when loginCompleted is call
         	Events.echoEvent(ON_LOGIN_COMPLETED, this, null);
         }
@@ -251,7 +256,7 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 
 		keyListener = new Keylistener();
 		keyListener.setPage(this.getPage());
-		keyListener.setCtrlKeys("@a@c@d@e@f@h@m@n@o@p@r@s@t@z@x@#left@#right@#up@#down@#home@#end#enter^u@u@#pgdn@#pgup");
+		keyListener.setCtrlKeys("@a@c@d@e@f@h@l@m@n@o@p@r@s@t@z@x@#left@#right@#up@#down@#home@#end#enter^u@u@#pgdn@#pgup$#f2^#f2");
 		keyListener.setAutoBlur(false);
 
 		//create new desktop
@@ -549,6 +554,10 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 		Env.setContext(properties, ITheme.ZK_TOOLBAR_BUTTON_SIZE, Env.getContext(Env.getCtx(), ITheme.ZK_TOOLBAR_BUTTON_SIZE));
 		Env.setContext(properties, ITheme.USE_CSS_FOR_WINDOW_SIZE, Env.getContext(Env.getCtx(), ITheme.USE_CSS_FOR_WINDOW_SIZE));
 		Env.setContext(properties, ITheme.USE_FONT_ICON_FOR_IMAGE, Env.getContext(Env.getCtx(), ITheme.USE_FONT_ICON_FOR_IMAGE));
+		Env.setContext(properties, "#clientInfo_desktopWidth", clientInfo.desktopWidth);
+		Env.setContext(properties, "#clientInfo_desktopHeight", clientInfo.desktopHeight);
+		Env.setContext(properties, "#clientInfo_orientation", clientInfo.orientation);
+		Env.setContext(properties, "#clientInfo_mobile", clientInfo.tablet);
 
 		Desktop desktop = Executions.getCurrent().getDesktop();
 		Locale locale = (Locale) desktop.getSession().getAttribute(Attributes.PREFERRED_LOCALE);
