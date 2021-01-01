@@ -81,6 +81,11 @@ import org.compiere.util.ValueNamePair;
  *  @author Carlos Ruiz - globalqss [ 2141475 ] Payment <> allocations must not be completed - implement lots of validations on prepareIt
  *  @version 	$Id: MPayment.java,v 1.4 2006/10/02 05:18:39 jjanke Exp $
  */
+
+/**
+ * Modify Info
+ * JPIERE-0218: 出納帳が記帳されるまで入金伝票を完成にしない(Complete Payment after recondile with Bank Statement)
+ */
 public class MPayment extends X_C_Payment
 	implements DocAction, ProcessCall, PaymentInterface
 {
@@ -739,7 +744,7 @@ public class MPayment extends X_C_Payment
 						|| (getC_Project_ID() != 0 && getC_Invoice_ID() == 0)));
 			}
 		}
-		
+
 		if (isPrepayment())
 		{
 			if (newRecord
@@ -825,7 +830,7 @@ public class MPayment extends X_C_Payment
 
 		if (!isProcessed())
 		{
-			MClientInfo info = MClientInfo.get(getCtx(), getAD_Client_ID(), get_TrxName()); 
+			MClientInfo info = MClientInfo.get(getCtx(), getAD_Client_ID(), get_TrxName());
 			MAcctSchema as = MAcctSchema.get (getCtx(), info.getC_AcctSchema1_ID(), get_TrxName());
 			if (as.getC_Currency_ID() != getC_Currency_ID())
 			{
@@ -2012,6 +2017,14 @@ public class MPayment extends X_C_Payment
 				return status;
 		}
 
+
+		/**
+		 * JPIERE-0218: 出納帳が記帳されるまで入金伝票を完成にしない
+		 * JPBPでモデルバリデーターを使用して実装する事も可能である、
+		 * 伝票ステータスを確認中にしたいために、JPMSとして実装。
+		 *
+		 * JPIERE-0218: Complete Payment after recondile with Bank Statement
+		 */
 		//JPIERE-0218 -- Start
 		MDocType dt = MDocType.get(getCtx(), getC_DocType_ID());
 		if(dt.get_ValueAsBoolean("IsCompleteAfterReconciledJP"))
@@ -2060,13 +2073,13 @@ public class MPayment extends X_C_Payment
 			//	Update total balance to include this payment
 			BigDecimal payAmt = null;
 			int baseCurrencyId = Env.getContextAsInt(getCtx(), "$C_Currency_ID");
-			if (getC_Currency_ID() != baseCurrencyId && isOverrideCurrencyRate()) 
+			if (getC_Currency_ID() != baseCurrencyId && isOverrideCurrencyRate())
 			{
 				payAmt = getConvertedAmt();
 			}
 			else
 			{
-				payAmt = MConversionRate.convertBase(getCtx(), getPayAmt(), 
+				payAmt = MConversionRate.convertBase(getCtx(), getPayAmt(),
 				getC_Currency_ID(), getDateAcct(), getC_ConversionType_ID(), getAD_Client_ID(), getAD_Org_ID());
 				if (payAmt == null)
 				{
@@ -2223,7 +2236,7 @@ public class MPayment extends X_C_Payment
 			return null;
 		//	Business Partner needs to be linked to Org
 		MBPartner bp = new MBPartner (getCtx(), getC_BPartner_ID(), get_TrxName());
-		int counterAD_Org_ID = bp.getAD_OrgBP_ID(); 
+		int counterAD_Org_ID = bp.getAD_OrgBP_ID();
 		if (counterAD_Org_ID == 0)
 			return null;
 
@@ -3082,7 +3095,7 @@ public class MPayment extends X_C_Payment
 		return paymentTransaction;
 	}
 
-	protected boolean voidOnlinePayment() 
+	protected boolean voidOnlinePayment()
 	{
 		if (getTenderType().equals(TENDERTYPE_CreditCard) && isOnline())
 		{

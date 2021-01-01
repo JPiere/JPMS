@@ -43,6 +43,12 @@ import org.compiere.util.DB;
  * 			<li>BF [ 2240484 ] Re MatchingPO, MMatchPO doesn't contains Invoice info
  *
  */
+
+/**
+ * Modify Info
+ * JPIERE-0224: マイナス数量の発注照合伝票作成(Create negative qty Match PO)
+ * JPIERE-0226: MMatchInvのgetInOutLine()メソッド不具合 (Bug fix - getInOutLine())
+ */
 public class MMatchInv extends X_M_MatchInv
 {
 	/**

@@ -51,8 +51,11 @@ import org.compiere.util.Util;
  * Abstract MS Excel Format (xls) Exporter
  * @author Teo Sarca, SC ARHIPAC SERVICE SRL
  *
+ */
+
+/**
+ * Modify Info
  * JPIERE-0463 Excel Export : Fraction control of Amount and CostPrice
- *
  */
 public abstract class AbstractExcelExporter
 {
@@ -125,7 +128,7 @@ public abstract class AbstractExcelExporter
 
 	/**
 	 * Check if there is a display logic
-	 * 
+	 *
 	 * @param row row index
 	 * @param col column index
 	 * @return true if there is no logic or evaluate logic specified in print item

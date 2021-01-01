@@ -61,6 +61,11 @@ import org.compiere.util.ValueNamePair;
  * 			<li> FR [ 2520591 ] Support multiples calendar for Org
  *			@see http://sourceforge.net/tracker2/?func=detail&atid=879335&aid=2520591&group_id=176962
  */
+
+/**
+ * Modify Info
+ * JPIERE-0224: マイナス数量の発注照合伝票作成(Create negative qty Match PO)
+ */
 public class MMatchPO extends X_M_MatchPO
 {
 	/**
@@ -554,7 +559,7 @@ public class MMatchPO extends X_M_MatchPO
 						}
 						throw new RuntimeException(msg);
 					}
-					
+
 					//auto create m_matchinv
 					Map<Integer, BigDecimal[]> noInvoiceLines = new HashMap<>();
 					Map<Integer, List<MMatchPO>> invoiceMatched = new HashMap<Integer, List<MMatchPO>>();
@@ -565,13 +570,13 @@ public class MMatchPO extends X_M_MatchPO
 					{
 						if (matchPO.getM_MatchPO_ID() == retValue.getM_MatchPO_ID())
 							continue;
-						
+
 						if (matchPO.getM_InOutLine_ID() > 0 && matchPO.getReversal_ID() == 0 && matchPO.getRef_MatchPO_ID() == 0)
 						{
 							if (matchPO.getC_InvoiceLine_ID() == 0)
 							{
 								String docStatus = matchPO.getM_InOutLine().getM_InOut().getDocStatus();
-								if (docStatus.equals(DocAction.STATUS_Completed) || docStatus.equals(DocAction.STATUS_Closed)) 
+								if (docStatus.equals(DocAction.STATUS_Completed) || docStatus.equals(DocAction.STATUS_Closed))
 								{
 									noInvoiceLines.put(matchPO.getM_MatchPO_ID(), new BigDecimal[]{matchPO.getQty()});
 									noInvoiceList.add(matchPO);
@@ -580,28 +585,28 @@ public class MMatchPO extends X_M_MatchPO
 							else
 							{
 								List<MMatchPO> invoices = invoiceMatched.get(matchPO.getM_InOutLine_ID());
-								if (invoices == null) 
+								if (invoices == null)
 								{
 									invoices = new ArrayList<MMatchPO>();
 									invoiceMatched.put(matchPO.getM_InOutLine_ID(), invoices);
 								}
 								invoices.add(matchPO);
 							}
-						} 
+						}
 					}
-					
+
 					//sort in created sequence
 					Collections.sort(noInvoiceList, new Comparator<MMatchPO>() {
 						@Override
 						public int compare(MMatchPO arg0, MMatchPO arg1) {
-							return arg0.getM_MatchPO_ID() > arg1.getM_MatchPO_ID() 
+							return arg0.getM_MatchPO_ID() > arg1.getM_MatchPO_ID()
 									? 1
 									: (arg0.getM_MatchPO_ID()==arg1.getM_MatchPO_ID() ? 0 : -1);
 						}
 					});
 
 					//goes through all matchpo that potentially have not been matched to any invoice yet
-					//calculate balance that have not been matched to invoice line 
+					//calculate balance that have not been matched to invoice line
 					for (MMatchPO matchPO : noInvoiceList)
 					{
 						BigDecimal[] qtyHolder = noInvoiceLines.get(matchPO.getM_MatchPO_ID());
@@ -624,14 +629,14 @@ public class MMatchPO extends X_M_MatchPO
 							if (balance.signum() > 0)
 							{
 								String docStatus = matchInv.getC_InvoiceLine().getC_Invoice().getDocStatus();
-								if (docStatus.equals(DocAction.STATUS_Completed) || docStatus.equals(DocAction.STATUS_Closed)) 
+								if (docStatus.equals(DocAction.STATUS_Completed) || docStatus.equals(DocAction.STATUS_Closed))
 								{
 									qtyHolder[0] = qtyHolder[0].subtract(balance);
 								}
 							}
-						}							
+						}
 					}
-					
+
 					//do matching
 					BigDecimal toMatch = retValue.getQty();
 					for (MMatchPO matchPO : noInvoiceList)
@@ -668,14 +673,14 @@ public class MMatchPO extends X_M_MatchPO
 				}
 			}
 		}
-		
+
 		if (C_OrderLine_ID > 0 && retValue != null)
 			MatchPOAutoMatch.match(ctx, C_OrderLine_ID, retValue, trxName);
-				
+
 		return retValue;
 	}	//	create
-	
-	protected static MMatchInv createMatchInv(MMatchPO mpo, int C_InvoiceLine_ID, int M_InOutLine_ID, BigDecimal qty, Timestamp dateTrx, String trxName) 
+
+	protected static MMatchInv createMatchInv(MMatchPO mpo, int C_InvoiceLine_ID, int M_InOutLine_ID, BigDecimal qty, Timestamp dateTrx, String trxName)
 	{
 								Savepoint savepoint = null;
 								Trx trx = null;
@@ -698,7 +703,7 @@ public class MMatchPO extends X_M_MatchPO
 									{
 										if (savepoint != null)
 										{
-											trx.getConnection().rollback(savepoint);								
+											trx.getConnection().rollback(savepoint);
 											savepoint = null;
 										}
 										else
@@ -714,18 +719,18 @@ public class MMatchPO extends X_M_MatchPO
 										s_log.severe(msg);
 										matchInv = null;
 									}
-								} catch (Exception e) {						
+								} catch (Exception e) {
 									s_log.log(Level.SEVERE, "Failed to auto match Invoice.", e);
 									matchInv = null;
 								} finally {
-									if (savepoint != null) 
+									if (savepoint != null)
 									{
 										try {
 											trx.getConnection().releaseSavepoint(savepoint);
 										} catch (Exception e) {}
-									}	
+									}
 								}
-		
+
 		return matchInv;
 							}
 
@@ -1088,8 +1093,8 @@ public class MMatchPO extends X_M_MatchPO
 	@Override
 	protected boolean afterSave (boolean newRecord, boolean success)
 	{
-		//perform matched qty validation
 		//JPIERE-0224 Create Nagative Qty Match PO
+		//perform matched qty validation
 //		if (success)
 //		{
 //			if (getM_InOutLine_ID() > 0)
@@ -1105,7 +1110,7 @@ public class MMatchPO extends X_M_MatchPO
 //			if (getC_InvoiceLine_ID() > 0)
 //			{
 //				MInvoiceLine line = new MInvoiceLine(getCtx(), getC_InvoiceLine_ID(), get_TrxName());
-//				BigDecimal matchedQty = DB.getSQLValueBD(get_TrxName(), "SELECT Coalesce(SUM(Qty),0) FROM M_MatchPO WHERE C_InvoiceLine_ID=?" , getC_InvoiceLine_ID());
+//				BigDecimal matchedQty = DB.getSQLValueBD(get_TrxName(), "SELECT Coalesce(SUM(Qty),0) FROM M_MatchPO WHERE C_InvoiceLine_ID=?  AND Reversal_ID IS NULL " , getC_InvoiceLine_ID() );
 //				if (matchedQty != null && matchedQty.compareTo(line.getQtyInvoiced()) > 0)
 //				{
 //					throw new IllegalStateException("Total matched qty > invoiced qty. MatchedQty="+matchedQty+", InvoicedQty="+line.getQtyInvoiced()+", Line="+line);
@@ -1118,16 +1123,24 @@ public class MMatchPO extends X_M_MatchPO
 //				if (validateOrderedQty)
 //				{
 //					MOrderLine line = new MOrderLine(getCtx(), getC_OrderLine_ID(), get_TrxName());
+//					BigDecimal qtyOrdered = line.getQtyOrdered();
 //					BigDecimal invoicedQty = DB.getSQLValueBD(get_TrxName(), "SELECT Coalesce(SUM(Qty),0) FROM M_MatchPO WHERE C_InvoiceLine_ID > 0 and C_OrderLine_ID=? AND Reversal_ID IS NULL" , getC_OrderLine_ID());
-//					if (invoicedQty != null && invoicedQty.compareTo(line.getQtyOrdered()) > 0)
+//					if (    invoicedQty != null
+//						&& (   (qtyOrdered.signum() > 0 && invoicedQty.compareTo(qtyOrdered) > 0)
+//						    || (qtyOrdered.signum() < 0 && invoicedQty.compareTo(qtyOrdered) < 0)
+//						   )
+//					   )
 //					{
-//						throw new IllegalStateException("Total matched invoiced qty > ordered qty. MatchedInvoicedQty="+invoicedQty+", OrderedQty="+line.getQtyOrdered()+", Line="+line);
+//						throw new IllegalStateException("Total matched invoiced qty > ordered qty. MatchedInvoicedQty="+invoicedQty+", OrderedQty="+qtyOrdered+", Line="+line);
 //					}
-//
 //					BigDecimal deliveredQty = DB.getSQLValueBD(get_TrxName(), "SELECT Coalesce(SUM(Qty),0) FROM M_MatchPO WHERE M_InOutLine_ID > 0 and C_OrderLine_ID=? AND Reversal_ID IS NULL" , getC_OrderLine_ID());
-//					if (deliveredQty != null && deliveredQty.compareTo(line.getQtyOrdered()) > 0)
+//					if (   deliveredQty != null
+//						&& (   (qtyOrdered.signum() > 0 && deliveredQty.compareTo(qtyOrdered) > 0)
+//						    || (qtyOrdered.signum() < 0 && deliveredQty.compareTo(qtyOrdered) < 0)
+//						   )
+//					   )
 //					{
-//						throw new IllegalStateException("Total matched delivered qty > ordered qty. MatchedDeliveredQty="+deliveredQty+", OrderedQty="+line.getQtyOrdered()+", Line="+line);
+//						throw new IllegalStateException("Total matched delivered qty > ordered qty. MatchedDeliveredQty="+deliveredQty+", OrderedQty="+qtyOrdered+", Line="+line);
 //					}
 //				}
 //			}

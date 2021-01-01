@@ -128,6 +128,11 @@ import org.zkoss.zul.Vlayout;
  *  @author     Sendy Yagambrum
  *  @date       June 27, 2007
  */
+ 
+ /**
+ * Modify Info
+ * JPIERE-0181 : Performance improvement of Find Window.
+ */
 public class FindWindow extends Window implements EventListener<Event>, ValueChangeListener, DialogEvents
 {
 	/**
@@ -729,7 +734,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
             /** START DEVCOFFEE **/
         }else {
 
-        	;//Noting to do;
+        	layout.appendChild(new Label(""));//For Display bottom line of Find Window
         }
       //JPIERE-0181:End
 
