@@ -55,6 +55,7 @@ import org.compiere.model.MLocation;				//JPIERE-3 Import MLocation to LayoutEng
 import org.compiere.model.MQuery;
 import org.compiere.model.MSysConfig;
 import org.compiere.model.MTable;
+import org.compiere.model.PO;
 import org.compiere.model.PrintInfo;
 import org.compiere.print.ArchiveEngine;
 import org.compiere.print.CPaper;
@@ -71,6 +72,7 @@ import org.compiere.print.util.SerializableMatrix;
 import org.compiere.print.util.SerializableMatrixImpl;
 import org.compiere.report.MReportLine;
 import org.compiere.util.CLogger;
+import org.compiere.util.CacheMgt;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
@@ -234,7 +236,7 @@ public class LayoutEngine implements Pageable, Printable, Doc
 	public static Dimension		IMAGE_SIZE = new Dimension(10,10);
 
 	private Map<MPrintFormatItem,PrintData> childPrintFormatDetails = new HashMap<MPrintFormatItem,PrintData>();
-	
+
 	public Boolean[] colSuppressRepeats;
 
 	static {
@@ -1217,14 +1219,14 @@ public class LayoutEngine implements Pageable, Printable, Doc
 					m_currPage.addElement (element);
 				else
 					m_headerFooter.addElement (element);
-				
+
 				if (PrintDataEvaluatee.hasPageLogic(item.getDisplayLogic()))
 				{
 					element.setPrintData(m_data);
 					element.setRowIndex(row);
 					element.setPageLogic(item.getDisplayLogic());
 				}
-				
+
 				//
 				if (m_lastHeight[m_area] > m_maxHeightSinceNewLine[m_area])
 					m_maxHeightSinceNewLine[m_area] = m_lastHeight[m_area];
@@ -1662,8 +1664,17 @@ public class LayoutEngine implements Pageable, Printable, Doc
 					additionalLines.put(Integer.valueOf(col), Integer.valueOf(item.getBelowColumn()-1));
 					if (!item.isSuppressNull())
 					{
+						if (item.is_Immutable())
+							item = new MPrintFormatItem(item);
 						item.setIsSuppressNull(true);	//	display size will be set to 0 in TableElement
-						item.saveEx();
+						try {
+							//this can be tenant or system print format
+							PO.setCrossTenantSafe();
+							item.saveEx();
+						} finally {
+							PO.clearCrossTenantSafe();
+						}
+						CacheMgt.get().reset(MPrintFormat.Table_Name, format.get_ID());
 					}
 				}
 				columnHeader[col] = new ValueNamePair(item.getColumnName(),
@@ -1740,7 +1751,7 @@ public class LayoutEngine implements Pageable, Printable, Doc
 						log.finer("PageBreak row=" + row);
 				}
 			}
-			//	Summary/Line Levels for Finanial Reports
+			//	Summary/Line Levels for Financial Reports
 			else
 			{
 				levelNo = printData.getLineLevelNo();
@@ -1869,13 +1880,13 @@ public class LayoutEngine implements Pageable, Printable, Doc
 
 		if (format == m_format)
 			this.colSuppressRepeats = colSuppressRepeats;
-		
+
 		if (hasPageLogic)
 		{
 			table.setPageLogics(pageLogics);
 			table.setTablePrintData(printData);
 		}
-		
+
 		return table;
 	}	//	layoutTable
 
@@ -2075,20 +2086,20 @@ public class LayoutEngine implements Pageable, Printable, Doc
 	{
 		childPrintFormatDetails.put(printFormatItem, printData);
 	}
-	
+
 	public Map<MPrintFormatItem, PrintData> getChildPrintFormatDetails()
 	{
 		return childPrintFormatDetails;
 	}
-	
+
 	private boolean isDisplayed(PrintData data, MPrintFormatItem item) {
 		if ( Util.isEmpty(item.getDisplayLogic() ))
 			return true;
 		boolean display = Evaluator.evaluateLogic(new PrintDataEvaluatee(getPage(getPageNo()), data), item.getDisplayLogic());
-		
+
 		return display;
 	}
-	
+
 	public static Boolean [] getColSuppressRepeats (MPrintFormat format){
 		if (format.isForm())
 			return null;

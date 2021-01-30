@@ -20,6 +20,7 @@ package org.adempiere.webui.adwindow;
 import static org.compiere.model.MSysConfig.*;
 import static org.compiere.model.SystemIDs.*;
 
+import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +32,7 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.logging.Level;
 
+import org.adempiere.exceptions.DBException;
 import org.adempiere.util.Callback;
 import org.adempiere.webui.AdempiereIdGenerator;
 import org.adempiere.webui.AdempiereWebUI;
@@ -741,8 +743,14 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 		    	fTabPanel.createUI();
 		    	if (!m_queryInitiating)
 				{
-					initFirstTabpanel();
-				}
+		    		try {
+						initFirstTabpanel();
+		    		} catch (Exception e) {
+		        		if (DBException.isTimeout(e)) {
+		        			FDialog.error(curWindowNo, GridTable.LOAD_TIMEOUT_ERROR_MESSAGE);
+		        		}
+					}
+		    	}
 		    }
 
 		    if (!m_queryInitiating && tabIndex == 0)
@@ -2045,7 +2053,19 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 	protected void doOnRefresh(final boolean fireEvent) {
 		IADTabpanel headerTab = adTabbox.getSelectedTabpanel();
 		IADTabpanel detailTab = adTabbox.getSelectedDetailADTabpanel();
-		adTabbox.getSelectedGridTab().dataRefreshAll(fireEvent, true);
+		try {
+			adTabbox.getSelectedGridTab().dataRefreshAll(fireEvent, true);
+		} catch (Exception e) {			
+			if (DBException.isTimeout(e)) {
+				FDialog.error(getWindowNo(), "GridTabLoadTimeoutError");
+			} else {
+				FDialog.error(getWindowNo(), "Error", e.getMessage());
+				logger.log(Level.SEVERE, e.getMessage(), e);
+			}
+			adTabbox.getSelectedGridTab().reset();
+			return;
+		}
+		
 		adTabbox.getSelectedGridTab().refreshParentTabs();
 		headerTab.dynamicDisplay(0);
 		if (detailTab != null)
@@ -3119,7 +3139,18 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 		if (query != null) {
 			m_onlyCurrentRows = false;
 			adTabbox.getSelectedGridTab().setQuery(query);
-			adTabbox.getSelectedTabpanel().query(m_onlyCurrentRows, m_onlyCurrentDays, MRole.getDefault().getMaxQueryRecords());   //  autoSize
+			try {
+				adTabbox.getSelectedTabpanel().query(m_onlyCurrentRows, m_onlyCurrentDays, MRole.getDefault().getMaxQueryRecords());   //  autoSize
+			} catch (Exception e) {
+				if (   e.getCause() != null 
+					&& e.getCause() instanceof SQLException
+					&& DB.getDatabase().isQueryTimeout((SQLException)e.getCause())) {
+					// ignore, is captured somewhere else
+	        		return;
+				} else {
+					throw new DBException(e);
+				}
+			}
 		}
 
 		adTabbox.getSelectedGridTab().dataRefresh(false);

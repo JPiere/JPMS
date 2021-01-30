@@ -94,6 +94,7 @@ import org.compiere.model.PrintInfo;
 import org.compiere.print.layout.LayoutEngine;
 import org.compiere.print.layout.PrintDataEvaluatee;
 import org.compiere.process.ProcessInfo;
+import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.ServerProcessCtl;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -1158,7 +1159,7 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 									{
 										data = getValueDisplay(language, getC_Currency_ID(m_printData),pde);
 									}else{
-										data = pde.getValueDisplay(language);
+										data = pde.getValueDisplay(language);	//	formatted
 									}
 								}					//JPiere-0003 Finish
 
@@ -1477,6 +1478,10 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 		{
 			if (m_printFormat != null && m_printFormat.getJasperProcess_ID() > 0) {
 				ProcessInfo pi = new ProcessInfo ("", m_printFormat.getJasperProcess_ID(), m_printFormat.getAD_Table_ID(), m_info.getRecord_ID());
+				if (m_printFormat.getLanguage() != null && m_printFormat.getLanguage().getAD_Language() != null) {
+					ProcessInfoParameter reportLanguagePip = new ProcessInfoParameter("AD_Language", m_printFormat.getLanguage().getAD_Language(), null, null, null);
+					pi.setParameter(new ProcessInfoParameter[] {reportLanguagePip});
+				}
 				pi.setIsBatch(true);
 				pi.setPDFFileName(fileName);
 				ServerProcessCtl.process(pi, (m_trxName == null ? null : Trx.get(m_trxName, false)));
