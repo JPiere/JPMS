@@ -1297,6 +1297,9 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
             }
             if(!selected) listColumn.setSelectedIndex(0);
 
+            if (liCol != null)
+            	addOperators(liCol, listOperator);
+
             selected = false;
             for (int i = 0; i < op.length; i++)
             {
