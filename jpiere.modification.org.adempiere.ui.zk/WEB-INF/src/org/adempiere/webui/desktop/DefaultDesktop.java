@@ -66,7 +66,6 @@ import org.compiere.model.MQuery;
 import org.compiere.model.MRole;
 import org.compiere.model.MTable;
 import org.compiere.model.Query;
-import org.compiere.model.SystemIDs;
 import org.compiere.model.X_AD_CtxHelp;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -380,7 +379,7 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
         Executions.schedule(layout.getDesktop(), event -> {
 							renderHomeTab();
         	automaticOpen(Env.getCtx());
-        }, new Event("onRenderHomeTab"));        
+        }, new Event("onRenderHomeTab"));
 
 		ToolBar toolbar = windowContainer.getToobar();
 
@@ -931,6 +930,15 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 
 			};
 
+
+			//JPIERE-0480-Begin:  A little wait For prevent ToDo Reminder Message Error,
+			try {
+				Thread.sleep(20);
+			} catch (InterruptedException e) {
+				;
+			}
+			//JPIERE-0480-End
+
 			Executions.schedule(m_desktop, listner, new Event("OnBroadcast",
 					null, event.getProperty(IEventManager.EVENT_DATA)));
 
@@ -948,7 +956,7 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 		// don't show context for SetupWizard Form, is managed internally using wf and node ctxhelp
 //		if (recordId == SystemIDs.FORM_SETUP_WIZARD && X_AD_CtxHelp.CTXTYPE_Form.equals(ctxType))
 //			return;
-
+//
 //		Clients.response(new AuScript("zWatch.fire('onFieldTooltip', this);"));
 //		helpController.renderCtxHelp(ctxType, recordId);
 //
