@@ -389,7 +389,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         toolbar.enableFind(true);
         adTabbox.evaluate(null);
 
-        toolbar.updateToolbarAccess(adWindowId);
+        toolbar.updateToolbarAccess();
         updateToolbar();
         if (query == null && toolbar.initDefaultQuery()) {
         	doOnQueryChange();
@@ -2055,7 +2055,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 		IADTabpanel detailTab = adTabbox.getSelectedDetailADTabpanel();
 		try {
 			adTabbox.getSelectedGridTab().dataRefreshAll(fireEvent, true);
-		} catch (Exception e) {			
+		} catch (Exception e) {
 			if (DBException.isTimeout(e)) {
 				FDialog.error(getWindowNo(), "GridTabLoadTimeoutError");
 			} else {
@@ -2065,7 +2065,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 			adTabbox.getSelectedGridTab().reset();
 			return;
 		}
-		
+
 		adTabbox.getSelectedGridTab().refreshParentTabs();
 		headerTab.dynamicDisplay(0);
 		if (detailTab != null)
@@ -3142,7 +3142,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 			try {
 				adTabbox.getSelectedTabpanel().query(m_onlyCurrentRows, m_onlyCurrentDays, MRole.getDefault().getMaxQueryRecords());   //  autoSize
 			} catch (Exception e) {
-				if (   e.getCause() != null 
+				if (   e.getCause() != null
 					&& e.getCause() instanceof SQLException
 					&& DB.getDatabase().isQueryTimeout((SQLException)e.getCause())) {
 					// ignore, is captured somewhere else
