@@ -22,6 +22,7 @@ import java.util.Enumeration;
 import java.util.List; //JPIERE-0450 plugin of Desktop
 import java.util.Locale;
 import java.util.Properties;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -32,6 +33,7 @@ import javax.servlet.http.HttpSession;
 import org.adempiere.base.Service;			//JPIERE-0450 plugin of Desktop
 import org.adempiere.base.ServiceQuery;	//JPIERE-0450 plugin of Desktop
 import org.adempiere.util.ServerContext;
+import org.adempiere.util.ServerContextURLHandler;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.DrillCommand;
 import org.adempiere.webui.component.TokenCommand;
@@ -479,7 +481,7 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 			clientInfo.desktopXOffset = c.getDesktopXOffset();
 			clientInfo.desktopYOffset = c.getDesktopYOffset();
 			clientInfo.orientation = c.getOrientation();
-			clientInfo.timeZone = c.getTimeZone();
+			clientInfo.timeZone = TimeZone.getTimeZone(c.getZoneId());			
 			String ua = Servlets.getUserAgent((ServletRequest) Executions.getCurrent().getNativeRequest());
 			clientInfo.userAgent = ua;
 			ua = ua.toLowerCase();
@@ -543,9 +545,14 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 		//save context for re-login
 		Properties properties = new Properties();
 		Env.setContext(properties, Env.AD_CLIENT_ID, Env.getAD_Client_ID(Env.getCtx()));
+		Env.setContext(properties, "#AD_Client_Name", Env.getContext(Env.getCtx(), "#AD_Client_Name"));
 		Env.setContext(properties, Env.AD_ORG_ID, Env.getAD_Org_ID(Env.getCtx()));
 		Env.setContext(properties, Env.AD_USER_ID, user.getAD_User_ID());
+		Env.setContext(properties, "#SalesRep_ID", user.getAD_User_ID());
+		Env.setContext(properties, "#AD_User_Name", Env.getContext(Env.getCtx(), "#AD_User_Name"));
 		Env.setContext(properties, Env.AD_ROLE_ID, Env.getAD_Role_ID(Env.getCtx()));
+		Env.setContext(properties, "#AD_Role_Name", Env.getContext(Env.getCtx(), "#AD_Role_Name"));
+		Env.setContext(properties, "#User_Level", Env.getContext(Env.getCtx(), "#User_Level"));
 		Env.setContext(properties, Env.AD_ORG_NAME, Env.getContext(Env.getCtx(), Env.AD_ORG_NAME));
 		Env.setContext(properties, Env.M_WAREHOUSE_ID, Env.getContext(Env.getCtx(), Env.M_WAREHOUSE_ID));
 		Env.setContext(properties, UserPreference.LANGUAGE_NAME, Env.getContext(Env.getCtx(), UserPreference.LANGUAGE_NAME));
@@ -563,6 +570,8 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 		Locale locale = (Locale) desktop.getSession().getAttribute(Attributes.PREFERRED_LOCALE);
 		HttpServletRequest httpRequest = (HttpServletRequest) Executions.getCurrent().getNativeRequest();
 		Env.setContext(properties, SessionContextListener.SERVLET_SESSION_ID, httpRequest.getSession().getId());
+		if (Env.getCtx().get(ServerContextURLHandler.SERVER_CONTEXT_URL_HANDLER) != null)
+			properties.put(ServerContextURLHandler.SERVER_CONTEXT_URL_HANDLER, Env.getCtx().get(ServerContextURLHandler.SERVER_CONTEXT_URL_HANDLER));
 		
 		//stop key listener
 		if (keyListener != null) {
