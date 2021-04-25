@@ -1204,13 +1204,13 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
      */
     public void onExit(Callback<Boolean> callback)
     {
-    	if (!boolChanges)
+    	if (isPendingChanges())
     	{
-    		callback.onCallback(Boolean.TRUE);
+    		FDialog.ask(curWindowNo, null, "CloseUnSave?", callback);
     	}
     	else
     	{
-    		FDialog.ask(curWindowNo, null, "CloseUnSave?", callback);
+    		callback.onCallback(Boolean.TRUE);
     	}
 
     }
@@ -1589,14 +1589,6 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
     		if (adTabbox.getSelectedGridTab() != gridTab) detailTab = true;
     	}
 
-    	if (!detailTab)
-    	{
-	        String dbInfo = e.getMessage();
-	        if (logger.isLoggable(Level.INFO)) logger.info(dbInfo);
-	        if (adTabbox.getSelectedGridTab() != null && adTabbox.getSelectedGridTab().isQueryActive())
-	            dbInfo = "[ " + dbInfo + " ]";
-	        breadCrumb.setStatusDB(dbInfo, e, adTabbox.getSelectedGridTab());
-
 	        String adInfo = e.getAD_Message();
 	        if (   adInfo == null
 	        	|| GridTab.DEFAULT_STATUS_MESSAGE.equals(adInfo)
@@ -1608,8 +1600,12 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 	           ) {
 
 		        String prefix = null;
-		        if (dbInfo.contains("*") || dbInfo.contains("?")) // ? used when not-autosave
+	        	if (adTabbox.needSave(true, false) ||
+        			adTabbox.getSelectedGridTab().isNew() ||
+        			(adTabbox.getSelectedDetailADTabpanel() != null && adTabbox.getSelectedDetailADTabpanel().getGridTab().isNew())) {
+	        		// same condition as enableSave below
 		        	prefix = "*";
+	        	}
 
 		        String titleLogic = null;
 		        int windowID = getADTab().getSelectedGridTab().getAD_Window_ID();
@@ -1652,6 +1648,14 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
 		        SessionManager.getAppDesktop().setTabTitle(header, curWindowNo);
 	        }
+
+    	if (!detailTab)
+    	{
+	        String dbInfo = e.getMessage();
+	        if (logger.isLoggable(Level.INFO)) logger.info(dbInfo);
+	        if (adTabbox.getSelectedGridTab() != null && adTabbox.getSelectedGridTab().isQueryActive())
+	            dbInfo = "[ " + dbInfo + " ]";
+	        breadCrumb.setStatusDB(dbInfo, e, adTabbox.getSelectedGridTab());
     	}
     	else if (adTabbox.getSelectedDetailADTabpanel() == null)
     	{
@@ -1803,9 +1807,6 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         boolean deleteRecord = !readOnly;
         if (!detailTab)
         {
-	        //  update Change
-	        boolChanges = changed;
-
 	        if (insertRecord)
 	        {
 	            insertRecord = tabPanel.getGridTab().isInsertRecord();
