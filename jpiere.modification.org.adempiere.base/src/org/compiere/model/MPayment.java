@@ -668,7 +668,7 @@ public class MPayment extends X_C_Payment
 	 */
 	protected boolean beforeSave (boolean newRecord)
 	{
-		if (isComplete() &&
+		if (isProcessed() && 
 			! is_ValueChanged(COLUMNNAME_Processed) &&
             (   is_ValueChanged(COLUMNNAME_C_BankAccount_ID)
              || is_ValueChanged(COLUMNNAME_C_BPartner_ID)
@@ -1837,7 +1837,6 @@ public class MPayment extends X_C_Payment
 	protected String		m_processMsg = null;
 	/**	Just Prepared Flag			*/
 	protected boolean		m_justPrepared = false;
-	@SuppressWarnings("unused")
 	protected IProcessUI m_processUI;
 
 	/**
