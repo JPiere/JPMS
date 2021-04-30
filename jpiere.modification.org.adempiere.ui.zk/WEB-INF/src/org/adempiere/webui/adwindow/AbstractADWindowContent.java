@@ -187,8 +187,6 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
     protected String             title;
 
-    private boolean 			 boolChanges = false;
-
 	private int m_onlyCurrentDays = 0;
 
 	private Component parent;
@@ -3801,7 +3799,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 	}
 
 	public boolean isPendingChanges() {
-		return boolChanges;
+		return adTabbox.getDirtyADTabpanel() != null;
 	}
 
 	public void setADWindow(ADWindow adwindow) {
