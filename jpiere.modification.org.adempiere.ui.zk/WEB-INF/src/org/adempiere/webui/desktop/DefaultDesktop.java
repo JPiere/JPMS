@@ -64,8 +64,10 @@ import org.compiere.model.MMenu;
 import org.compiere.model.MPreference;
 import org.compiere.model.MQuery;
 import org.compiere.model.MRole;
+import org.compiere.model.MSysConfig;
 import org.compiere.model.MTable;
 import org.compiere.model.Query;
+import org.compiere.model.SystemIDs;
 import org.compiere.model.X_AD_CtxHelp;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -173,6 +175,7 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 
 	private ToolBarButton westBtn;
 
+	private boolean isDisplayEastContents = MSysConfig.getBooleanValue("JP_DISPLAY_EAST_CONTENTS", false, Env.getAD_Client_ID(Env.getCtx()));//JPIERE-0120
 
     public DefaultDesktop()
     {
@@ -408,16 +411,19 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 		}
 
         contextHelp = new ToolBarButton();
-        //IDEMPIERE-0120
-//        toolbar.appendChild(contextHelp);
-//        if (ThemeManager.isUseFontIconForImage())
-//        	contextHelp.setIconSclass("z-icon-Help");
-//        else
-//        	contextHelp.setImage(ThemeManager.getThemeResource(IMAGES_CONTEXT_HELP_PNG));
-//        contextHelp.addEventListener(Events.ON_CLICK, this);
-//        contextHelp.setSclass("window-container-toolbar-btn context-help-btn");
-//        contextHelp.setTooltiptext(Util.cleanAmp(Msg.getElement(Env.getCtx(), "AD_CtxHelp_ID")));
-//        contextHelp.setVisible(!e.isVisible());
+
+        if(isDisplayEastContents)//JPIERE-0120
+        {
+	        toolbar.appendChild(contextHelp);
+	        if (ThemeManager.isUseFontIconForImage())
+	        	contextHelp.setIconSclass("z-icon-Help");
+	        else
+	        	contextHelp.setImage(ThemeManager.getThemeResource(IMAGES_CONTEXT_HELP_PNG));
+	        contextHelp.addEventListener(Events.ON_CLICK, this);
+	        contextHelp.setSclass("window-container-toolbar-btn context-help-btn");
+	        contextHelp.setTooltiptext(Util.cleanAmp(Msg.getElement(Env.getCtx(), "AD_CtxHelp_ID")));
+	        contextHelp.setVisible(!e.isVisible());
+        }
 
         if (!mobile) {
 	        boolean headerCollapsed= pref.isPropertyBool(UserPreference.P_HEADER_COLLAPSED);
@@ -640,18 +646,21 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
         	}
         	else if (comp == contextHelp)
         	{
-//        		if (mobile && eastPopup != null)
-//        		{
-//        			eastPopup.open(layout.getCenter(), "overlap_end");
-//        		}
-//        		else
-//        		{
-//	        		layout.getEast().setVisible(true);
-//	        		layout.getEast().setOpen(true);
-//	        		LayoutUtils.removeSclass("slide", layout.getEast());
-//	        		contextHelp.setVisible(false);
-//	        		updateHelpCollapsedPreference(false);
-//        		}
+        	    if(isDisplayEastContents)//JPIERE-0120
+        		{
+	        		if (mobile && eastPopup != null)
+	        		{
+	        			eastPopup.open(layout.getCenter(), "overlap_end");
+	        		}
+	        		else
+	        		{
+		        		layout.getEast().setVisible(true);
+		        		layout.getEast().setOpen(true);
+		        		LayoutUtils.removeSclass("slide", layout.getEast());
+		        		contextHelp.setVisible(false);
+		        		updateHelpCollapsedPreference(false);
+	        		}
+				}
         	}
         	else if (comp == westBtn)
         	{
@@ -950,38 +959,51 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 		unbindEventManager();
 	}
 
-	//JPIERE-0120:
+
 	@Override
 	public void updateHelpContext(String ctxType, int recordId) {
-		// don't show context for SetupWizard Form, is managed internally using wf and node ctxhelp
-//		if (recordId == SystemIDs.FORM_SETUP_WIZARD && X_AD_CtxHelp.CTXTYPE_Form.equals(ctxType))
-//			return;
-//
-//		Clients.response(new AuScript("zWatch.fire('onFieldTooltip', this);"));
-//		helpController.renderCtxHelp(ctxType, recordId);
-//
-//		GridTab gridTab = null;
-//		Component window = getActiveWindow();
-//		ADWindow adwindow = ADWindow.findADWindow(window);
-//		if (adwindow != null) {
-//			gridTab = adwindow.getADWindowContent().getActiveGridTab();
-//		}
-//		updateHelpQuickInfo(gridTab);
+
+        if(isDisplayEastContents)//JPIERE-0120:
+        {
+        	// don't show context for SetupWizard Form, is managed internally using wf and node ctxhelp
+			if (recordId == SystemIDs.FORM_SETUP_WIZARD && X_AD_CtxHelp.CTXTYPE_Form.equals(ctxType))
+				return;
+
+			Clients.response(new AuScript("zWatch.fire('onFieldTooltip', this);"));
+			helpController.renderCtxHelp(ctxType, recordId);
+
+			GridTab gridTab = null;
+			Component window = getActiveWindow();
+			ADWindow adwindow = ADWindow.findADWindow(window);
+			if (adwindow != null) {
+				gridTab = adwindow.getADWindowContent().getActiveGridTab();
+			}
+			updateHelpQuickInfo(gridTab);
+        }
 	}
 
 	@Override
 	public void updateHelpTooltip(GridField gridField) {
-//		helpController.renderToolTip(gridField);//JPIERE-0120:
+        if(isDisplayEastContents)//JPIERE-0120:
+        {
+        	helpController.renderToolTip(gridField);
+        }
 	}
 
 	@Override
 	public void updateHelpTooltip(String hdr, String  desc, String help, String otherContent) {
-//		helpController.renderToolTip(hdr, desc, help, otherContent);//JPIERE-0120:
+        if(isDisplayEastContents)//JPIERE-0120:
+        {
+        	helpController.renderToolTip(hdr, desc, help, otherContent);
+        }
 	}
 
 	@Override
 	public void updateHelpQuickInfo(GridTab gridTab) {
-//		helpController.renderQuickInfo(gridTab);//JPIERE-0120:
+        if(isDisplayEastContents)//JPIERE-0120:
+        {
+        	helpController.renderQuickInfo(gridTab);
+        }
 	}
 
 	@Override
