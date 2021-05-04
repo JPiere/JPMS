@@ -103,12 +103,7 @@ public class JPiereAttchmentBaseWindow extends Window implements EventListener<E
 			isAccessEditRecord = false;
 		}
 
-
-
-//		setStyle("height: 25%; width: 25%;");
 		setSclass("popup-dialog");
-
-    	ZKUpdateUtil.setVflex(this, "1");
 
     	this.setTitle(Msg.getMsg(Env.getCtx(), "Attachment").replaceAll("&", "") + ": " + adWindowContent.getTitle());
     	this.setClosable(true);

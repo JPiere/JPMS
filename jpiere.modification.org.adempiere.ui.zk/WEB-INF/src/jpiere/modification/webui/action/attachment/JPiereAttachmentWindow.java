@@ -216,7 +216,6 @@ public class JPiereAttachmentWindow extends Window implements EventListener<Even
 		div.appendChild(toolBar);
 		JP_AttachmentFileDescription.setRows(3);
 		ZKUpdateUtil.setHflex(JP_AttachmentFileDescription, "2");
-		ZKUpdateUtil.setHeight(JP_AttachmentFileDescription, "100%");
 		northPanel.appendChild(div);
 
 
