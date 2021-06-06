@@ -15,16 +15,16 @@ package org.compiere.util;
 
 import org.compiere.model.MTable;
 import org.compiere.process.SvrProcess;
-import org.compiere.util.CacheMgt;
+//import org.compiere.util.CacheMgt;
 
 /**
  *	JPIERE-0284
  *  Cache Count
  *
  * 	@author 	Hideaki Hagiwara
- * 
+ *
  */
-public class CacheCount extends SvrProcess 
+public class CacheCount extends SvrProcess
 {
 	/**
 	 *  Prepare - e.g., get Parameters.
@@ -40,10 +40,10 @@ public class CacheCount extends SvrProcess
 	 *  @throws Exception
 	 */
 	protected String doIt() throws java.lang.Exception
-	{	
+	{
 		CacheMgt cacheMgt = CacheMgt.get();
 		addBufferLog(0, null, null, "Cache Count Process Log", MTable.getTable_ID("AD_PInstance"), getAD_PInstance_ID());
-		
+
 		int counter = 0;
 		int total = 0;
 		int tableCache = 0;
@@ -73,12 +73,12 @@ public class CacheCount extends SvrProcess
 					otherCache = otherCache + temp;
 					addLog("Count Cache #" + temp + " ->  Cache Object is null - ExpireMinutes - #" + cc.getExpireMinutes());
 				}
-				
+
 				counter++;
 			}
 		}//for
-		
-		
+
+
 		return "Cache Count -> Total Cache  #" + total + " = Table Cache #" + tableCache + " + Other cache #" + otherCache +" /  Cache Object  #" + counter;
 	}	//	doIt
 
