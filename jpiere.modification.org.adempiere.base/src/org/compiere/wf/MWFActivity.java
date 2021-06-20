@@ -1293,6 +1293,17 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 					if (resp.isHuman())
 					{
 						autoApproval = resp.getAD_User_ID() == Env.getAD_User_ID(getCtx());
+
+						//JPIERE-0488 - Start
+						if(autoApproval)
+						{
+							if(!MRole.getDefault().isCanApproveOwnDoc())
+							{
+								autoApproval = false;
+							}
+						}
+						//JPIERE-0488 - End
+
 						if (!autoApproval && resp.getAD_User_ID() != 0)
 							setAD_User_ID(resp.getAD_User_ID());
 					}
@@ -1303,8 +1314,19 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 						{
 							if(urs[i].getAD_User_ID() == Env.getAD_User_ID(getCtx()) && urs[i].isActive())
 							{
-								autoApproval = true;
-								break;
+								//JPIERE-0487 -- Start TODO
+								if(!MRole.getDefault().isCanApproveOwnDoc())
+								{
+									m_docStatus = DocAction.STATUS_InProgress;
+									autoApproval = false;
+									break;
+
+								}else {
+
+									autoApproval = true;
+									break;
+								}
+								//JPIERE-0487 -- End
 							}
 						}
 					}
@@ -1499,6 +1521,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			return false;
 
 		String newState = StateEngine.STATE_Completed;
+		boolean isOwnDoc = false; //JPIERE-0485 & JPIERE-0487 & JPIERE-0488
 		//	Approval
 		if (getNode().isUserApproval() && getPO(trx) instanceof DocAction)
 		{
@@ -1520,10 +1543,23 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 						MWFResponsible resp = getResponsible();
 						if(resp != null && resp.getResponsibleType().equals(MWFResponsible.RESPONSIBLETYPE_Organization))
 						{
-							if (!(doc.processIt (DocAction.ACTION_Approve)))
+
+							if(Env.getAD_User_ID(getCtx()) == getCreatedBy()
+									|| Env.getAD_User_ID(getCtx()) == doc.getDoc_User_ID()) //self approval
 							{
-								newState = StateEngine.STATE_Aborted;
-								setTextMsg ("Cannot Approve - Document Status: " + doc.getDocStatus());
+								if(!MRole.getDefault().isCanApproveOwnDoc())
+								{
+									isOwnDoc = true;
+								}
+
+							}
+							if(!isOwnDoc)
+							{
+								if (!(doc.processIt (DocAction.ACTION_Approve)))
+								{
+									newState = StateEngine.STATE_Aborted;
+									setTextMsg ("Cannot Approve - Document Status: " + doc.getDocStatus());
+								}
 							}
 
 						}else {//JPIERE-0485
@@ -1560,11 +1596,50 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 
 					}
 					//	No Invoker - Approve
-					else if (!(doc.processIt (DocAction.ACTION_Approve)))
+					else//JPIERE-0487 & JPIERE-0488 - Start
 					{
-						newState = StateEngine.STATE_Aborted;
-						setTextMsg ("Cannot Approve - Document Status: " + doc.getDocStatus());
-					}
+						MWFResponsible resp = getResponsible();
+
+						if(resp.isHuman())//JPIERE-0488
+						{
+							if(Env.getAD_User_ID(getCtx()) == getCreatedBy()
+									|| Env.getAD_User_ID(getCtx()) == doc.getDoc_User_ID()) //self approval
+							{
+								if(!MRole.getDefault().isCanApproveOwnDoc())
+								{
+									isOwnDoc = true;
+								}
+
+							}
+
+						}else if(resp.isRole()) {	//JPIERE-0487
+
+							MUserRoles[] urs = MUserRoles.getOfRole(getCtx(), resp.getAD_Role_ID());
+							for(int i = 0; i < urs.length; i++)
+							{
+								if(Env.getAD_User_ID(getCtx()) == getCreatedBy()
+										|| Env.getAD_User_ID(getCtx()) == doc.getDoc_User_ID()) //self approval
+								{
+									if(!MRole.getDefault().isCanApproveOwnDoc())
+									{
+										isOwnDoc = true;
+										break;
+									}
+
+								}
+							}
+						}
+
+						if(!isOwnDoc)
+						{
+							if (!(doc.processIt (DocAction.ACTION_Approve)))
+							{
+								newState = StateEngine.STATE_Aborted;
+								setTextMsg ("Cannot Approve - Document Status: " + doc.getDocStatus());
+							}
+						}
+
+					}//JPIERE-0487 & JPIERE-0488 - End
 				}
 				doc.saveEx();
 			}
@@ -1575,6 +1650,15 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 				addTextMsg(e);
 				log.log(Level.WARNING, "", e);
 			}
+
+			//JPIERE-0485 & JPIERE-0487 & JPIERE-0488 - Start
+			if(isOwnDoc)
+			{
+				//Your role can not self-approve.
+				throw new Exception(Msg.getMsg(getCtx(), "JP_NotSelfApproveRole"));
+			}
+			//JPIERE-0485 & JPIERE-0487 & JPIERE-0488 - End
+
 			// Send Approval Notification
 			if (newState.equals(StateEngine.STATE_Aborted)) {
 				MUser to = new MUser(getCtx(), doc.getDoc_User_ID(), null);
