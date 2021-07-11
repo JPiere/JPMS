@@ -948,8 +948,11 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 		{
 			List<?> listData = (List<?>)data;
 			Object obj = listData.get(C_Currency_ColumnIndex);
-			m_Currency = MCurrency.get(Env.getCtx(), obj.toString());
-			return ;
+			if(obj != null)
+			{
+				m_Currency = MCurrency.get(Env.getCtx(), obj.toString());
+				return ;
+			}
 		}
 
 		if(m_Currency == null && Env.getContextAsInt(Env.getCtx(), "$C_Currency_ID") > 0)
