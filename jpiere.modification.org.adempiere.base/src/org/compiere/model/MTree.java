@@ -281,7 +281,7 @@ public class MTree extends MTree_Base
 		try
 		{
 			// load Node details - addToTree -> getNodeDetail
-			getNodeDetails(linkColName, linkID);//JPIERE-0499
+			getNodeDetails(linkColName, linkID);//JPIERE-0499 Performance improvement of custom tree
 			//
 			pstmt = DB.prepareStatement(sql.toString(), get_TrxName());
 			int idx = 1;
@@ -445,7 +445,7 @@ public class MTree extends MTree_Base
 	 *  - Node_ID
 	 *  The SQL contains security/access control
 	 */
-	private void getNodeDetails ( String linkColName, int linkID)//JPIERE-0499
+	private void getNodeDetails ( String linkColName, int linkID)//JPIERE-0499 Performance improvement of custom tree
 	{
 		//  SQL for Node Info
 		StringBuilder sqlNode = new StringBuilder();
@@ -506,16 +506,19 @@ public class MTree extends MTree_Base
 			sqlNode.append("t.Description,t.IsSummary,").append(color)
 			.append(" FROM ").append(tableName).append(" t ");
 
-			//JPIERE-0499 Start
+			//JPIERE-0499 Performance improvement of custom tree
 			if (!m_editable)
 			{
-				if (Util.isEmpty(linkColName))
+				if (Util.isEmpty(linkColName) || linkID==0)
 					sqlNode.append(" WHERE t.IsActive='Y'");
 				else
 					sqlNode.append(" WHERE t.IsActive='Y' AND t.").append(linkColName).append("=").append(linkID);
 
 			}else {
-				sqlNode.append(" WHERE t.").append(linkColName).append("=").append(linkID);
+
+				if (!Util.isEmpty(linkColName) && linkID > 0)
+					sqlNode.append(" WHERE t.").append(linkColName).append("=").append(linkID);
+
 			}
 			//JPIERE-0499 End
 
