@@ -815,7 +815,9 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 			sideController.onLogOut();
 			sideController = null;
 		}
-		layout.detach();
+		if (layout != null) {
+			layout.detach();
+		}
 		layout = null;
 		pnlHead = null;
 		max = null;
@@ -1095,6 +1097,7 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 
 				String action = (String) row.get(0);
 				int recordID = ((BigDecimal) row.get(1)).intValue();
+				int menuID = ((BigDecimal) row.get(2)).intValue();
 
 				if (action.equals(MMenu.ACTION_Form)) {
 					Boolean access = MRole.getDefault().getFormAccess(recordID);
@@ -1109,7 +1112,7 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 				else if (action.equals(MMenu.ACTION_Process) || action.equals(MMenu.ACTION_Report)) {
 					Boolean access = MRole.getDefault().getProcessAccess(recordID);
 					if (access != null && access)
-						SessionManager.getAppDesktop().openProcessDialog(recordID, DB.getSQLValueStringEx(null, "SELECT IsSOTrx FROM AD_Menu WHERE AD_Menu_ID = ?", recordID).equals("Y"));
+						SessionManager.getAppDesktop().openProcessDialog(recordID, DB.getSQLValueStringEx(null, "SELECT IsSOTrx FROM AD_Menu WHERE AD_Menu_ID = ?", menuID).equals("Y"));
 				}
 				else if (action.equals(MMenu.ACTION_Task)) {
 					Boolean access = MRole.getDefault().getTaskAccess(recordID);
