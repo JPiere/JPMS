@@ -1083,7 +1083,7 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 		if (isActionURL())  // IDEMPIERE-2334 vs IDEMPIERE-3000 - do not open windows when coming from an action URL
 			return;
 
-		StringBuilder sql = new StringBuilder("SELECT m.Action, COALESCE(m.AD_Window_ID, m.AD_Process_ID, m.AD_Form_ID, m.AD_Workflow_ID, m.AD_Task_ID, AD_InfoWindow_ID) ")
+		StringBuilder sql = new StringBuilder("SELECT m.Action, COALESCE(m.AD_Window_ID, m.AD_Process_ID, m.AD_Form_ID, m.AD_Workflow_ID, m.AD_Task_ID, m.AD_InfoWindow_ID), m.AD_Menu_ID ")
 		.append(" FROM AD_TreeBar tb")
 		.append(" INNER JOIN AD_Menu m ON (tb.Node_ID = m.AD_Menu_ID)")
 		.append(" WHERE tb.AD_Tree_ID = ").append(getMenuID())
