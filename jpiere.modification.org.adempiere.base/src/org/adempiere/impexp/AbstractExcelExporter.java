@@ -270,7 +270,7 @@ public abstract class AbstractExcelExporter
 					MCurrency currency = MCurrency.get(getCtx(), ISO_CODE);
 					if(currency != null)
 					{
-						StringBuffer cellFormat = new StringBuffer("#,###");
+						StringBuffer cellFormat = new StringBuffer("#,##0");
 						if(DisplayType.Amount ==displayType)
 						{
 							for(int i = 0; i < currency.getStdPrecision(); i++)
