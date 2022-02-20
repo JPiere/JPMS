@@ -211,11 +211,11 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 	}	//	MWFActivity
 
 	/**
-	 * 	Process-aware Parent Contructor
+	 * 	Process-aware Parent Constructor
 	 *	@param process process
 	 *	@param ctx context
 	 *	@param rs record to load
-	 *  @param trx transaction name
+	 *  @param trxName transaction name
 	 */
 	public MWFActivity (MWFProcess process, Properties ctx, ResultSet rs, String trxName)
 	{
@@ -224,9 +224,9 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 	}
 
 	/**
-	 * 	Parent Contructor
+	 * 	Parent Constructor
 	 *	@param process process
-	 *	@param AD_WF_Node_ID start node
+	 *	@param next_ID start node
 	 *	@param lastPO PO from the previously executed node
 	 */
 	public MWFActivity(MWFProcess process, int next_ID, PO lastPO) {
@@ -658,7 +658,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 	}	//	isInvoker
 
 	/**
-	 * 	Is Invoker (no user & no role)
+	 * 	Is Invoker (no user and no role)
 	 *	@return true if invoker
 	 */
 	public boolean isInvoker()
@@ -860,7 +860,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 	/**************************************************************************
 	 * 	Execute Work.
 	 * 	Called from MWFProcess.startNext
-	 * 	Feedback to Process via setWFState -> checkActivities
+	 * 	Feedback to Process via setWFState -&gt; checkActivities
 	 */
 	public void run()
 	{
@@ -969,7 +969,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			try {
 				if (contextLost)
 				{
-					Env.getCtx().setProperty("#AD_Client_ID", (m_po != null ? Integer.toString(m_po.getAD_Client_ID()) : "0") );
+					Env.getCtx().setProperty(Env.AD_CLIENT_ID, (m_po != null ? Integer.toString(m_po.getAD_Client_ID()) : "0") );
 					m_state = new StateEngine(WFSTATE_Running);
 					setProcessed(true);
 					setWFState (StateEngine.STATE_Aborted);
@@ -994,7 +994,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 				}
 			} finally {
 				if (contextLost)
-					Env.getCtx().remove("#AD_Client_ID");
+					Env.getCtx().remove(Env.AD_CLIENT_ID);
 			}
 		}
 		finally
@@ -1169,7 +1169,9 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			pi.setAD_User_ID(getAD_User_ID());
 			pi.setAD_Client_ID(getAD_Client_ID());
 			pi.setAD_PInstance_ID(pInstance.getAD_PInstance_ID());
-			return process.processItWithoutTrxClose(pi, trx);
+			boolean success = process.processItWithoutTrxClose(pi, trx);
+			setTextMsg(pi.getSummary());
+			return success;
 		}
 
 		/******	Start Task (Probably redundant;
@@ -1314,7 +1316,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 						{
 							if(urs[i].getAD_User_ID() == Env.getAD_User_ID(getCtx()) && urs[i].isActive())
 							{
-								//JPIERE-0487 -- Start TODO
+								//JPIERE-0487 -- Start
 								if(!MRole.getDefault().isCanApproveOwnDoc())
 								{
 									m_docStatus = DocAction.STATUS_InProgress;
