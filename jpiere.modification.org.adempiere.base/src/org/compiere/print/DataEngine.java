@@ -25,6 +25,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -64,17 +65,24 @@ import bsh.Interpreter;
  * 				<li>BF [ 1807368 ] DataEngine does not close DB connection
  * 				<li>BF [ 2549128 ] Report View Column not working at all
  * 				<li>BF [ 2865545 ] Error if not all parts of multikey are lookups
- * 					https://sourceforge.net/tracker/?func=detail&aid=2865545&group_id=176962&atid=879332
+ * 					https://sourceforge.net/p/adempiere/bugs/2120/
  * @author Teo Sarca, teo.sarca@gmail.com
  * 				<li>BF [ 2876268 ] DataEngine: error on text long fields
- * 					https://sourceforge.net/tracker/?func=detail&aid=2876268&group_id=176962&atid=879332
+ * 					https://sourceforge.net/p/adempiere/bugs/2169/
  * @author victor.perez@e-evolution.com
- *				<li>FR [ 2011569 ] Implementing new Summary flag in Report View  http://sourceforge.net/tracker/index.php?func=detail&aid=2011569&group_id=176962&atid=879335
+ *				<li>FR [ 2011569 ] Implementing new Summary flag in Report View  https://sourceforge.net/p/adempiere/feature-requests/478/
  * @author Paul Bowden (phib)
  * 				<li> BF 2908435 Virtual columns with lookup reference types can't be printed
- *                   https://sourceforge.net/tracker/?func=detail&aid=2908435&group_id=176962&atid=879332
+ *                   https://sourceforge.net/p/adempiere/bugs/2246/
  *  @contributor  Fernandinho (FAIRE)
  *  				- http://jira.idempiere.com/browse/IDEMPIERE-153
+ */
+
+/**
+ * JPIERE-0264:Limit Report Rows
+ * 
+ * @author h.hagiwara
+ *
  */
 public class DataEngine
 {
@@ -362,7 +370,6 @@ public class DataEngine
 				int FieldLength = rs.getInt(5);
 				boolean IsMandatory = "Y".equals(rs.getString(6));
 				boolean IsKey = "Y".equals(rs.getString(7));
-				//boolean IsParent = "Y".equals(rs.getString(8));
 				//  SQL GroupBy
 				boolean IsGroupFunction = "Y".equals(rs.getString(9));
 				if (IsGroupFunction)
@@ -393,7 +400,7 @@ public class DataEngine
 
 				//	General Info
 				boolean IsPrinted = "Y".equals(rs.getString(15));
-				//int SortNo = rs.getInt(16);
+
 				boolean isPageBreak = "Y".equals(rs.getString(17));
 
 				String formatPattern = rs.getString(25);
@@ -440,14 +447,14 @@ public class DataEngine
 						continue;
 
 					sqlSELECT.append(script).append(" AS \"").append(m_synonym).append(pfiName).append("\",")
+					// Warning here: Oracle treats empty strings '' as NULL and the code below checks for wasNull on this column
 					.append("''").append(" AS \"").append(pfiName).append("\",");
 					//
 					pdc = new PrintDataColumn(AD_PrintFormatItem_ID, -1, pfiName, DisplayType.Text, FieldLength, orderName, isPageBreak);
 					synonymNext();
 				}
 				//	-- Parent, TableDir (and unqualified Search) --
-				else if ( /* (IsParent && DisplayType.isLookup(AD_Reference_ID)) || <-- IDEMPIERE-71 Carlos Ruiz - globalqss */
-						AD_Reference_ID == DisplayType.TableDir
+				else if ( AD_Reference_ID == DisplayType.TableDir
 						|| (AD_Reference_ID == DisplayType.Search && AD_Reference_Value_ID == 0)
 					)
 				{
@@ -1023,7 +1030,6 @@ public class DataEngine
 					{
 						if (pdc.getColumnName().endsWith("_ID"))
 						{
-						//	int id = rs.getInt(pdc.getColumnIDName());
 							int id = rs.getInt(counter++);
 							if (!rs.wasNull())
 							{
@@ -1034,7 +1040,6 @@ public class DataEngine
 						}
 						else
 						{
-						//	String id = rs.getString(pdc.getColumnIDName());
 							String id = rs.getString(counter++);
 							if (!rs.wasNull())
 							{
@@ -1068,21 +1073,29 @@ public class DataEngine
 								{
 									/** START DEVCOFFEE: script column **/
 									int displayType = pdc.getDisplayType();
-									if (display.startsWith("@SCRIPT"))
-									{
-										displayType = DisplayType.Number;
+									if (display.startsWith("@SCRIPT")) {
 										display = display.replace("@SCRIPT", "");
-										display = parseVariable(display, pdc, pd);
+										Object value = parseVariable(display, pdc, pd);
 										Interpreter bsh = new Interpreter ();
 										try {
-											display = bsh.eval(display).toString();
-										} catch (EvalError e) {
+											value = bsh.eval(value.toString());
+										}
+										catch (EvalError e) {
 											log.severe(e.getMessage());
 										}
+										if (value instanceof Number)
+											displayType = DisplayType.Number;
+										else if (value instanceof Boolean)
+											displayType = DisplayType.YesNo;
+										else if (value instanceof Date)
+											displayType = DisplayType.Date;
+										else
+											displayType = DisplayType.Text;
+										pde = new PrintDataElement(pdc.getAD_PrintFormatItem_ID(), pdc.getColumnName(), (Serializable) value, displayType, pdc.getFormatPattern());
+									} else {
+										ValueNamePair pp = new ValueNamePair(id, display);
+										pde = new PrintDataElement(pdc.getAD_PrintFormatItem_ID(), pdc.getColumnName(), pp, displayType, pdc.getFormatPattern());
 									}
-
-									ValueNamePair pp = new ValueNamePair(id, display);
-									pde = new PrintDataElement(pdc.getAD_PrintFormatItem_ID(), pdc.getColumnName(), pp, displayType, pdc.getFormatPattern());
 								}
 							}
 						}
@@ -1119,7 +1132,7 @@ public class DataEngine
 							}
                             // fix bug [ 1755592 ] Printing time in format
                             else if (pdc.getDisplayType() == DisplayType.DateTime)
-{
+							{
                                 Timestamp datetime = rs.getTimestamp(counter++);
                                 pde = new PrintDataElement(pdc.getAD_PrintFormatItem_ID(), pdc.getColumnName(), datetime, pdc.getDisplayType(), pdc.getFormatPattern());
                             }
@@ -1346,11 +1359,13 @@ public class DataEngine
 
 			token = inStr.substring(0, j);
 
-			if (token.startsWith("ACCUMULATE/")) {
-
+			if (token.startsWith("ACCUMULATE/"))
+			{
 				token = token.replace("ACCUMULATE/", "");
-
-				BigDecimal value = (BigDecimal) ((PrintDataElement)pd.getNode(token)).getValue();
+				Object tokenPDE = pd.getNode(token);
+				if (tokenPDE == null)
+					return "\"Item not found: " + token + "\"";
+				BigDecimal value = (BigDecimal) ((PrintDataElement)tokenPDE).getValue();
 
 				if (m_summarized.containsKey(pdc))
 				{
@@ -1365,7 +1380,10 @@ public class DataEngine
 			else if (token.startsWith("COL/"))
 			{
 				token = token.replace("COL/", "");
-				BigDecimal value = (BigDecimal) ((PrintDataElement)pd.getNode(token)).getValue();
+				Object tokenPDE = pd.getNode(token);
+				if (tokenPDE == null)
+					return "\"Item not found: " + token + "\"";
+				Object value = ((PrintDataElement)tokenPDE).getValue();
 				outStr.append(value);
 			}
 
@@ -1384,14 +1402,10 @@ public class DataEngine
 	{
 		org.compiere.Adempiere.startup(true);
 
-	//	DataEngine de = new DataEngine(null);
 		@SuppressWarnings("unused")
 		DataEngine de = new DataEngine(Language.getLanguage("de_DE"));
 		MQuery query = new MQuery();
 		query.addRestriction("AD_Table_ID", MQuery.LESS, 105);
-	//	PrintData pd = de.load_fromTable(100, query, null, null, false);
-	//	pd.dump();
-	//	pd.createXML(new javax.xml.transform.stream.StreamResult(System.out));
 	}
 
 }	//	DataEngine
