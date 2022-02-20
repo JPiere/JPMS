@@ -62,7 +62,7 @@ import org.zkoss.zul.ListitemRenderer;
 import org.zkoss.zul.ListitemRendererExt;
 
 /**
- * Renderer for {@link org.adempiere.webui.component.ListItems}
+ * Renderer for {@link org.adempiere.webui.component.ListItem}
  * for the {@link org.adempiere.webui.component.Listbox}.
  *
  * @author Andrew Kimball
