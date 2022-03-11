@@ -38,7 +38,6 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.net.URL;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,13 +49,10 @@ import javax.print.Doc;
 import javax.print.DocFlavor;
 import javax.print.attribute.DocAttributeSet;
 
-import org.compiere.model.MClientInfo;
-import org.compiere.model.MLocation;				//JPIERE-3 Import MLocation to LayoutEngine
 import org.adempiere.base.Core;
+import org.compiere.model.MLocation;				//JPIERE-3 Import MLocation to LayoutEngine
 import org.compiere.model.MQuery;
-import org.compiere.model.MSysConfig;
 import org.compiere.model.MTable;
-import org.compiere.model.PO;
 import org.compiere.model.PrintInfo;
 import org.compiere.print.ArchiveEngine;
 import org.compiere.print.CPaper;
@@ -73,7 +69,6 @@ import org.compiere.print.util.SerializableMatrix;
 import org.compiere.print.util.SerializableMatrixImpl;
 import org.compiere.report.MReportLine;
 import org.compiere.util.CLogger;
-import org.compiere.util.CacheMgt;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
@@ -1648,6 +1643,7 @@ public class LayoutEngine implements Pageable, Printable, Doc
 				if (item.isNextLine() && item.getBelowColumn() != 0)
 				{
 					additionalLines.put(Integer.valueOf(col), Integer.valueOf(item.getBelowColumn()-1));
+					/** JPIERE-XXXX From ver9
 					if (!item.isSuppressNull())
 					{
 						if (item.is_Immutable())
@@ -1662,6 +1658,7 @@ public class LayoutEngine implements Pageable, Printable, Doc
 						}
 						CacheMgt.get().reset(MPrintFormat.Table_Name, format.get_ID());
 					}
+					JPIERE-XXXX **/
 				}
 				columnHeader[col] = new ValueNamePair(item.getColumnName(),
 					item.getPrintName(format.getLanguage()));
