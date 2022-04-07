@@ -175,6 +175,12 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 	private Popup westPopup;
 
 	private ToolBarButton westBtn;
+	
+	// For quick info optimization
+    private GridTab    gridTab;
+
+    // Right side Quick info is visible
+    private boolean    isQuickInfoOpen    = true;
 
 	private boolean isDisplayEastContents = MSysConfig.getBooleanValue("JP_DISPLAY_EAST_CONTENTS", false, Env.getAD_Client_ID(Env.getCtx()));//JPIERE-0120
 
@@ -262,6 +268,7 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 			@Override
 			public void onEvent(Event event) throws Exception {
 				OpenEvent oe = (OpenEvent) event;
+                isQuickInfoOpen = oe.isOpen();
 				updateHelpCollapsedPreference(!oe.isOpen());
 				HtmlBasedComponent comp = windowContainer.getComponent();
 				if (comp != null) {
@@ -334,7 +341,10 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
         	eastPopup = new Popup();
         	ToolBarButton btn = new ToolBarButton();
         	btn.setIconSclass("z-icon-remove");
-        	btn.addEventListener(Events.ON_CLICK, evt -> eastPopup.close());
+        	btn.addEventListener(Events.ON_CLICK, evt -> {
+				eastPopup.close();
+				isQuickInfoOpen = false;
+			});
         	eastPopup.appendChild(btn);
         	btn.setStyle("position: absolute; top: 20px; right: 0px; padding: 2px 0px;");
         	eastPopup.setStyle("padding-top: 20px;");
@@ -342,6 +352,9 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
         	eastPopup.setPage(getComponent().getPage());
         	eastPopup.setHeight("100%");
         	helpController.setupFieldTooltip();
+        	eastPopup.addEventListener(Events.ON_OPEN, (OpenEvent oe) -> {
+				isQuickInfoOpen = oe.isOpen();
+			});
 
         	westPopup = new Popup();
         	westPopup.setStyle("padding-top: 10px;");
@@ -663,6 +676,8 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 	        		if (mobile && eastPopup != null)
 	        		{
 	        			eastPopup.open(layout.getCenter(), "overlap_end");
+        				isQuickInfoOpen = true;
+            			updateHelpQuickInfo(gridTab);
 	        		}
 	        		else
 	        		{
@@ -671,6 +686,8 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 		        		LayoutUtils.removeSclass("slide", layout.getEast());
 		        		contextHelp.setVisible(false);
 		        		updateHelpCollapsedPreference(false);
+	        			isQuickInfoOpen = true;
+	        			updateHelpQuickInfo(gridTab);
 	        		}
 				}
         	}
@@ -1020,7 +1037,9 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 	public void updateHelpQuickInfo(GridTab gridTab) {
         if(isDisplayEastContents)//JPIERE-0120:
         {
-        	helpController.renderQuickInfo(gridTab);
+        	this.gridTab = gridTab;
+        	if (isQuickInfoOpen)
+        		helpController.renderQuickInfo(gridTab);
         }
 	}
 
