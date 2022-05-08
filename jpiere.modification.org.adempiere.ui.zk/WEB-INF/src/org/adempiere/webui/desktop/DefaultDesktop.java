@@ -443,6 +443,7 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 	        contextHelp.setSclass("window-container-toolbar-btn context-help-btn");
 	        contextHelp.setTooltiptext(Util.cleanAmp(Msg.getElement(Env.getCtx(), "AD_CtxHelp_ID")));
 	        contextHelp.setVisible(!e.isVisible());
+	        isQuickInfoOpen = e.isVisible();
         }
 
         if (!mobile) {
