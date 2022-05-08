@@ -43,6 +43,7 @@ import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.adwindow.AbstractADWindowContent;
 import org.adempiere.webui.component.Button;
+import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Column;
 import org.adempiere.webui.component.Columns;
 import org.adempiere.webui.component.ComboItem;
@@ -1479,24 +1480,34 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
             }
             if(!selected) listColumn.setSelectedIndex(0);
 
-            if (liCol != null)
+	       selected = false;
+	       if (liCol != null) {
             	addOperators(liCol, listOperator);
-
-            selected = false;
-            for (int i = 0; i < op.length; i++)
-            {
-            	ValueNamePair item = op[i];
-	            	ComboItem li = new ComboItem(Msg.getMsg(Env.getCtx(), item.getName()), item.getValue()); 
-	            	listOperator.appendChild(li);
-            	if(item.getValue().equals(operator))
-            	{
-            		listOperator.setSelectedItem(li);
-            		selected = true;
-            	}
-            }
-            if(!selected) listOperator.setSelectedIndex(0);
-	        }
-        } else {
+	            	for (Component listitem : listOperator.getChildren()) {
+	            		if (listitem instanceof ComboItem) {
+	            			if (((ComboItem)listitem).getValue().equals(operator)) {
+	            				listOperator.setSelectedItem((ComboItem)listitem);
+	            				selected = true;
+	            				break;
+	            			}
+	            		}
+	            	}
+	            } else {
+            		for (int i = 0; i < op.length; i++)
+            		{
+            			ValueNamePair item = op[i];
+	            		ComboItem li = new ComboItem(Msg.getMsg(Env.getCtx(), item.getName()), item.getValue()); 
+	            		listOperator.appendChild(li);
+            			if(item.getValue().equals(operator))
+            			{
+            				listOperator.setSelectedItem(li);
+            				selected = true;
+            			}
+            		}
+           		}
+            	if(!selected) listOperator.setSelectedIndex(0);
+			}
+    	} else {
         	setAttributes(listColumn, listOperator, fields);	    	
 
         }
@@ -2074,7 +2085,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 				long time = 0;
 				try
 				{
-					time = DisplayType.getDateFormat_JDBC().parse(in).getTime();
+					time = DisplayType.getTimestampFormat_Default().parse(in).getTime();
 					editor.setValue(new Timestamp(time));
 				}
 				catch (Exception e)
@@ -2087,9 +2098,14 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 				editor.setValue(new Timestamp(time));
 			}
 			else if (dt == DisplayType.YesNo)
-				editor.setValue(Boolean.valueOf(in));
+			{
+				boolean val = ("Y".equalsIgnoreCase(in) || "true".equalsIgnoreCase(in));
+				editor.setValue(val);
+			}
 			else
+			{
 				editor.setValue(in);
+			}
 
 			editor.addValueChangeListener(this);
 
@@ -2243,6 +2259,9 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
             	  if(dtbox.getValue() != null)
             		 value = new Timestamp(((Date)dtbox.getValue()).getTime());
             	}
+	            else if(compo instanceof Checkbox && cellQueryFrom.getAttribute("value") instanceof Boolean) {
+	            	value = ((boolean) cellQueryFrom.getAttribute("value") ? "Y" : "N");
+	            }
             	else {
             		value = cellQueryFrom.getAttribute("value");
             	}
@@ -2309,12 +2328,13 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
                 	  if(dtbox.getValue() != null)
                 		 value2 = new Timestamp(((Date)dtbox.getValue()).getTime());
                		}
+	                else if(compo instanceof Checkbox && cellQueryTo.getAttribute("value") instanceof Boolean) {
+	                	value2 = ((boolean) cellQueryTo.getAttribute("value") ? "Y" : "N");
+	                }
                 	else {
-                		value2 = cellQueryFrom.getAttribute("value");
+	                	value2 = cellQueryTo.getAttribute("value");
                 	}
 
-
-                	value2 = cellQueryTo.getAttribute("value");
                 	if (value2 == null)
                 	    continue;
 	                Object parsedValue2 = null;
