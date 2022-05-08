@@ -506,4 +506,14 @@ public class CacheMgt
 			}
 		}
 	}
+
+	/**
+	 * Is there a cache for this table name?
+	 * @param tableName
+	 * @return boolean
+	 */
+	public boolean hasCache(String tableName) {
+		return m_tableNames.contains(tableName);
+	}
+
 }	//	CCache
