@@ -1342,7 +1342,7 @@ public class DataEngine
 		if (expression == null || expression.length() == 0)
 			return "";
 
-		log.info("Analyzing Expression " + expression);
+		if (log.isLoggable(Level.CONFIG)) log.config("Analyzing Expression " + expression);
 		String token;
 		String inStr = new String(expression);
 		StringBuffer outStr = new StringBuffer();
