@@ -1549,7 +1549,6 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 						MWFResponsible resp = getResponsible();
 						if(resp != null && resp.getResponsibleType().equals(MWFResponsible.RESPONSIBLETYPE_Organization))
 						{
-							//	Inform Process
 							if (m_process == null)
 								m_process = new MWFProcess (getCtx(), getAD_WF_Process_ID(), this.get_TrxName());
 							
@@ -1611,7 +1610,6 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 
 						if(resp.isHuman())//JPIERE-0488
 						{
-							//	Inform Process
 							if (m_process == null)
 								m_process = new MWFProcess (getCtx(), getAD_WF_Process_ID(), this.get_TrxName());
 							
@@ -1627,7 +1625,6 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 
 						}else if(resp.isRole()) {	//JPIERE-0487
 
-							//	Inform Process
 							if (m_process == null)
 								m_process = new MWFProcess (getCtx(), getAD_WF_Process_ID(), this.get_TrxName());
 							
