@@ -1550,7 +1550,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 						if(resp != null && resp.getResponsibleType().equals(MWFResponsible.RESPONSIBLETYPE_Organization))
 						{
 
-							if(Env.getAD_User_ID(getCtx()) == getCreatedBy()
+							if(Env.getAD_User_ID(getCtx()) == m_po.getCreatedBy()
 									|| Env.getAD_User_ID(getCtx()) == doc.getDoc_User_ID()) //self approval
 							{
 								if(!MRole.getDefault().isCanApproveOwnDoc())
@@ -1608,7 +1608,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 
 						if(resp.isHuman())//JPIERE-0488
 						{
-							if(Env.getAD_User_ID(getCtx()) == getCreatedBy()
+							if(Env.getAD_User_ID(getCtx()) == m_po.getCreatedBy()
 									|| Env.getAD_User_ID(getCtx()) == doc.getDoc_User_ID()) //self approval
 							{
 								if(!MRole.getDefault().isCanApproveOwnDoc())
@@ -1623,7 +1623,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 							MUserRoles[] urs = MUserRoles.getOfRole(getCtx(), resp.getAD_Role_ID());
 							for(int i = 0; i < urs.length; i++)
 							{
-								if(Env.getAD_User_ID(getCtx()) == getCreatedBy()
+								if(Env.getAD_User_ID(getCtx()) == m_po.getCreatedBy()
 										|| Env.getAD_User_ID(getCtx()) == doc.getDoc_User_ID()) //self approval
 								{
 									if(!MRole.getDefault().isCanApproveOwnDoc())
