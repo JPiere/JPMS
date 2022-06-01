@@ -1279,7 +1279,9 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 						int nextAD_User_ID = getApprovalUser(startAD_User_ID,
 							doc.getC_Currency_ID(), doc.getApprovalAmt(),
 							doc.getAD_Org_ID(),
-							startAD_User_ID == doc.getDoc_User_ID());	//	own doc
+							(startAD_User_ID == doc.getDoc_User_ID()
+									|| startAD_User_ID == m_process.getCreatedBy()) //JPIERE-0551
+							);	//	own doc
 	                   if (nextAD_User_ID<=0) {
 	                	   m_docStatus = DocAction.STATUS_Invalid;
 	                	   throw new AdempiereException(Msg.getMsg(getCtx(), "NoApprover"));
@@ -1578,7 +1580,9 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 							int nextAD_User_ID = getApprovalUser(startAD_User_ID,
 								doc.getC_Currency_ID(), doc.getApprovalAmt(),
 								doc.getAD_Org_ID(),
-								startAD_User_ID == doc.getDoc_User_ID());	//	own doc
+								(startAD_User_ID == doc.getDoc_User_ID()
+									|| startAD_User_ID == m_process.getCreatedBy()) //JPIER-0551
+								);	//	own doc
 							//	No Approver
 							if (nextAD_User_ID <= 0)
 							{
