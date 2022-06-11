@@ -2909,25 +2909,29 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         cmd_saveSimple(false, false);
 
         //JPIERE-0181 unnecessary count
-        if (advancedPanel != null) {
-        	advancedPanel.getItems().clear();
+        if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_CHECK", false, Env.getAD_Client_ID(Env.getCtx()))) 
+        {
+        	//iDempiere Standard function
+            //  Test for no records
+            if (getNoOfRecords(m_query, true) != 0) {
+            	if (m_total == COUNTING_RECORDS_TIMED_OUT) {
+            		FDialog.error(m_targetWindowNo, "InfoQueryTimeOutError");
+            	} else {
+                    if (advancedPanel != null) {
+                    	advancedPanel.getItems().clear();
+                    }
+                    dispose();
+            	}
+            }
+            
+        }else {
+            
+	        if (advancedPanel != null) {
+	        	advancedPanel.getItems().clear();
+	        }
+			dispose();
         }
-		dispose();
 		//JPIERE-0181 unnecessary count
-
-        /** JPIERE-0181 unnecessary count
-        //  Test for no records
-        if (getNoOfRecords(m_query, true) != 0) {
-        	if (m_total == COUNTING_RECORDS_TIMED_OUT) {
-        		FDialog.error(m_targetWindowNo, "InfoQueryTimeOutError");
-        	} else {
-                if (advancedPanel != null) {
-                	advancedPanel.getItems().clear();
-                }
-                dispose();
-        	}
-        }
-        */
 
     }   //  cmd_ok_Simple
 
@@ -3000,17 +3004,22 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         	addHistoryRestriction(historyCombo.getSelectedItem());
         }
 
-		dispose();//JPIERE-0181 unnecessary count
-
-        /** JPIERE-0181 unnecessary count
-        if (getNoOfRecords(m_query, true) != 0) {
-        	if (m_total == COUNTING_RECORDS_TIMED_OUT) {
-        		FDialog.error(m_targetWindowNo, "InfoQueryTimeOutError");
-        	} else {
-                dispose();
-        	}
+        //JPIERE-0181 unnecessary count
+        if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_CHECK", false, Env.getAD_Client_ID(Env.getCtx()))) 
+        {
+        	//iDempiere Standard function
+            if (getNoOfRecords(m_query, true) != 0) {
+            	if (m_total == COUNTING_RECORDS_TIMED_OUT) {
+            		FDialog.error(m_targetWindowNo, "InfoQueryTimeOutError");
+            	} else {
+                    dispose();
+            	}
+            }       	
+        }else {
+        	dispose();
         }
-        */
+        //JPIERE-0181 unnecessary count
+
 
     }   //  cmd_ok_Advanced
 
