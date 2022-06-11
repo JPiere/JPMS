@@ -2908,7 +2908,12 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         //  save pending
         cmd_saveSimple(false, false);
 
-		dispose();//JPIERE-0181 unnecessary count
+        //JPIERE-0181 unnecessary count
+        if (advancedPanel != null) {
+        	advancedPanel.getItems().clear();
+        }
+		dispose();
+		//JPIERE-0181 unnecessary count
 
         /** JPIERE-0181 unnecessary count
         //  Test for no records
