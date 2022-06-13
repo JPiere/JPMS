@@ -2502,20 +2502,20 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 	}
 
 	protected void correctHeaderOrderIndicator() {
-    		Listhead listHead = contentPanel.getListHead();
-    		if (listHead != null) {
-    			List<?> headers = listHead.getChildren();
-    			for(Object obj : headers)
-    			{
-    				Listheader header = (Listheader) obj;
-    				// idempiere use mix method. sometime call model method, sometime call component method
-    				// so index can be difference on complicate case, just wait to fix
-    				if (header.getColumnIndex() == indexOrderColumn)
-		              header.setSortDirection(isColumnSortAscending?"ascending":"descending");
-		            else
-    				header.setSortDirection("natural");
-    			}
-    		}
+		Listhead listHead = contentPanel.getListHead();
+		if (listHead != null) {
+			List<?> headers = listHead.getChildren();
+			for(Object obj : headers)
+			{
+				Listheader header = (Listheader) obj;
+				// idempiere use mix method. sometime call model method, sometime call component method
+				// so index can be difference on complicate case, just wait to fix
+				if (header.getColumnIndex() == indexOrderColumn)
+	              header.setSortDirection(isColumnSortAscending?"ascending":"descending");
+	            else
+	            	header.setSortDirection("natural");
+			}
+		}
 	}
     public void onQueryCallback(Event event)
     {
