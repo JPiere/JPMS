@@ -1983,82 +1983,82 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
         }else if (event.getTarget() == contentPanel && event.getName().equals("onAfterRender")){
         	//IDEMPIERE-1334 at this event selected item from listBox and model is sync
         	enableButtons();
-            }
-            else if (event.getTarget() == contentPanel && event.getName().equals(Events.ON_DOUBLE_CLICK))
-            {
-            	if (event.getClass().equals(MouseEvent.class)){
-            		return;
-            	}
-            	if (contentPanel.isMultiple() && m_lastSelectedIndex >= 0) {
-					
-            		contentPanel.setSelectedIndex(m_lastSelectedIndex);
-					
-            		model.clearSelection();
-					List<Object> lsSelectedItem = new ArrayList<Object>();
-					lsSelectedItem.add(model.getElementAt(m_lastSelectedIndex));
-					model.setSelection(lsSelectedItem);
-					
-					int m_keyColumnIndex = contentPanel.getKeyColumnIndex();
-					for (int i = 0; i < contentPanel.getRowCount(); i++) {
-						// Find the IDColumn Key
-						Object data = contentPanel.getModel().getValueAt(i, m_keyColumnIndex);
-						if (data instanceof IDColumn) {
-							IDColumn dataColumn = (IDColumn) data;
-	
-							if (i == m_lastSelectedIndex) {
-								dataColumn.setSelected(true);
-							}
-							else {
-								dataColumn.setSelected(false);
-							}
-						}
-            		}
-            	}
-            	onDoubleClick();
-            	contentPanel.repaint();
-            	m_lastSelectedIndex = -1;
-            }
-            else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_REFRESH)))
-            {
-            	onUserQuery();
-            }
-            else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_CANCEL)))
-            {
-            	m_cancel = true;
-                dispose(false);
-            }
-            else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_RESET))) {
-            	resetParameters ();
-            }
-            // Elaine 2008/12/16
-            else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_HISTORY)))
-            {
-            	if (!contentPanel.getChildren().isEmpty() && contentPanel.getSelectedRowKey()!=null)
-                {
-            		showHistory();
-                }
-            }
-    		else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_CUSTOMIZE)))
-    		{
-            	if (!contentPanel.getChildren().isEmpty() && contentPanel.getSelectedRowKey()!=null)
-                {
-            		customize();
-                }
-    		}
-            //
-            else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_ZOOM)))
-            {
-                if (!contentPanel.getChildren().isEmpty() && contentPanel.getSelectedRowKey()!=null)
-                {
-                    zoom();
-                    if (isLookup())
-                    	this.detach();
-                }
+        }
+        else if (event.getTarget() == contentPanel && event.getName().equals(Events.ON_DOUBLE_CLICK))
+        {
+        	if (event.getClass().equals(MouseEvent.class)){
+        		return;
         	}
-        	else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_NEW)))
+        	if (contentPanel.isMultiple() && m_lastSelectedIndex >= 0) {
+				
+        		contentPanel.setSelectedIndex(m_lastSelectedIndex);
+				
+        		model.clearSelection();
+				List<Object> lsSelectedItem = new ArrayList<Object>();
+				lsSelectedItem.add(model.getElementAt(m_lastSelectedIndex));
+				model.setSelection(lsSelectedItem);
+				
+				int m_keyColumnIndex = contentPanel.getKeyColumnIndex();
+				for (int i = 0; i < contentPanel.getRowCount(); i++) {
+					// Find the IDColumn Key
+					Object data = contentPanel.getModel().getValueAt(i, m_keyColumnIndex);
+					if (data instanceof IDColumn) {
+						IDColumn dataColumn = (IDColumn) data;
+
+						if (i == m_lastSelectedIndex) {
+							dataColumn.setSelected(true);
+						}
+						else {
+							dataColumn.setSelected(false);
+						}
+					}
+        		}
+        	}
+        	onDoubleClick();
+        	contentPanel.repaint();
+        	m_lastSelectedIndex = -1;
+        }
+        else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_REFRESH)))
+        {
+        	onUserQuery();
+        }
+        else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_CANCEL)))
+        {
+        	m_cancel = true;
+            dispose(false);
+        }
+        else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_RESET))) {
+        	resetParameters ();
+        }
+        // Elaine 2008/12/16
+        else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_HISTORY)))
+        {
+        	if (!contentPanel.getChildren().isEmpty() && contentPanel.getSelectedRowKey()!=null)
             {
-            	newRecordAction ();
+        		showHistory();
             }
+        }
+		else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_CUSTOMIZE)))
+		{
+        	if (!contentPanel.getChildren().isEmpty() && contentPanel.getSelectedRowKey()!=null)
+            {
+        		customize();
+            }
+		}
+        //
+        else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_ZOOM)))
+        {
+            if (!contentPanel.getChildren().isEmpty() && contentPanel.getSelectedRowKey()!=null)
+            {
+                zoom();
+                if (isLookup())
+                	this.detach();
+            }
+    	}
+    	else if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_NEW)))
+        {
+        	newRecordAction ();
+        }
         // IDEMPIERE-1334 handle event click into process button start
         else if (ON_RUN_PROCESS.equals(event.getName())){
         	// hand echo event after click button process
