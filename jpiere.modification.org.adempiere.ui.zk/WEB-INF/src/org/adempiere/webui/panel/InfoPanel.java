@@ -1963,22 +1963,22 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
         	return;
         }
 
-            if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_OK)))
-            {
-                onOk();
-            }
-            else if (event.getTarget() == contentPanel && event.getName().equals(Events.ON_SELECT))
-            {
-            	setStatusSelected ();
-            	
-            	SelectEvent<?, ?> selectEvent = (SelectEvent<?, ?>) event;
-            	if (selectEvent.getReference() != null && selectEvent.getReference() instanceof Listitem)
-            	{
-            		Listitem m_lastOnSelectItem = (Listitem) selectEvent.getReference();
-            		m_lastSelectedIndex = m_lastOnSelectItem.getIndex();
-            		}
+        if (event.getTarget().equals(confirmPanel.getButton(ConfirmPanel.A_OK)))
+        {
+            onOk();
+        }
+        else if (event.getTarget() == contentPanel && event.getName().equals(Events.ON_SELECT))
+        {
+        	setStatusSelected ();
+        	
+        	SelectEvent<?, ?> selectEvent = (SelectEvent<?, ?>) event;
+        	if (selectEvent.getReference() != null && selectEvent.getReference() instanceof Listitem)
+        	{
+        		Listitem m_lastOnSelectItem = (Listitem) selectEvent.getReference();
+        		m_lastSelectedIndex = m_lastOnSelectItem.getIndex();
+        	}
 
-            	enableButtons();
+        	enableButtons();
             	
         }else if (event.getTarget() == contentPanel && event.getName().equals("onAfterRender")){
         	//IDEMPIERE-1334 at this event selected item from listBox and model is sync
