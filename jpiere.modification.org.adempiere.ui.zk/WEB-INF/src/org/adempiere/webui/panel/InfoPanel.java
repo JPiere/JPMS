@@ -2673,7 +2673,7 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 		WListItemRenderer.ColumnComparator lsc = (WListItemRenderer.ColumnComparator) cmpr;
 		
 		// keep column order
-			int col = lsc.getColumnIndex();
+		int col = lsc.getColumnIndex();
 		indexOrderColumn = col;
 		isColumnSortAscending = ascending;
 		sqlOrderColumn = p_layout[col].getColSQL().trim();
@@ -2688,7 +2688,7 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 			Collections.sort(line, lsc);
 		}
 			renderItems();
-		}
+	}
 
     public boolean isLookup()
     {
