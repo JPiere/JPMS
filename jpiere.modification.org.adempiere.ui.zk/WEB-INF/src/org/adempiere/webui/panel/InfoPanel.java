@@ -2680,14 +2680,14 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 		m_sqlUserOrder = null; // clear cache value
 
 		if (m_useDatabasePaging)
-					{
+		{
 			executeQuery();
 		}
 		else
 		{
 			Collections.sort(line, lsc);
 		}
-			renderItems();
+		renderItems();
 	}
 
     public boolean isLookup()
