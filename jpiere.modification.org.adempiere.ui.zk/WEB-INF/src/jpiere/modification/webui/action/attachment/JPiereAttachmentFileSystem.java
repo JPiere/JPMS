@@ -27,6 +27,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 
+import org.compiere.model.MSysConfig;
 import org.compiere.model.MTable;
 import org.compiere.util.CLogger;
 import org.compiere.util.Env;
@@ -109,8 +110,40 @@ public class JPiereAttachmentFileSystem implements IJPiereAttachmentStore {
 			e.printStackTrace();
 		}
 
-		String hash =getfileHash(filePath,SHA_512);
-		attachmentFileRecord.setJP_Hash_File(hash);
+		//Get Hash
+		String JP_ATTACHMENT_HASH_FILE_LIST = MSysConfig.getValue("JP_ATTACHMENT_HASH_FILE_LIST", "NONE", attachmentFileRecord.getAD_Client_ID());
+		String hash = null;
+		boolean isHash = false;
+		
+		if(Util.isEmpty(JP_ATTACHMENT_HASH_FILE_LIST) || "NONE".equalsIgnoreCase(JP_ATTACHMENT_HASH_FILE_LIST))
+		{
+			isHash = false;
+			
+		}else if("ALL".equalsIgnoreCase(JP_ATTACHMENT_HASH_FILE_LIST)) {
+			
+			isHash = true;
+			
+		}else {
+			
+			String[] extensions = JP_ATTACHMENT_HASH_FILE_LIST.split(",");
+			for(String extension:extensions)
+			{
+				if(attachmentFileRecord.getJP_MediaFormat().equalsIgnoreCase(extension))
+				{				
+					isHash = true;
+					break;
+				}
+			}	
+		}
+		
+		if(isHash)
+		{
+			hash = getfileHash(filePath,SHA_512);
+			attachmentFileRecord.setJP_Hash_File(hash);		
+		}
+		
+		
+		//Save
 		attachmentFileRecord.saveEx();
 
 		return true;

@@ -354,6 +354,7 @@ public class JPiereAttchmentBaseWindow extends Window implements EventListener<E
 		ArrayList<MJPiereStorageProvider>  attachmentStorageProviderList = MAttachmentFileRecord.getAttachmentStorageProviderList(Env.getCtx(), AD_Table_ID, Record_ID, null);
 		ArrayList<MOrg>  attachmentFileOrgList = MAttachmentFileRecord.getAttachmentFileOrgList(Env.getCtx(), AD_Table_ID, Record_ID, true, null);
 		
+		int i = 1;
 		for(MJPiereStorageProvider attachmentStorageProvider: attachmentStorageProviderList)
 		{			
 			for(MOrg org :attachmentFileOrgList)
@@ -363,7 +364,14 @@ public class JPiereAttchmentBaseWindow extends Window implements EventListener<E
 					continue;
 				
 				File srcFolder = new File(directory);
-				File destZipFile = new File(srcFolder + File.separator + (attachmentStorageProvider == null ? org.getValue() :attachmentStorageProvider.getName() + "_" + org.getValue() ) +".zip");
+				File destZipFile = null;
+				if(i == 1)
+				{
+					destZipFile = new File(srcFolder + File.separator + org.getValue()+".zip");
+				}else {
+					destZipFile = new File(srcFolder + File.separator + org.getValue()+ "(" + Msg.getElement(Env.getCtx(),"AD_StorageProvider_ID")+ String.valueOf(i) + ").zip");
+				}
+				
 				if(destZipFile.exists())
 				{
 					try {
@@ -389,6 +397,8 @@ public class JPiereAttchmentBaseWindow extends Window implements EventListener<E
 			    zipper.execute();
 				downloadFiles.add(destZipFile);
 			}
+			
+			i++;
 		}
 
 		MultiFileDownloadDialog downloadDialog = new MultiFileDownloadDialog(downloadFiles.toArray(new File[downloadFiles.size()]));
