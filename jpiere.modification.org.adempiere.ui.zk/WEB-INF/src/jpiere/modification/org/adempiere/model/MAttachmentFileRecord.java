@@ -51,9 +51,16 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 		initAttachmentStoreDetails(ctx, trxName);
 	}
 
-	static public String getAttachmentDirectory(Properties ctx, int AD_Table_ID, int Record_ID, int AD_Org_ID , String trxName)
+	static public String getAttachmentDirectory(Properties ctx, int AD_Table_ID, int Record_ID, int AD_Org_ID , MJPiereStorageProvider attachmentStorageProvider ,String trxName)
 	{
-		StringBuilder sql = new StringBuilder("SELECT * FROM JP_AttachmentFileRecord WHERE AD_Table_ID=? AND Record_ID=? AND AD_Org_ID=? AND IsActive='Y'");
+		StringBuilder sql = null;
+		
+		if(attachmentStorageProvider == null)
+		{
+			sql = new StringBuilder("SELECT * FROM JP_AttachmentFileRecord WHERE AD_Table_ID=? AND Record_ID=? AND AD_Org_ID=? AND IsActive='Y' AND AD_StorageProvider_ID IS NULL ");
+		}else {
+			sql = new StringBuilder("SELECT * FROM JP_AttachmentFileRecord WHERE AD_Table_ID=? AND Record_ID=? AND AD_Org_ID=? AND IsActive='Y' AND AD_StorageProvider_ID =? ");
+		}
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		MAttachmentFileRecord attachmentFileRecord = null;
@@ -63,6 +70,10 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 			pstmt.setInt(1, AD_Table_ID);
 			pstmt.setInt(2, Record_ID);
 			pstmt.setInt(3, AD_Org_ID);
+			if(attachmentStorageProvider != null)
+			{
+				pstmt.setInt(4, attachmentStorageProvider.getAD_StorageProvider_ID());
+			}
 			rs = pstmt.executeQuery();
 
 			if (rs.next())
@@ -79,6 +90,11 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 			pstmt = null;
 		}
 
+		if(attachmentFileRecord == null)
+		{
+			return null;
+		}
+		
 
 		return attachmentFileRecord.getDirectoryAbsolutePath();
 	}
@@ -166,6 +182,41 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 			pstmt = null;
 		}
 
+
+		return list;
+
+	}
+	
+	static public ArrayList<MJPiereStorageProvider> getAttachmentStorageProviderList(Properties ctx, int AD_Table_ID, int Record_ID, String trxName)
+	{
+		ArrayList<MJPiereStorageProvider> list = new ArrayList<MJPiereStorageProvider>();
+		StringBuilder sql = new StringBuilder("SELECT DISTINCT sp.* FROM JP_AttachmentFileRecord af INNER JOIN AD_StorageProvider sp ON (af.AD_StorageProvider_ID = sp.AD_StorageProvider_ID) WHERE af.AD_Table_ID=? AND af.Record_ID=? AND af.IsActive='Y'");
+
+		sql = sql.append(" ORDER BY sp.Name");
+
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try
+		{
+			pstmt = DB.prepareStatement(sql.toString(), trxName);
+			pstmt.setInt(1, AD_Table_ID);
+			pstmt.setInt(2, Record_ID);
+			rs = pstmt.executeQuery();
+			while (rs.next())
+				list.add(new MJPiereStorageProvider (ctx, rs, trxName));
+		}
+		catch (Exception e)
+		{
+//			log.log(Level.SEVERE, sql, e);
+		}
+		finally
+		{
+			DB.close(rs, pstmt);
+			rs = null;
+			pstmt = null;
+		}
+		
+		list.add(null);//For Backward compatibility.
 
 		return list;
 

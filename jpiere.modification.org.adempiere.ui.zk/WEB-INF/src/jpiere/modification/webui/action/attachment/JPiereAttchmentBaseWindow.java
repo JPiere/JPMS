@@ -351,36 +351,44 @@ public class JPiereAttchmentBaseWindow extends Window implements EventListener<E
 	private void createDownloadZipFiles()
 	{
 		ArrayList<File> downloadFiles = new ArrayList<File>();
+		ArrayList<MJPiereStorageProvider>  attachmentStorageProviderList = MAttachmentFileRecord.getAttachmentStorageProviderList(Env.getCtx(), AD_Table_ID, Record_ID, null);
 		ArrayList<MOrg>  attachmentFileOrgList = MAttachmentFileRecord.getAttachmentFileOrgList(Env.getCtx(), AD_Table_ID, Record_ID, true, null);
-		for(MOrg org :attachmentFileOrgList)
-		{
-			String directory = MAttachmentFileRecord.getAttachmentDirectory(Env.getCtx(),AD_Table_ID, Record_ID, org.getAD_Org_ID(),null);
-			File srcFolder = new File(directory);
-			File destZipFile = new File(srcFolder + File.separator + org.getValue() +".zip");
-			if(destZipFile.exists())
+		
+		for(MJPiereStorageProvider attachmentStorageProvider: attachmentStorageProviderList)
+		{			
+			for(MOrg org :attachmentFileOrgList)
 			{
-				try {
-					FileUtil.deleteFolderRecursive(destZipFile);
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
+				String directory = MAttachmentFileRecord.getAttachmentDirectory(Env.getCtx(),AD_Table_ID, Record_ID, org.getAD_Org_ID(), attachmentStorageProvider, null);
+				if(directory == null)
+					continue;
+				
+				File srcFolder = new File(directory);
+				File destZipFile = new File(srcFolder + File.separator + (attachmentStorageProvider == null ? org.getValue() :attachmentStorageProvider.getName() + "_" + org.getValue() ) +".zip");
+				if(destZipFile.exists())
+				{
+					try {
+						FileUtil.deleteFolderRecursive(destZipFile);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					}
 				}
+	
+				//create the compressed packages
+				Zip zipper = new Zip();
+			    zipper.setDestFile(destZipFile);
+			    zipper.setBasedir(srcFolder);
+			    //zipper.setIncludes(includesdir.replace(" ", "*"));
+			    zipper.setUpdate(true);
+			    zipper.setCompress(true);
+			    zipper.setCaseSensitive(false);
+			    zipper.setFilesonly(false);
+			    zipper.setTaskName("zip");
+			    zipper.setTaskType("zip");
+			    zipper.setProject(new Project());
+			    zipper.setOwningTarget(new Target());
+			    zipper.execute();
+				downloadFiles.add(destZipFile);
 			}
-
-			//create the compressed packages
-			Zip zipper = new Zip();
-		    zipper.setDestFile(destZipFile);
-		    zipper.setBasedir(srcFolder);
-		    //zipper.setIncludes(includesdir.replace(" ", "*"));
-		    zipper.setUpdate(true);
-		    zipper.setCompress(true);
-		    zipper.setCaseSensitive(false);
-		    zipper.setFilesonly(false);
-		    zipper.setTaskName("zip");
-		    zipper.setTaskType("zip");
-		    zipper.setProject(new Project());
-		    zipper.setOwningTarget(new Target());
-		    zipper.execute();
-			downloadFiles.add(destZipFile);
 		}
 
 		MultiFileDownloadDialog downloadDialog = new MultiFileDownloadDialog(downloadFiles.toArray(new File[downloadFiles.size()]));
