@@ -18,12 +18,13 @@ package jpiere.modification.org.adempiere.model;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import org.compiere.model.*;
+
+import org.compiere.model.MTable;
 import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for JP_AttachmentFileRecord
  *  @author iDempiere (generated) 
- *  @version Release 6.2
+ *  @version Release 9
  */
 @SuppressWarnings("all")
 public interface I_JP_AttachmentFileRecord 
@@ -77,6 +78,17 @@ public interface I_JP_AttachmentFileRecord
 	  */
 	public int getAD_Org_ID();
 
+    /** Column name AD_StorageProvider_ID */
+    public static final String COLUMNNAME_AD_StorageProvider_ID = "AD_StorageProvider_ID";
+
+	/** Set Storage Provider	  */
+	public void setAD_StorageProvider_ID (int AD_StorageProvider_ID);
+
+	/** Get Storage Provider	  */
+	public int getAD_StorageProvider_ID();
+
+	public org.compiere.model.I_AD_StorageProvider getAD_StorageProvider() throws RuntimeException;
+
     /** Column name AD_Table_ID */
     public static final String COLUMNNAME_AD_Table_ID = "AD_Table_ID";
 
@@ -110,12 +122,12 @@ public interface I_JP_AttachmentFileRecord
     /** Column name C_BPartner_ID */
     public static final String COLUMNNAME_C_BPartner_ID = "C_BPartner_ID";
 
-	/** Set Business Partner .
+	/** Set Business Partner.
 	  * Identifies a Business Partner
 	  */
 	public void setC_BPartner_ID (int C_BPartner_ID);
 
-	/** Get Business Partner .
+	/** Get Business Partner.
 	  * Identifies a Business Partner
 	  */
 	public int getC_BPartner_ID();
@@ -166,6 +178,19 @@ public interface I_JP_AttachmentFileRecord
 	public int getC_Payment_ID();
 
 	public org.compiere.model.I_C_Payment getC_Payment() throws RuntimeException;
+
+    /** Column name ChargeAmt */
+    public static final String COLUMNNAME_ChargeAmt = "ChargeAmt";
+
+	/** Set Charge amount.
+	  * Charge Amount
+	  */
+	public void setChargeAmt (BigDecimal ChargeAmt);
+
+	/** Get Charge amount.
+	  * Charge Amount
+	  */
+	public BigDecimal getChargeAmt();
 
     /** Column name Created */
     public static final String COLUMNNAME_Created = "Created";
@@ -235,6 +260,19 @@ public interface I_JP_AttachmentFileRecord
 	  */
 	public String getDocumentNo();
 
+    /** Column name GrandTotal */
+    public static final String COLUMNNAME_GrandTotal = "GrandTotal";
+
+	/** Set Grand Total.
+	  * Total amount of document
+	  */
+	public void setGrandTotal (BigDecimal GrandTotal);
+
+	/** Get Grand Total.
+	  * Total amount of document
+	  */
+	public BigDecimal getGrandTotal();
+
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 
@@ -273,6 +311,15 @@ public interface I_JP_AttachmentFileRecord
 	  * This is a Sales Transaction
 	  */
 	public boolean isSOTrx();
+
+    /** Column name JPBillAmt */
+    public static final String COLUMNNAME_JPBillAmt = "JPBillAmt";
+
+	/** Set Bill Amt	  */
+	public void setJPBillAmt (BigDecimal JPBillAmt);
+
+	/** Get Bill Amt	  */
+	public BigDecimal getJPBillAmt();
 
     /** Column name JP_AttachmentFileDescription */
     public static final String COLUMNNAME_JP_AttachmentFileDescription = "JP_AttachmentFileDescription";
@@ -318,6 +365,50 @@ public interface I_JP_AttachmentFileRecord
 
 	/** Get JP_AttachmentFileRecord_UU	  */
 	public String getJP_AttachmentFileRecord_UU();
+
+    /** Column name JP_ContractContent_ID */
+    public static final String COLUMNNAME_JP_ContractContent_ID = "JP_ContractContent_ID";
+
+	/** Set Contract Content	  */
+	public void setJP_ContractContent_ID (int JP_ContractContent_ID);
+
+	/** Get Contract Content	  */
+	public int getJP_ContractContent_ID();
+
+//	public I_JP_ContractContent getJP_ContractContent() throws RuntimeException;
+
+    /** Column name JP_Contract_ID */
+    public static final String COLUMNNAME_JP_Contract_ID = "JP_Contract_ID";
+
+	/** Set Contract Document	  */
+	public void setJP_Contract_ID (int JP_Contract_ID);
+
+	/** Get Contract Document	  */
+	public int getJP_Contract_ID();
+
+//	public I_JP_Contract getJP_Contract() throws RuntimeException;
+
+    /** Column name JP_Estimation_ID */
+    public static final String COLUMNNAME_JP_Estimation_ID = "JP_Estimation_ID";
+
+	/** Set Estimation &amp;
+ Handwritten	  */
+	public void setJP_Estimation_ID (int JP_Estimation_ID);
+
+	/** Get Estimation &amp;
+ Handwritten	  */
+	public int getJP_Estimation_ID();
+
+//	public I_JP_Estimation getJP_Estimation() throws RuntimeException;
+
+    /** Column name JP_Hash_File */
+    public static final String COLUMNNAME_JP_Hash_File = "JP_Hash_File";
+
+	/** Set Hash of File	  */
+	public void setJP_Hash_File (String JP_Hash_File);
+
+	/** Get Hash of File	  */
+	public String getJP_Hash_File();
 
     /** Column name JP_MediaContentType */
     public static final String COLUMNNAME_JP_MediaContentType = "JP_MediaContentType";
@@ -367,6 +458,19 @@ public interface I_JP_AttachmentFileRecord
 	  * Unique line for this document
 	  */
 	public int getLine();
+
+    /** Column name LineNetAmt */
+    public static final String COLUMNNAME_LineNetAmt = "LineNetAmt";
+
+	/** Set Line Amount.
+	  * Line Extended Amount (Quantity * Actual Price) without Freight and Charges
+	  */
+	public void setLineNetAmt (BigDecimal LineNetAmt);
+
+	/** Get Line Amount.
+	  * Line Extended Amount (Quantity * Actual Price) without Freight and Charges
+	  */
+	public BigDecimal getLineNetAmt();
 
     /** Column name M_InOut_ID */
     public static final String COLUMNNAME_M_InOut_ID = "M_InOut_ID";
@@ -437,6 +541,19 @@ public interface I_JP_AttachmentFileRecord
 	  */
 	public String getPOReference();
 
+    /** Column name PayAmt */
+    public static final String COLUMNNAME_PayAmt = "PayAmt";
+
+	/** Set Payment amount.
+	  * Amount being paid
+	  */
+	public void setPayAmt (BigDecimal PayAmt);
+
+	/** Get Payment amount.
+	  * Amount being paid
+	  */
+	public BigDecimal getPayAmt();
+
     /** Column name Record_ID */
     public static final String COLUMNNAME_Record_ID = "Record_ID";
 
@@ -464,6 +581,58 @@ public interface I_JP_AttachmentFileRecord
 	public int getSalesRep_ID();
 
 	public org.compiere.model.I_AD_User getSalesRep() throws RuntimeException;
+
+    /** Column name StmtAmt */
+    public static final String COLUMNNAME_StmtAmt = "StmtAmt";
+
+	/** Set Statement amount.
+	  * Statement Amount
+	  */
+	public void setStmtAmt (BigDecimal StmtAmt);
+
+	/** Get Statement amount.
+	  * Statement Amount
+	  */
+	public BigDecimal getStmtAmt();
+
+    /** Column name TotalAmt */
+    public static final String COLUMNNAME_TotalAmt = "TotalAmt";
+
+	/** Set Total Amount.
+	  * Total Amount
+	  */
+	public void setTotalAmt (BigDecimal TotalAmt);
+
+	/** Get Total Amount.
+	  * Total Amount
+	  */
+	public BigDecimal getTotalAmt();
+
+    /** Column name TotalLines */
+    public static final String COLUMNNAME_TotalLines = "TotalLines";
+
+	/** Set Total Lines.
+	  * Total of all document lines
+	  */
+	public void setTotalLines (BigDecimal TotalLines);
+
+	/** Get Total Lines.
+	  * Total of all document lines
+	  */
+	public BigDecimal getTotalLines();
+
+    /** Column name TrxAmt */
+    public static final String COLUMNNAME_TrxAmt = "TrxAmt";
+
+	/** Set Transaction Amount.
+	  * Amount of a transaction
+	  */
+	public void setTrxAmt (BigDecimal TrxAmt);
+
+	/** Get Transaction Amount.
+	  * Amount of a transaction
+	  */
+	public BigDecimal getTrxAmt();
 
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";

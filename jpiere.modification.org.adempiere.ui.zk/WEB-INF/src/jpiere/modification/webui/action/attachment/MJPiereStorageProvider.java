@@ -21,6 +21,8 @@ import org.adempiere.base.ServiceQuery;
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.IArchiveStore;
 import org.compiere.model.X_AD_StorageProvider;
+import org.compiere.util.CCache;
+import org.compiere.util.Env;
 
 /**
 *
@@ -67,4 +69,19 @@ public class MJPiereStorageProvider extends X_AD_StorageProvider {
 		return null;
 	}
 
+	/**	Cache				*/
+	private static CCache<Integer,MJPiereStorageProvider>	s_cache = new CCache<Integer,MJPiereStorageProvider>(Table_Name, 60);
+	
+	public static MJPiereStorageProvider get(int AD_StorageProvider_ID)
+	{
+		Integer ii = Integer.valueOf(AD_StorageProvider_ID);
+		MJPiereStorageProvider retValue = (MJPiereStorageProvider)s_cache.get(ii);
+		if (retValue != null)
+			return retValue;
+		retValue = new MJPiereStorageProvider (Env.getCtx(), AD_StorageProvider_ID, null);
+		if (retValue.get_ID () != 0)
+			s_cache.put (AD_StorageProvider_ID, retValue);
+		return retValue;
+	}
+	
 }

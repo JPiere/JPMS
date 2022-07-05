@@ -177,7 +177,22 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 	private void initAttachmentStoreDetails(Properties ctx, String trxName)
 	{
 		MClientInfo clientInfo = MClientInfo.get(ctx, getAD_Client_ID());
-		storageProvider= new MJPiereStorageProvider(ctx, clientInfo.getAD_StorageProvider_ID(), trxName);
+		
+		int AD_StorageProvider_ID = 0;
+		int record_ID = getJP_AttachmentFileRecord_ID();
+		if(record_ID == 0)
+		{
+			AD_StorageProvider_ID = clientInfo.get_ValueAsInt("JP_StorageAttachment_ID");
+		}else {
+			AD_StorageProvider_ID = getAD_StorageProvider_ID();
+			if(AD_StorageProvider_ID == 0)
+			{
+				AD_StorageProvider_ID = clientInfo.get_ValueAsInt("JP_StorageAttachment_ID");
+			}
+		}
+		
+		setAD_StorageProvider_ID(AD_StorageProvider_ID);		
+		storageProvider= new MJPiereStorageProvider(ctx, AD_StorageProvider_ID, trxName);
 	}
 
 	@Override

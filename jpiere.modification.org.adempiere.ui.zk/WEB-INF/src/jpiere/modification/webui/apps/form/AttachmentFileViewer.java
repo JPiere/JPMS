@@ -102,6 +102,9 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 	@Override
 	public void setProcessInfo(ProcessInfo pi)
 	{
+		if(pi == null)
+			return ;
+		
 		super.setProcessInfo(pi);
 		Record_ID = getProcessInfo().getRecord_ID();
 		try {

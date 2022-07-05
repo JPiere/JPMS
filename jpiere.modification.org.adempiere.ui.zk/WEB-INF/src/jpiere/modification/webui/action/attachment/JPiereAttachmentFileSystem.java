@@ -14,10 +14,17 @@
 
 package jpiere.modification.webui.action.attachment;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 
 import org.compiere.model.MTable;
@@ -41,6 +48,17 @@ public class JPiereAttachmentFileSystem implements IJPiereAttachmentStore {
 	private final CLogger log = CLogger.getCLogger(getClass());
 
 
+    /** MD2アルゴリズム */
+    public static final String MD2 = "MD2";
+    /** MD5アルゴリズム */
+    public static final String MD5 = "MD5";
+    /** SHA-1アルゴリズム */
+    public static final String SHA_1 = "SHA-1";
+    /** SHA-256アルゴリズム */
+    public static final String SHA_256 = "SHA-256";
+    /** SHA-512アルゴリズム */
+    public static final String SHA_512 = "SHA-512";
+	
 	@Override
 	public boolean upLoadFile(MAttachmentFileRecord attachmentFileRecord, byte[] data, MJPiereStorageProvider prov)
 	{
@@ -69,7 +87,8 @@ public class JPiereAttachmentFileSystem implements IJPiereAttachmentStore {
 
 		attachmentFileRecord.setJP_AttachmentFilePath(getAttachmentRelativePath(attachmentFileRecord));
 
-		final File destFile = new File(folderPath.append(File.separator).append(attachmentFileRecord.getJP_AttachmentFileName()).toString());
+		String filePath = folderPath.append(File.separator).append(attachmentFileRecord.getJP_AttachmentFileName()).toString();
+		final File destFile = new File(filePath);
 		try
 		{
 			fos = new FileOutputStream(destFile);
@@ -90,6 +109,8 @@ public class JPiereAttachmentFileSystem implements IJPiereAttachmentStore {
 			e.printStackTrace();
 		}
 
+		String hash =getfileHash(filePath,SHA_512);
+		attachmentFileRecord.setJP_Hash_File(hash);
 		attachmentFileRecord.saveEx();
 
 		return true;
@@ -118,7 +139,17 @@ public class JPiereAttachmentFileSystem implements IJPiereAttachmentStore {
 	@Override
 	public StringBuilder getDirectoryAbsolutePath(MAttachmentFileRecord attachmentFileRecord, MJPiereStorageProvider prov)
 	{
-		String rootPath = getAttachmentRootRoot(prov);
+		String rootPath = null;
+		if(attachmentFileRecord.getAD_StorageProvider_ID() == 0)
+		{
+			rootPath = getAttachmentRootRoot(prov);
+		}else {
+			
+			int AD_StorageProvider_ID = attachmentFileRecord.getAD_StorageProvider_ID() ;
+			prov = MJPiereStorageProvider.get(AD_StorageProvider_ID);
+			rootPath = getAttachmentRootRoot(prov);
+		}
+		
 		if (Util.isEmpty(rootPath)) {
 			log.severe("no attachmentPath defined");
 			return null;
@@ -132,11 +163,28 @@ public class JPiereAttachmentFileSystem implements IJPiereAttachmentStore {
 
 	private String getAttachmentRelativePath(MAttachmentFileRecord attachmentFileRecord)
 	{
+		if(!Util.isEmpty(attachmentFileRecord.getJP_AttachmentFilePath()))
+		{
+			return attachmentFileRecord.getJP_AttachmentFilePath();
+		}
+		
 		String tableName = MTable.getTableName(Env.getCtx(), attachmentFileRecord.getAD_Table_ID());
+		int record_ID = attachmentFileRecord.getRecord_ID();
+		String id_10million = "00000000"; 	//10 million
+		String id_10thousand = "00000";		//10 thousand
+		if(record_ID >= 10000000)
+		{
+			id_10million = String.valueOf((record_ID / 10000000) * 10000000);//10 million
+		}
 
+		if(record_ID >= 10000)
+		{
+			id_10thousand = String.valueOf((record_ID / 10000) * 10000);//10 thousand
+		}
+		
 		StringBuilder msgreturn = new StringBuilder().append(attachmentFileRecord.getAD_Client_ID()).append(File.separator).append(attachmentFileRecord.getAD_Org_ID())
-										.append(File.separator).append(tableName).append(File.separator).append(attachmentFileRecord.getRecord_ID());
-
+										.append(File.separator).append(tableName).append(File.separator).append(id_10million)
+										.append(File.separator).append(id_10thousand).append(File.separator).append(attachmentFileRecord.getRecord_ID());
 		return msgreturn.toString();
 	}
 
@@ -155,10 +203,43 @@ public class JPiereAttachmentFileSystem implements IJPiereAttachmentStore {
 		return attachmentPathRoot;
 	}
 
+	 public static String getfileHash(String filePath, String algorithmName) {
 
+	        Path path = Paths.get(filePath);
 
+	        byte[] hash = null;
 
+	        // アルゴリズム取得
+	        MessageDigest md = null;
+	        try {
+	            md = MessageDigest.getInstance(algorithmName);
+	        } catch (NoSuchAlgorithmException e) {
+	            e.printStackTrace();
+	        }
 
+	        try (
+	                // 入力ストリームの生成
+	                DigestInputStream dis = new DigestInputStream(
+	                        new BufferedInputStream(Files.newInputStream(path)), md)) {
 
+	            // ファイルの読み込み
+	            while (dis.read() != -1) {
+	            }
 
+	            // ハッシュ値の計算
+	            hash = md.digest();
+
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+
+	        // ハッシュ値（byte）を文字列に変換し返却
+	        StringBuilder sb = new StringBuilder();
+	        for (byte b : hash) {
+	            String hex = String.format("%02x", b);
+	            sb.append(hex);
+	        }
+	        return sb.toString();
+	    }
+	 
 }

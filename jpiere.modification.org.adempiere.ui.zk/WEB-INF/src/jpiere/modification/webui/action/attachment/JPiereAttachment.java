@@ -46,10 +46,12 @@ public class JPiereAttachment implements IAction {
 		 if(target == null)
 			 return ;
 
-		 if(MClientInfo.get(Env.getCtx()).getAD_StorageProvider_ID() == 0)
+		 MClientInfo clientInfo = MClientInfo.get(Env.getCtx());
+		 
+		 if(clientInfo.get_ValueAsInt("JP_StorageAttachment_ID")  == 0)
 		 {
 			 FDialog.error(0, "Error", Msg.getMsg(Env.getCtx(), "NotFound")
-					 + System.lineSeparator() + Msg.getElement(Env.getCtx(), "AD_StorageProvider_ID"));
+					 + System.lineSeparator() + Msg.getElement(Env.getCtx(), "JP_StorageAttachment_ID"));
 			 return ;
 		 }
 
