@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.adempiere.webui.AdempiereWebUI;
 import org.adempiere.webui.ClientInfo;
+import org.adempiere.webui.Extensions;
 import org.adempiere.webui.component.Label;
 import org.adempiere.webui.component.ListItem;
 import org.adempiere.webui.component.Listbox;
@@ -16,12 +17,18 @@ import org.adempiere.webui.event.DialogEvents;
 import org.adempiere.webui.panel.CustomForm;
 import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
+import org.adempiere.webui.window.WTextEditorDialog;
+import org.compiere.model.MSysConfig;
 import org.compiere.process.ProcessInfo;
 import org.compiere.util.CLogger;
 import org.compiere.util.Env;
 import org.compiere.util.Ini;
 import org.compiere.util.Msg;
+import org.idempiere.ui.zk.media.IMediaView;
+import org.idempiere.ui.zk.media.Medias;
 import org.zkoss.util.media.AMedia;
+import org.zkoss.util.media.Media;
+import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
@@ -63,8 +70,16 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 		autoPreviewList.add("text/plain");
 		autoPreviewList.add("application/pdf");
 		autoPreviewList.add("text/html");
+		autoPreviewList.add(Medias.CSV_MIME_TYPE);
+		autoPreviewList.add(Medias.EXCEL_MIME_TYPE);
+		autoPreviewList.add(Medias.EXCEL_XML_MIME_TYPE);
 	}
 
+	
+	private int maxPreviewSize;
+
+	private Component customPreviewComponent;
+	
 	/**
 	 *
 	 */
@@ -73,6 +88,7 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 	public AttachmentFileViewer(EventListener<Event> eventListener)
 	{
 		super();
+		maxPreviewSize = MSysConfig.getIntValue(MSysConfig.ZK_MAX_ATTACHMENT_PREVIEW_SIZE, 1048576, Env.getAD_Client_ID(Env.getCtx()));
 
 		this.addEventListener(DialogEvents.ON_WINDOW_CLOSE, this);
 		if (eventListener != null)
@@ -218,6 +234,55 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 		if(media == null)
 			return ;
 
+		//TODO
+		IMediaView view = Extensions.getMediaView(attachmentFileRecord.getJP_MediaContentType()
+									, getExtension(attachmentFileRecord.getJP_AttachmentFileName()), ClientInfo.isMobile());
+		
+		if (view != null) 
+		{
+			
+			if (media.getByteData().length <= maxPreviewSize)//TODO
+			{
+		
+				try {
+					customPreviewComponent = view.renderMediaView(previewPanel, media, true);
+					previewPanel.appendChild(customPreviewComponent);
+				} catch (Exception e) {
+					log.warning("Error previewing file in attachment entry " + attachmentFileRecord.getJP_AttachmentFileName() + " -> " + e.getLocalizedMessage());
+					e.printStackTrace();
+					String msg = WTextEditorDialog.sanitize(Msg.getMsg(Env.getCtx(), "ErrorPreviewingFile"));
+					Media mediaErr = new AMedia(null, null, "text/html", msg.getBytes());
+					preview.setContent(mediaErr);
+					preview.setVisible(true);
+				}
+				
+			}else {
+				
+				return;
+				
+			}
+			
+			isFileLoad = true;
+			
+			Center centerPane = new Center();
+			centerPane.setSclass("dialog-content");
+			//centerPane.setAutoscroll(true); // not required the preview has its own scroll bar
+			mainPanel.appendChild(centerPane);
+			centerPane.appendChild(previewPanel);
+			ZKUpdateUtil.setVflex(previewPanel, "1");
+			ZKUpdateUtil.setHflex(previewPanel, "1");
+			if (ClientInfo.isMobile())
+			{
+				orientation = ClientInfo.get().orientation;
+				ClientInfo.onClientInfo(this, this::onClientInfo);
+			}
+			
+			return ;
+		}
+		
+		//TODO
+		
+		
 		isFileLoad = true;
 
 		preview.setContent(media);
@@ -239,7 +304,16 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 		}
 
 	}
+	
+	private String getExtension(String name) {
+		int index = name.lastIndexOf(".");
+		if (index > 0) {
+			return name.substring(index+1);
+		}
+		return "";
+	}
 
+	
 	protected void onClientInfo()
 	{
 		if (getPage() != null)
@@ -287,6 +361,11 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 			File file = new File(attachmentFileRecord.getFileAbsolutePath());
 			AMedia media = null;
 
+			Component mimeType = e.getTarget();
+//			if (autoPreviewList.contains(mimeType))
+//			{
+//				
+//			}
 			try {
 				media = new AMedia(attachmentFileRecord.getJP_AttachmentFileName(),attachmentFileRecord.getJP_MediaFormat()
 						,attachmentFileRecord.getJP_MediaContentType(),file,charset.name());

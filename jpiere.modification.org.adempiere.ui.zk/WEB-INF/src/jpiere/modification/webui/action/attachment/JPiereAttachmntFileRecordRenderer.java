@@ -27,6 +27,7 @@ import org.adempiere.webui.window.FDialog;
 import org.adempiere.webui.window.MultiFileDownloadDialog;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
+import org.idempiere.ui.zk.media.Medias;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
@@ -72,6 +73,9 @@ public class JPiereAttachmntFileRecordRenderer implements RowRenderer<Object[]> 
 		autoPreviewList.add("text/plain");
 		autoPreviewList.add("application/pdf");
 		autoPreviewList.add("text/html");
+		autoPreviewList.add(Medias.CSV_MIME_TYPE);
+		autoPreviewList.add(Medias.EXCEL_MIME_TYPE);
+		autoPreviewList.add(Medias.EXCEL_XML_MIME_TYPE);
 	}
 
 	public JPiereAttachmntFileRecordRenderer(JPiereAttachmentFileRecordListModel listModel, Boolean isAccessEditRecord, JPiereAttchmentBaseWindow baseWindow)
@@ -184,14 +188,7 @@ public class JPiereAttachmntFileRecordRenderer implements RowRenderer<Object[]> 
 
 			}else if(i == 2) {//Review
 
-
 				String mimeType = (String)data[i];
-
-				if (autoPreviewList.contains(mimeType))
-				{
-
-				}
-
 
 				div = new Cell();
 		    	ToolBarButton btnReview = new ToolBarButton();
@@ -210,7 +207,7 @@ public class JPiereAttachmntFileRecordRenderer implements RowRenderer<Object[]> 
 
 		        	btnReview.setImage(ThemeManager.getThemeResource("images/Zoom16.png"));
 		        	btnReview.addEventListener(Events.ON_CLICK, rowListener);
-
+		        	
 		        }else {
 
 		        	btnReview.setImage(ThemeManager.getThemeResource("images/Zoom16.png"));
