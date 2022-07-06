@@ -17,6 +17,7 @@ package jpiere.modification.webui.action.attachment;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.adempiere.util.Callback;
 import org.adempiere.webui.AdempiereWebUI;
@@ -359,46 +360,43 @@ public class JPiereAttchmentBaseWindow extends Window implements EventListener<E
 		{			
 			for(MOrg org :attachmentFileOrgList)
 			{
-				String directory = MAttachmentFileRecord.getAttachmentDirectory(Env.getCtx(),AD_Table_ID, Record_ID, org.getAD_Org_ID(), attachmentStorageProvider, null);
-				if(directory == null)
+				HashSet<String> directoryList = MAttachmentFileRecord.getAttachmentDirectory(Env.getCtx(),AD_Table_ID, Record_ID, org.getAD_Org_ID(), attachmentStorageProvider, null);
+				if(directoryList.size() == 0)
 					continue;
 				
-				File srcFolder = new File(directory);
-				File destZipFile = null;
-				if(i == 1)
+				for(String directory : directoryList)
 				{
-					destZipFile = new File(srcFolder + File.separator + org.getValue()+".zip");
-				}else {
-					destZipFile = new File(srcFolder + File.separator + org.getValue()+ "(" + Msg.getElement(Env.getCtx(),"AD_StorageProvider_ID")+ String.valueOf(i) + ").zip");
-				}
-				
-				if(destZipFile.exists())
-				{
-					try {
-						FileUtil.deleteFolderRecursive(destZipFile);
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
+					File srcFolder = new File(directory);
+					File destZipFile = null;
+					destZipFile = new File(srcFolder + File.separator + String.valueOf(i) + "_" + org.getValue()+".zip");
+									
+					if(destZipFile.exists())
+					{
+						try {
+							FileUtil.deleteFolderRecursive(destZipFile);
+						} catch (FileNotFoundException e) {
+							e.printStackTrace();
+						}
 					}
+		
+					//create the compressed packages
+					Zip zipper = new Zip();
+				    zipper.setDestFile(destZipFile);
+				    zipper.setBasedir(srcFolder);
+				    //zipper.setIncludes(includesdir.replace(" ", "*"));
+				    zipper.setUpdate(true);
+				    zipper.setCompress(true);
+				    zipper.setCaseSensitive(false);
+				    zipper.setFilesonly(false);
+				    zipper.setTaskName("zip");
+				    zipper.setTaskType("zip");
+				    zipper.setProject(new Project());
+				    zipper.setOwningTarget(new Target());
+				    zipper.execute();
+					downloadFiles.add(destZipFile);
+					i++;
 				}
-	
-				//create the compressed packages
-				Zip zipper = new Zip();
-			    zipper.setDestFile(destZipFile);
-			    zipper.setBasedir(srcFolder);
-			    //zipper.setIncludes(includesdir.replace(" ", "*"));
-			    zipper.setUpdate(true);
-			    zipper.setCompress(true);
-			    zipper.setCaseSensitive(false);
-			    zipper.setFilesonly(false);
-			    zipper.setTaskName("zip");
-			    zipper.setTaskType("zip");
-			    zipper.setProject(new Project());
-			    zipper.setOwningTarget(new Target());
-			    zipper.execute();
-				downloadFiles.add(destZipFile);
 			}
-			
-			i++;
 		}
 
 		MultiFileDownloadDialog downloadDialog = new MultiFileDownloadDialog(downloadFiles.toArray(new File[downloadFiles.size()]));

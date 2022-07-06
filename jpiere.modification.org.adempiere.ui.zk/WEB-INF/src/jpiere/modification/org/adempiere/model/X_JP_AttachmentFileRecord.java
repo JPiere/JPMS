@@ -38,7 +38,7 @@ public class X_JP_AttachmentFileRecord extends PO implements I_JP_AttachmentFile
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20220705L;
+	private static final long serialVersionUID = 20220706L;
 
     /** Standard Constructor */
     public X_JP_AttachmentFileRecord (Properties ctx, int JP_AttachmentFileRecord_ID, String trxName)
@@ -641,6 +641,32 @@ public class X_JP_AttachmentFileRecord extends PO implements I_JP_AttachmentFile
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** MD2 = MD2 */
+	public static final String JP_HASH_ALGORITHM_MD2 = "MD2";
+	/** MD5 = MD5 */
+	public static final String JP_HASH_ALGORITHM_MD5 = "MD5";
+	/** SHA-1 = SHA-1 */
+	public static final String JP_HASH_ALGORITHM_SHA_1 = "SHA-1";
+	/** SHA-256 = SHA-256 */
+	public static final String JP_HASH_ALGORITHM_SHA_256 = "SHA-256";
+	/** SHA-512 = SHA-512 */
+	public static final String JP_HASH_ALGORITHM_SHA_512 = "SHA-512";
+	/** Set Hash Algorithm.
+		@param JP_Hash_Algorithm Hash Algorithm
+	*/
+	public void setJP_Hash_Algorithm (String JP_Hash_Algorithm)
+	{
+
+		set_ValueNoCheck (COLUMNNAME_JP_Hash_Algorithm, JP_Hash_Algorithm);
+	}
+
+	/** Get Hash Algorithm.
+		@return Hash Algorithm	  */
+	public String getJP_Hash_Algorithm()
+	{
+		return (String)get_Value(COLUMNNAME_JP_Hash_Algorithm);
 	}
 
 	/** Set Hash of File.

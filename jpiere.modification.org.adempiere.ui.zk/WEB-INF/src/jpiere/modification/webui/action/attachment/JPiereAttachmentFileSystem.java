@@ -49,15 +49,15 @@ public class JPiereAttachmentFileSystem implements IJPiereAttachmentStore {
 	private final CLogger log = CLogger.getCLogger(getClass());
 
 
-    /** MD2アルゴリズム */
+    /** MD2 Hash Algorithm */
     public static final String MD2 = "MD2";
-    /** MD5アルゴリズム */
+    /** MD5 Hash Algorithm */
     public static final String MD5 = "MD5";
-    /** SHA-1アルゴリズム */
+    /** SHA-1 Hash Algorithm */
     public static final String SHA_1 = "SHA-1";
-    /** SHA-256アルゴリズム */
+    /** SHA-256 Hash Algorithm */
     public static final String SHA_256 = "SHA-256";
-    /** SHA-512アルゴリズム */
+    /** SHA-512 Hash Algorithm */
     public static final String SHA_512 = "SHA-512";
 	
 	@Override
@@ -138,7 +138,16 @@ public class JPiereAttachmentFileSystem implements IJPiereAttachmentStore {
 		
 		if(isHash)
 		{
-			hash = getfileHash(filePath,SHA_512);
+			String hashAlgorithm = prov.get_ValueAsString("JP_Hash_Algorithm");
+			if(Util.isEmpty(hashAlgorithm))
+			{
+				hash = getfileHash(filePath,SHA_512);
+				attachmentFileRecord.setJP_Hash_Algorithm(SHA_512);
+			}else {
+				hash = getfileHash(filePath,hashAlgorithm);
+				attachmentFileRecord.setJP_Hash_Algorithm(hashAlgorithm);
+			}
+			
 			attachmentFileRecord.setJP_Hash_File(hash);		
 		}
 		

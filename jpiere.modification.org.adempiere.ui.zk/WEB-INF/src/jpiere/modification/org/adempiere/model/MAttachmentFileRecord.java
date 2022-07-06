@@ -16,6 +16,7 @@ package jpiere.modification.org.adempiere.model;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Properties;
 
 import org.compiere.model.MClientInfo;
@@ -51,9 +52,10 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 		initAttachmentStoreDetails(ctx, trxName);
 	}
 
-	static public String getAttachmentDirectory(Properties ctx, int AD_Table_ID, int Record_ID, int AD_Org_ID , MJPiereStorageProvider attachmentStorageProvider ,String trxName)
+	static public HashSet<String> getAttachmentDirectory(Properties ctx, int AD_Table_ID, int Record_ID, int AD_Org_ID , MJPiereStorageProvider attachmentStorageProvider ,String trxName)
 	{
 		StringBuilder sql = null;
+		HashSet<String> pathSet = new HashSet<String>();
 		
 		if(attachmentStorageProvider == null)
 		{
@@ -76,8 +78,11 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 			}
 			rs = pstmt.executeQuery();
 
-			if (rs.next())
+			while (rs.next())
+			{
 				attachmentFileRecord = new MAttachmentFileRecord (ctx, rs, trxName);
+				pathSet.add(attachmentFileRecord.getDirectoryAbsolutePath());				
+			}
 		}
 		catch (Exception e)
 		{
@@ -90,13 +95,7 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 			pstmt = null;
 		}
 
-		if(attachmentFileRecord == null)
-		{
-			return null;
-		}
-		
-
-		return attachmentFileRecord.getDirectoryAbsolutePath();
+		return pathSet;
 	}
 
 	static public ArrayList<MAttachmentFileRecord> getAttachmentFileRecordPO(Properties ctx, int AD_Table_ID, int Record_ID, boolean isCheckRole, String trxName)

@@ -401,6 +401,15 @@ public interface I_JP_AttachmentFileRecord
 
 //	public I_JP_Estimation getJP_Estimation() throws RuntimeException;
 
+    /** Column name JP_Hash_Algorithm */
+    public static final String COLUMNNAME_JP_Hash_Algorithm = "JP_Hash_Algorithm";
+
+	/** Set Hash Algorithm	  */
+	public void setJP_Hash_Algorithm (String JP_Hash_Algorithm);
+
+	/** Get Hash Algorithm	  */
+	public String getJP_Hash_Algorithm();
+
     /** Column name JP_Hash_File */
     public static final String COLUMNNAME_JP_Hash_File = "JP_Hash_File";
 
