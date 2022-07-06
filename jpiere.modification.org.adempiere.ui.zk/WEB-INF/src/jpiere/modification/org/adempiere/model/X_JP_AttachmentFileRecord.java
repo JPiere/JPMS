@@ -744,6 +744,38 @@ public class X_JP_AttachmentFileRecord extends PO implements I_JP_AttachmentFile
 		return (String)get_Value(COLUMNNAME_JP_Processing2);
 	}
 
+	/** Set Remarks.
+		@param JP_Remarks JPIERE-0490:JPBP
+	*/
+	public void setJP_Remarks (String JP_Remarks)
+	{
+		set_Value (COLUMNNAME_JP_Remarks, JP_Remarks);
+	}
+
+	/** Get Remarks.
+		@return JPIERE-0490:JPBP
+	  */
+	public String getJP_Remarks()
+	{
+		return (String)get_Value(COLUMNNAME_JP_Remarks);
+	}
+
+	/** Set Subject.
+		@param JP_Subject JPIERE-0490:JPBP
+	*/
+	public void setJP_Subject (String JP_Subject)
+	{
+		set_Value (COLUMNNAME_JP_Subject, JP_Subject);
+	}
+
+	/** Get Subject.
+		@return JPIERE-0490:JPBP
+	  */
+	public String getJP_Subject()
+	{
+		return (String)get_Value(COLUMNNAME_JP_Subject);
+	}
+
 	/** Set Line No.
 		@param Line Unique line for this document
 	*/

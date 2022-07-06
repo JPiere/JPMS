@@ -254,45 +254,67 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 	{
 		PO po = null;
 		
+		if(is_ValueChanged(COLUMNNAME_IsDeleteable))
+		{
+			if(!isDeleteable())
+			{	
+				if(po == null)
+					po = createPO();
+				setReferenceInfo(po);
+			}
+		}
+		
 		String columnName = MSysConfig.getValue("JP_ATTACHMENT_MODELCHANGE_UNDELETABLE_COLUMN", "NULL");
 		Object columnValue = MSysConfig.getValue("JP_ATTACHMENT_MODELCHANGE_UNDELETABLE_VALUE", "NULL");
 		if(!columnName.equals("NULL") && !columnValue.equals("NULL"))
 		{
-			if(po == null)
-				po = createPO();
-			
-			int columnIndex = po.get_ColumnIndex(columnName);
-			if(columnIndex > -1)
-			{
-				Object value = po.get_Value(columnIndex);
-				if(value instanceof String)
+			if(isDeleteable())
+			{	
+				if(po == null)
+					po = createPO();
+				
+				int columnIndex = po.get_ColumnIndex(columnName);
+				if(columnIndex > -1)
 				{
-					if(columnValue.toString().equals(value.toString()))
+					Object value = po.get_Value(columnIndex);
+					if(value instanceof String)
 					{
-						setIsDeleteable(false);
+						if(columnValue.toString().equals(value.toString()))
+						{
+							setIsDeleteable(false);
+						}
+	
+					}else if (value instanceof Boolean) {
+	
+						Boolean valuBoolean = (Boolean)value;
+						boolean columnValueBoolean = columnValue.equals("Y");
+						if(valuBoolean.booleanValue() == columnValueBoolean)
+						{
+							setIsDeleteable(false);
+						}
+	
+					}else if (value instanceof Integer) {
+	
+						Integer valuInteger = (Integer)value;
+						Integer columnValueInteger = Integer.valueOf(columnValue.toString());
+						if(valuInteger.intValue() == columnValueInteger.intValue())
+						{
+							setIsDeleteable(false);
+						}
+	
 					}
-
-				}else if (value instanceof Boolean) {
-
-					Boolean valuBoolean = (Boolean)value;
-					boolean columnValueBoolean = columnValue.equals("Y");
-					if(valuBoolean.booleanValue() == columnValueBoolean)
-					{
-						setIsDeleteable(false);
-					}
-
-				}else if (value instanceof Integer) {
-
-					Integer valuInteger = (Integer)value;
-					Integer columnValueInteger = Integer.valueOf(columnValue.toString());
-					if(valuInteger.intValue() == columnValueInteger.intValue())
-					{
-						setIsDeleteable(false);
-					}
-
+					
+					if(!newRecord)
+						setReferenceInfo(po);
 				}
 			}
 		}
+		
+		if(po == null)
+			po = createPO();
+		
+		if(newRecord)
+			setReferenceInfo(po);
 		
 		return true;
 	}
@@ -301,6 +323,60 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 	{
 		MTable m_Table = MTable.get(getAD_Table_ID());
 		return m_Table.getPO(getRecord_ID(), get_TrxName());
+	}
+	
+	private void setReferenceInfo(PO from)
+	{
+		int columnCount = get_ColumnCount();
+		for (int i1 = 0; i1 < columnCount; i1++)
+		{
+			String colName = get_ColumnName(i1);
+			if (   colName.equals("AD_Client_ID")
+				|| colName.equals("AD_Org_ID")
+				|| colName.equals("AD_Table_ID")
+				|| colName.equals("Record_ID")
+				|| colName.equals("JP_AttachmentFileName")
+				|| colName.equals("JP_AttachmentFilePath")
+				|| colName.equals("AD_StorageProvider_ID")
+				|| colName.equals("JP_AttachmentFileDescription")
+				|| colName.equals("JP_MediaContentType")
+				|| colName.equals("JP_MediaFormat")
+				|| colName.equals("JP_Processing1")
+				|| colName.equals("IsActive")
+				|| colName.equals("IsDeleteable")
+				|| colName.equals("JP_Processing2")
+				|| colName.equals("Created")
+				|| colName.equals("CreatedBy")
+				|| colName.equals("Updated")
+				|| colName.equals("UpdatedBy")
+				|| colName.equals("JP_AttachmentFile_ID")
+				|| colName.equals("JP_AttachmentFile_UU")
+				)
+			{
+				continue;
+			}
+			
+			 if(colName.equals("DateDoc"))
+			 {
+				 Object dateDoc = null;
+				if(from.columnExists("DateOrdered"))
+				{
+					dateDoc = from.get_Value("DateOrdered");
+				}else if(from.columnExists("MovementDate")) {
+					dateDoc = from.get_Value("MovementDate");
+				}else if(from.columnExists("DateInvoiced")) {
+					dateDoc = from.get_Value("DateInvoiced");		
+				}else if(from.columnExists("DateTrx")) {
+					dateDoc = from.get_Value("DateTrx");	
+				}else if(from.columnExists("StatementDate")) {
+					dateDoc = from.get_Value("StatementDate");
+				}		
+				set_ValueNoCheck(colName, dateDoc);
+				
+			 }else if(from.columnExists(colName)){
+				set_ValueNoCheck(colName, from.get_Value(colName));
+			}
+		}//for
 	}
 
 	@Override

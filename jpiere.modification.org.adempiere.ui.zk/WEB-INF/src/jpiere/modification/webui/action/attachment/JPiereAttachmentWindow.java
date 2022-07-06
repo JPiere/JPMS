@@ -34,8 +34,6 @@ import org.adempiere.webui.event.ValueChangeListener;
 import org.adempiere.webui.theme.ThemeManager;
 import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.FDialog;
-import org.compiere.model.GridField;
-import org.compiere.model.GridTab;
 import org.compiere.model.MColumn;
 import org.compiere.model.MLookup;
 import org.compiere.model.MLookupFactory;
@@ -364,67 +362,69 @@ public class JPiereAttachmentWindow extends Window implements EventListener<Even
 		m_attachmentFileRecord.setJP_AttachmentFileDescription(JP_AttachmentFileDescription.getValue());
 		m_attachmentFileRecord.setJP_MediaContentType(media.getContentType());
 		m_attachmentFileRecord.setJP_MediaFormat(media.getFormat());
+		m_attachmentFileRecord.set_ValueNoCheck("AD_Org_ID", orgEditor.getValue());
 
-		GridTab mTab = adTabbox.getSelectedGridTab();
-		GridField[] fields = mTab.getFields();
-		String columnName = null;
-		int columnIndex = -1;
-		Object objectValue = null;
-		for(int i = 0 ; i < fields.length; i++)
-		{
-			columnName = fields[i].getColumnName();
-			columnIndex = -1;
-			objectValue = null;
-			if(columnName.equals("JP_AttachmentFileRecord_ID")
-					|| columnName.equals("AD_Client_ID")
-//					|| columnName.equals("AD_Org_ID")
-					|| columnName.equals("Created")
-					|| columnName.equals("CreatedBy")
-					|| columnName.equals("Updated")
-					|| columnName.equals("UpdatedBy")
-				)
-			{
-				continue;
-			}
-
-			columnIndex = m_attachmentFileRecord.get_ColumnIndex(columnName);
-			if(columnIndex > -1)
-			{
-				if(columnName.equals("AD_Org_ID"))
-				{
-					m_attachmentFileRecord.set_ValueNoCheck("AD_Org_ID", orgEditor.getValue());
-
-
-				}else {
-
-					objectValue = mTab.getValue(columnName);
-					if(objectValue != null)
-					{
-						m_attachmentFileRecord.set_ValueNoCheck(columnName, objectValue);
-					}
-
-				}
-
-			}else if(columnIndex == -1) {
-
-				 if(columnName.equals("DateOrdered")
-						|| columnName.equals("MovementDate")
-						|| columnName.equals("DateInvoiced")
-						|| columnName.equals("DateTrx")
-						|| columnName.equals("StatementDate"))
-				 {
-					if(mTab.getTableModel().getPO(0).get_ColumnIndex("DateDoc") == -1)
-					{
-						objectValue = mTab.getValue(columnName);
-						if(objectValue != null)
-						{
-							m_attachmentFileRecord.set_ValueNoCheck("DateDoc", objectValue);
-						}
-					}
-				 }
-			}
-
-		}//for
+		//Transfer to MAttachemntFileRecord#beforeSave()
+//		GridTab mTab = adTabbox.getSelectedGridTab();
+//		GridField[] fields = mTab.getFields();
+//		String columnName = null;
+//		int columnIndex = -1;
+//		Object objectValue = null;
+//		for(int i = 0 ; i < fields.length; i++)
+//		{
+//			columnName = fields[i].getColumnName();
+//			columnIndex = -1;
+//			objectValue = null;
+//			if(columnName.equals("JP_AttachmentFileRecord_ID")
+//					|| columnName.equals("AD_Client_ID")
+////					|| columnName.equals("AD_Org_ID")
+//					|| columnName.equals("Created")
+//					|| columnName.equals("CreatedBy")
+//					|| columnName.equals("Updated")
+//					|| columnName.equals("UpdatedBy")
+//				)
+//			{
+//				continue;
+//			}
+//
+//			columnIndex = m_attachmentFileRecord.get_ColumnIndex(columnName);
+//			if(columnIndex > -1)
+//			{
+//				if(columnName.equals("AD_Org_ID"))
+//				{
+//					m_attachmentFileRecord.set_ValueNoCheck("AD_Org_ID", orgEditor.getValue());
+//
+//
+//				}else {
+//
+//					objectValue = mTab.getValue(columnName);
+//					if(objectValue != null)
+//					{
+//						m_attachmentFileRecord.set_ValueNoCheck(columnName, objectValue);
+//					}
+//
+//				}
+//
+//			}else if(columnIndex == -1) {
+//
+//				 if(columnName.equals("DateOrdered")
+//						|| columnName.equals("MovementDate")
+//						|| columnName.equals("DateInvoiced")
+//						|| columnName.equals("DateTrx")
+//						|| columnName.equals("StatementDate"))
+//				 {
+//					if(mTab.getTableModel().getPO(0).get_ColumnIndex("DateDoc") == -1)
+//					{
+//						objectValue = mTab.getValue(columnName);
+//						if(objectValue != null)
+//						{
+//							m_attachmentFileRecord.set_ValueNoCheck("DateDoc", objectValue);
+//						}
+//					}
+//				 }
+//			}
+//
+//		}//for
 
 		m_attachmentFileRecord.upLoadLFile(media.getByteData());
 		String fileName = media.getName();
