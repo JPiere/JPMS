@@ -234,14 +234,13 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 		if(media == null)
 			return ;
 
-		//TODO
 		IMediaView view = Extensions.getMediaView(attachmentFileRecord.getJP_MediaContentType()
 									, getExtension(attachmentFileRecord.getJP_AttachmentFileName()), ClientInfo.isMobile());
 		
 		if (view != null) 
 		{
 			
-			if (media.getByteData().length <= maxPreviewSize)//TODO
+			if (media.getByteData().length <= maxPreviewSize)
 			{
 		
 				try {
@@ -254,40 +253,28 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 					Media mediaErr = new AMedia(null, null, "text/html", msg.getBytes());
 					preview.setContent(mediaErr);
 					preview.setVisible(true);
+					preview.invalidate();	
 				}
 				
 			}else {
 				
-				return;
+				String msg = WTextEditorDialog.sanitize(Msg.getMsg(Env.getCtx(), "ErrorPreviewingFile") + " Please Check MAX_ATTACHMENT_PREVIEW_SIZE");
+				Media mediaErr = new AMedia(null, null, "text/html", msg.getBytes());
+				preview.setContent(mediaErr);
+				preview.setVisible(true);
+				preview.invalidate();	
 				
 			}
 			
-			isFileLoad = true;
+		}else {
+		
+			preview.setContent(media);
+			preview.setVisible(true);
+			preview.invalidate();		
 			
-			Center centerPane = new Center();
-			centerPane.setSclass("dialog-content");
-			//centerPane.setAutoscroll(true); // not required the preview has its own scroll bar
-			mainPanel.appendChild(centerPane);
-			centerPane.appendChild(previewPanel);
-			ZKUpdateUtil.setVflex(previewPanel, "1");
-			ZKUpdateUtil.setHflex(previewPanel, "1");
-			if (ClientInfo.isMobile())
-			{
-				orientation = ClientInfo.get().orientation;
-				ClientInfo.onClientInfo(this, this::onClientInfo);
-			}
-			
-			return ;
 		}
-		
-		//TODO
-		
-		
+				
 		isFileLoad = true;
-
-		preview.setContent(media);
-		preview.setVisible(true);
-		preview.invalidate();
 
 		Center centerPane = new Center();
 		centerPane.setSclass("dialog-content");
