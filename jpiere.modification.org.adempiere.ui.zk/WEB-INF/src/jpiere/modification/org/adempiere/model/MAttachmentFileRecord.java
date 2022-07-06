@@ -22,6 +22,9 @@ import java.util.Properties;
 import org.compiere.model.MClientInfo;
 import org.compiere.model.MOrg;
 import org.compiere.model.MRole;
+import org.compiere.model.MSysConfig;
+import org.compiere.model.MTable;
+import org.compiere.model.PO;
 import org.compiere.util.DB;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
@@ -243,6 +246,61 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 		
 		setAD_StorageProvider_ID(AD_StorageProvider_ID);		
 		storageProvider= new MJPiereStorageProvider(ctx, AD_StorageProvider_ID, trxName);
+	}
+
+	
+	@Override
+	protected boolean beforeSave(boolean newRecord) 
+	{
+		PO po = null;
+		
+		String columnName = MSysConfig.getValue("JP_ATTACHMENT_MODELCHANGE_UNDELETABLE_COLUMN", "NULL");
+		Object columnValue = MSysConfig.getValue("JP_ATTACHMENT_MODELCHANGE_UNDELETABLE_VALUE", "NULL");
+		if(!columnName.equals("NULL") && !columnValue.equals("NULL"))
+		{
+			if(po == null)
+				po = createPO();
+			
+			int columnIndex = po.get_ColumnIndex(columnName);
+			if(columnIndex > -1)
+			{
+				Object value = po.get_Value(columnIndex);
+				if(value instanceof String)
+				{
+					if(columnValue.toString().equals(value.toString()))
+					{
+						setIsDeleteable(false);
+					}
+
+				}else if (value instanceof Boolean) {
+
+					Boolean valuBoolean = (Boolean)value;
+					boolean columnValueBoolean = columnValue.equals("Y");
+					if(valuBoolean.booleanValue() == columnValueBoolean)
+					{
+						setIsDeleteable(false);
+					}
+
+				}else if (value instanceof Integer) {
+
+					Integer valuInteger = (Integer)value;
+					Integer columnValueInteger = Integer.valueOf(columnValue.toString());
+					if(valuInteger.intValue() == columnValueInteger.intValue())
+					{
+						setIsDeleteable(false);
+					}
+
+				}
+			}
+		}
+		
+		return true;
+	}
+	
+	private PO createPO()
+	{
+		MTable m_Table = MTable.get(getAD_Table_ID());
+		return m_Table.getPO(getRecord_ID(), get_TrxName());
 	}
 
 	@Override
