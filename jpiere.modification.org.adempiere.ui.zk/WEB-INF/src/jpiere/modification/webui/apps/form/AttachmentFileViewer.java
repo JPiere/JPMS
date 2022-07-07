@@ -47,6 +47,9 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 
 	private Iframe preview = new Iframe();
 
+	private int maxPreviewSize;
+	private Component customPreviewComponent;
+	
 	private Panel previewPanel = new Panel();
 
 	private Borderlayout mainPanel = new Borderlayout();
@@ -70,15 +73,14 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 		autoPreviewList.add("text/plain");
 		autoPreviewList.add("application/pdf");
 		autoPreviewList.add("text/html");
-		autoPreviewList.add(Medias.CSV_MIME_TYPE);
-		autoPreviewList.add(Medias.EXCEL_MIME_TYPE);
+		autoPreviewList.add("application/json");
+		//autoPreviewList.add(Medias.CSV_MIME_TYPE);
+		//autoPreviewList.add(Medias.EXCEL_MIME_TYPE);
 		autoPreviewList.add(Medias.EXCEL_XML_MIME_TYPE);
 	}
 
 	
-	private int maxPreviewSize;
 
-	private Component customPreviewComponent;
 	
 	/**
 	 *
@@ -88,8 +90,6 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 	public AttachmentFileViewer(EventListener<Event> eventListener)
 	{
 		super();
-		maxPreviewSize = MSysConfig.getIntValue(MSysConfig.ZK_MAX_ATTACHMENT_PREVIEW_SIZE, 1048576, Env.getAD_Client_ID(Env.getCtx()));
-
 		this.addEventListener(DialogEvents.ON_WINDOW_CLOSE, this);
 		if (eventListener != null)
 		{
@@ -197,11 +197,6 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 		ZKUpdateUtil.setHeight(mainPanel, "100%");
 		ZKUpdateUtil.setWidth(mainPanel, "100%");
 
-		previewPanel.appendChild(preview);
-		ZKUpdateUtil.setVflex(preview, "1");
-		ZKUpdateUtil.setHflex(preview, "1");
-
-
 		File file = new File(attachmentFileRecord.getFileAbsolutePath());
 		AMedia media = null;
 		try {
@@ -239,7 +234,7 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 		
 		if (view != null) 
 		{
-			
+			maxPreviewSize = MSysConfig.getIntValue(MSysConfig.ZK_MAX_ATTACHMENT_PREVIEW_SIZE, 1048576, Env.getAD_Client_ID(Env.getCtx()));
 			if (media.getByteData().length <= maxPreviewSize)
 			{
 		
@@ -254,6 +249,9 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 					preview.setContent(mediaErr);
 					preview.setVisible(true);
 					preview.invalidate();	
+					previewPanel.appendChild(preview);
+					ZKUpdateUtil.setVflex(preview, "1");
+					ZKUpdateUtil.setHflex(preview, "1");
 				}
 				
 			}else {
@@ -262,7 +260,10 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 				Media mediaErr = new AMedia(null, null, "text/html", msg.getBytes());
 				preview.setContent(mediaErr);
 				preview.setVisible(true);
-				preview.invalidate();	
+				preview.invalidate();
+				previewPanel.appendChild(preview);
+				ZKUpdateUtil.setVflex(preview, "1");
+				ZKUpdateUtil.setHflex(preview, "1");
 				
 			}
 			
@@ -270,7 +271,10 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 		
 			preview.setContent(media);
 			preview.setVisible(true);
-			preview.invalidate();		
+			preview.invalidate();
+			previewPanel.appendChild(preview);
+			ZKUpdateUtil.setVflex(preview, "1");
+			ZKUpdateUtil.setHflex(preview, "1");
 			
 		}
 				

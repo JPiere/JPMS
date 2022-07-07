@@ -73,8 +73,9 @@ public class JPiereAttachmntFileRecordRenderer implements RowRenderer<Object[]> 
 		autoPreviewList.add("text/plain");
 		autoPreviewList.add("application/pdf");
 		autoPreviewList.add("text/html");
-		autoPreviewList.add(Medias.CSV_MIME_TYPE);
-		autoPreviewList.add(Medias.EXCEL_MIME_TYPE);
+		autoPreviewList.add("application/json");
+		//autoPreviewList.add(Medias.CSV_MIME_TYPE);
+		//autoPreviewList.add(Medias.EXCEL_MIME_TYPE);
 		autoPreviewList.add(Medias.EXCEL_XML_MIME_TYPE);
 	}
 
