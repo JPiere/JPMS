@@ -268,7 +268,7 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 		Object columnValue = MSysConfig.getValue("JP_ATTACHMENT_MODELCHANGE_UNDELETABLE_VALUE", "NULL");
 		if(!columnName.equals("NULL") && !columnValue.equals("NULL"))
 		{
-			if(isDeleteable())
+			if(newRecord || isDeleteable())
 			{	
 				if(po == null)
 					po = createPO();
