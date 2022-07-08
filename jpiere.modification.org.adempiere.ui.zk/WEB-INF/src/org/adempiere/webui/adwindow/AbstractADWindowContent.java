@@ -1566,7 +1566,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 		toolbar.enableTabNavigation(breadCrumb.hasParentLink(), adTabbox.getSelectedDetailADTabpanel() != null);
 
 
-		if(!toolbar.getButton("Attachment").isInvalidated())//JPIERE-0437
+		if(toolbar.getButton("Attachment") != null && !toolbar.getButton("Attachment").isInvalidated())//JPIERE-0437
 			toolbar.setPressed("Attachment",adTabbox.getSelectedGridTab().hasAttachment());
 
 		//JPIERE-0436 JPiere Attachment File
@@ -1939,7 +1939,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         }
         if (canHaveAttachment)
         {
-        	if(!toolbar.getButton("Attachment").isInvalidated())//JPIERE-0437
+        	if(toolbar.getButton("Attachment") != null && !toolbar.getButton("Attachment").isInvalidated())//JPIERE-0437
         	{
         		toolbar.enableAttachment(true);
             	toolbar.setPressed("Attachment",adTabbox.getSelectedGridTab().hasAttachment());
