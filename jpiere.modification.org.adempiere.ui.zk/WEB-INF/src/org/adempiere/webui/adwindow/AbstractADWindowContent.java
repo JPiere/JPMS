@@ -1573,10 +1573,10 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 		if(toolbar.getButton("JPiereAttachment") != null && !toolbar.getButton("JPiereAttachment").isDisabled())
 			toolbar.setPressed("JPiereAttachment",hasAttachment( adTabbox.getSelectedGridTab()) );
 
-		if(!toolbar.getButton("PostIt").isInvalidated())//JPIERE-0437
+		if(toolbar.getButton("PostIt") != null && !toolbar.getButton("PostIt").isInvalidated())//JPIERE-0437
 			toolbar.setPressed("PostIt",adTabbox.getSelectedGridTab().hasPostIt());
 
-		if(!toolbar.getButton("Chat").isInvalidated())//JPIERE-0437
+		if(toolbar.getButton("Chat") != null && !toolbar.getButton("Chat").isInvalidated())//JPIERE-0437
 			toolbar.setPressed("Chat",adTabbox.getSelectedGridTab().hasChat());
 
 		if (toolbar.isPersonalLock)
@@ -1972,13 +1972,13 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         }
         if (canHaveChat)
         {
-        	if(!toolbar.getButton("Chat").isInvalidated())//JPIERE-0437
+        	if(toolbar.getButton("Chat") != null && !toolbar.getButton("Chat").isInvalidated())//JPIERE-0437
         	{
         		toolbar.enableChat(true);
         		toolbar.setPressed("Chat",adTabbox.getSelectedGridTab().hasChat());
         	}
 
-        	if(!toolbar.getButton("PostIt").isInvalidated())//JPIERE-0437
+        	if(toolbar.getButton("PostIt") != null && !toolbar.getButton("PostIt").isInvalidated())//JPIERE-0437
         	{
                 toolbar.enablePostIt(true);
                 toolbar.setPressed("PostIt",adTabbox.getSelectedGridTab().hasPostIt());
