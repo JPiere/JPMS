@@ -837,7 +837,9 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 	}
 
 	public void updateUI() {
-		windowContainer.setTabTitle(0, Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Home")) + " (" + noCount + ")", null);
+		
+		//JPIERE-XXXX Comment out for NPE When First login
+		//windowContainer.setTabTitle(0, Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Home")) + " (" + noCount + ")", null);
 	}
 
 	//use _docClick undocumented api. need verification after major zk release update
