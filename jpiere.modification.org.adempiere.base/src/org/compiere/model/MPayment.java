@@ -85,7 +85,9 @@ import org.compiere.util.ValueNamePair;
 
 /**
  * Modify Info
+ * JPIERE-0214:
  * JPIERE-0218: 出納帳が記帳されるまで入金伝票を完成にしない(Complete Payment after recondile with Bank Statement)
+ * JPIERE-0574: Reverse Accrual in case of Foreign currency is applied original payment rate.
  */
 public class MPayment extends X_C_Payment
 	implements DocAction, ProcessCall, PaymentInterface, IDocsPostProcess
@@ -2759,6 +2761,39 @@ public class MPayment extends X_C_Payment
 		reversal.setDiscountAmt(getDiscountAmt().negate());
 		reversal.setWriteOffAmt(getWriteOffAmt().negate());
 		reversal.setOverUnderAmt(getOverUnderAmt().negate());
+		
+		//JPIERE-0574 - Reverse Accrual in case of Foreign currency is applied original payment rate.
+		if(isOverrideCurrencyRate())
+		{
+			reversal.setIsOverrideCurrencyRate(true);
+			reversal.setConvertedAmt(getConvertedAmt().negate());
+			reversal.setCurrencyRate(getCurrencyRate());
+			
+		}else if(accrual) {
+			
+			int CurTo_ID = MClient.get(getCtx()).getAcctSchema().getC_Currency_ID();
+			if(getC_Currency_ID() != CurTo_ID)
+			{
+				reversal.setIsOverrideCurrencyRate(true);
+				BigDecimal convertedAmt = MConversionRate.convert(getCtx(),getPayAmt(), getC_Currency_ID(), CurTo_ID, getDateAcct(), getC_ConversionType_ID(), getAD_Client_ID(),getAD_Org_ID());
+				reversal.setConvertedAmt(convertedAmt.negate());
+				BigDecimal rate = MConversionRate.getRate(getC_Currency_ID(), CurTo_ID, getDateAcct(), getC_ConversionType_ID(), getAD_Client_ID(), getAD_Org_ID());
+				reversal.setCurrencyRate(rate);
+				
+			}else {
+				reversal.setIsOverrideCurrencyRate(false);
+				reversal.setConvertedAmt(null);
+				reversal.setCurrencyRate(null);
+				
+			}
+			
+		}else {
+			reversal.setIsOverrideCurrencyRate(false);
+			reversal.setConvertedAmt(null);
+			reversal.setCurrencyRate(null);
+		}//JPIERE-0574	
+		
+		
 		//
 		reversal.setIsAllocated(true);
 		reversal.setIsReconciled(false);
