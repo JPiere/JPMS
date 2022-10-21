@@ -1872,7 +1872,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         }
         else
         {
-        	adTabbox.updateDetailPaneToolbar(changed, readOnly);
+        	adTabbox.updateDetailPaneToolbar(changed, false);//JPIERE-0578:Eliminate the effect on child tab icons when parent tabs are read-only
         }
         boolean isEditting = adTabbox.needSave(true, false) ||
         		adTabbox.getSelectedGridTab().isNew() ||
