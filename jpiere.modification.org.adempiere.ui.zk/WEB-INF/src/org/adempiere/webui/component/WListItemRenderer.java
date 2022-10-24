@@ -588,6 +588,17 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 	}
 
     /**
+	 * get custom list header
+	 * @param index
+	 * @return
+	 */
+	public ListHeader getListHeader(int index) {
+		if (m_headers.size() <= index)
+			return null;
+		return m_headers.get(index);
+	}
+
+    /**
      * Obtain the comparator for a given column.
      *
      * @param ascending     whether the comparator will sort ascending
