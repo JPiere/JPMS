@@ -1175,6 +1175,11 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			pi.setAD_PInstance_ID(pInstance.getAD_PInstance_ID());
 			boolean success = process.processItWithoutTrxClose(pi, trx);
 			setTextMsg(pi.getSummary());
+			
+			//JPIERE-0586 Roll back when Process is failed.
+			if(!success)
+				throw new Exception(pi.getSummary());
+				
 			return success;
 		}
 
