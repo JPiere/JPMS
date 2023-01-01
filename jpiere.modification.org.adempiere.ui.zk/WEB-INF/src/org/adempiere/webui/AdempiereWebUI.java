@@ -329,6 +329,7 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 			localHttpAddr.append(":").append(port);
 		}
 		Env.setContext(ctx, Env.LOCAL_HTTP_ADDRESS, localHttpAddr.toString());		
+		Env.setContext(ctx, Env.IS_CAN_APPROVE_OWN_DOC, MRole.getDefault().isCanApproveOwnDoc());
 		Clients.response(new AuScript("zAu.cmd0.clearBusy()"));
 
 		//init favorite
@@ -555,10 +556,12 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 				Executions.getCurrent().getSession().setAttribute(CLIENT_INFO, clientInfo);
 			}
 
-			Env.setContext(Env.getCtx(), "#clientInfo_desktopWidth", clientInfo.desktopWidth);
-			Env.setContext(Env.getCtx(), "#clientInfo_desktopHeight", clientInfo.desktopHeight);
-			Env.setContext(Env.getCtx(), "#clientInfo_orientation", clientInfo.orientation);
-			Env.setContext(Env.getCtx(), "#clientInfo_mobile", clientInfo.tablet);
+			Env.setContext(Env.getCtx(), Env.CLIENT_INFO_DESKTOP_WIDTH, clientInfo.desktopWidth);
+			Env.setContext(Env.getCtx(), Env.CLIENT_INFO_DESKTOP_HEIGHT, clientInfo.desktopHeight);
+			Env.setContext(Env.getCtx(), Env.CLIENT_INFO_ORIENTATION, clientInfo.orientation);
+			Env.setContext(Env.getCtx(), Env.CLIENT_INFO_MOBILE, clientInfo.tablet);
+			if (clientInfo.timeZone != null)
+				Env.setContext(Env.getCtx(), Env.CLIENT_INFO_TIME_ZONE, clientInfo.timeZone.getID());
 
 			IDesktop appDesktop = getAppDeskop();
 			if (appDesktop != null)
@@ -621,10 +624,11 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 		Env.setContext(properties, ITheme.ZK_TOOLBAR_BUTTON_SIZE, Env.getContext(Env.getCtx(), ITheme.ZK_TOOLBAR_BUTTON_SIZE));
 		Env.setContext(properties, ITheme.USE_CSS_FOR_WINDOW_SIZE, Env.getContext(Env.getCtx(), ITheme.USE_CSS_FOR_WINDOW_SIZE));
 		Env.setContext(properties, ITheme.USE_FONT_ICON_FOR_IMAGE, Env.getContext(Env.getCtx(), ITheme.USE_FONT_ICON_FOR_IMAGE));
-		Env.setContext(properties, "#clientInfo_desktopWidth", clientInfo.desktopWidth);
-		Env.setContext(properties, "#clientInfo_desktopHeight", clientInfo.desktopHeight);
-		Env.setContext(properties, "#clientInfo_orientation", clientInfo.orientation);
-		Env.setContext(properties, "#clientInfo_mobile", clientInfo.tablet);
+		Env.setContext(properties, Env.CLIENT_INFO_DESKTOP_WIDTH, clientInfo.desktopWidth);
+		Env.setContext(properties, Env.CLIENT_INFO_DESKTOP_HEIGHT, clientInfo.desktopHeight);
+		Env.setContext(properties, Env.CLIENT_INFO_ORIENTATION, clientInfo.orientation);
+		Env.setContext(properties, Env.CLIENT_INFO_MOBILE, clientInfo.tablet);
+		Env.setContext(properties, Env.CLIENT_INFO_TIME_ZONE, clientInfo.timeZone.getID());
 
 		Desktop desktop = Executions.getCurrent().getDesktop();
 		Locale locale = (Locale) desktop.getSession().getAttribute(Attributes.PREFERRED_LOCALE);

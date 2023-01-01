@@ -33,7 +33,7 @@ import org.adempiere.webui.event.ValueChangeEvent;
 import org.adempiere.webui.event.ValueChangeListener;
 import org.adempiere.webui.theme.ThemeManager;
 import org.adempiere.webui.util.ZKUpdateUtil;
-import org.adempiere.webui.window.FDialog;
+import org.adempiere.webui.window.Dialog;
 import org.compiere.model.MColumn;
 import org.compiere.model.MLookup;
 import org.compiere.model.MLookupFactory;
@@ -327,7 +327,7 @@ public class JPiereAttachmentWindow extends Window implements EventListener<Even
 				if(extensions[i].equalsIgnoreCase(media.getFormat()))
 				{
 					//This extension of file can not upload.
-					FDialog.error(0, "Error", media.getFormat() + " - " +"JP_CanNotUploadFileExtension");
+					Dialog.error(0, "Error", media.getFormat() + " - " +"JP_CanNotUploadFileExtension");
 					return;
 				}
 			}
@@ -350,7 +350,7 @@ public class JPiereAttachmentWindow extends Window implements EventListener<Even
 			if(!isOK)
 			{
 				//This extension of file can not upload.
-				FDialog.error(0, "Error", media.getFormat() + " - " +"JP_CanNotUploadFileExtension");
+				Dialog.error(0, "Error", media.getFormat() + " - " +"JP_CanNotUploadFileExtension");
 				return;
 			}
 		}

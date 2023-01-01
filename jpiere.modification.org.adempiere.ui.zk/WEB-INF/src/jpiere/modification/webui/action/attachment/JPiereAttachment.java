@@ -17,7 +17,7 @@ package jpiere.modification.webui.action.attachment;
 import org.adempiere.webui.action.IAction;
 import org.adempiere.webui.adwindow.ADWindow;
 import org.adempiere.webui.adwindow.ADWindowToolbar;
-import org.adempiere.webui.window.FDialog;
+import org.adempiere.webui.window.Dialog;
 import org.compiere.model.GridTab;
 import org.compiere.model.MClientInfo;
 import org.compiere.util.Env;
@@ -50,7 +50,7 @@ public class JPiereAttachment implements IAction {
 		 
 		 if(clientInfo.get_ValueAsInt("JP_StorageAttachment_ID")  == 0)
 		 {
-			 FDialog.error(0, "Error", Msg.getMsg(Env.getCtx(), "NotFound")
+			 Dialog.error(0, "Error", Msg.getMsg(Env.getCtx(), "NotFound")
 					 + System.lineSeparator() + Msg.getElement(Env.getCtx(), "JP_StorageAttachment_ID"));
 			 return ;
 		 }

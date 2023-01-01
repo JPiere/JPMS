@@ -55,7 +55,7 @@ import org.adempiere.webui.session.SessionManager;
 import org.adempiere.webui.theme.ThemeManager;
 import org.adempiere.webui.util.UserPreference;
 import org.adempiere.webui.util.ZKUpdateUtil;
-import org.adempiere.webui.window.FDialog;
+import org.adempiere.webui.window.Dialog;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.I_AD_Preference;
@@ -782,7 +782,7 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 		int AD_Table_ID = MTable.getTable_ID(query.getTableName());
 		if (!MRole.getDefault().isCanReport(AD_Table_ID))
 		{
-			FDialog.error(0, null, "AccessCannotReport", query.getTableName());
+			Dialog.error(0, "AccessCannotReport", query.getTableName());
 			return;
 		}
 		if (AD_Table_ID != 0)
@@ -843,8 +843,8 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 	}
 
 	//use _docClick undocumented api. need verification after major zk release update
-	private final static String autoHideMenuScript = "try{var w=zk.Widget.$('#{0}');var t=zk.Widget.$('#{1}');" +
-			"var e=new Object;e.target=t;w._docClick(e);}catch(error){}";
+	private final static String autoHideMenuScript = "(function(){try{let w=zk.Widget.$('#{0}');let t=zk.Widget.$('#{1}');" +
+			"let e=new Object;e.target=t;w._docClick(e);}catch(error){}})()";
 
 	private void autoHideMenu() {
 		if (mobile) {
@@ -1067,8 +1067,8 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 		super.onMenuSelected(menuId);
 		if (showHeader != null && showHeader.isVisible()) {
 			//ensure header popup is close
-			String script = "var w=zk.Widget.$('#" + layout.getUuid()+"'); " +
-					"zWatch.fire('onFloatUp', w);";
+			String script = "(function(){let w=zk.Widget.$('#" + layout.getUuid()+"'); " +
+					"zWatch.fire('onFloatUp', w);})()";
 			Clients.response(new AuScript(script));
 		}
 	}

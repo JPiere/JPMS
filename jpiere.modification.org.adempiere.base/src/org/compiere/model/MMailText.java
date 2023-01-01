@@ -84,14 +84,25 @@ public class MMailText extends X_R_MailText
 	
 	/**
 	 * 	Get parsed/translated Mail Text
-	 *	@param all concatinate all
+	 *	@param all concatenate all
 	 *	@return parsed/translated text
 	 */
 	public String getMailText(boolean all)
 	{
+		return getMailText(all, true);
+	}
+	
+	/**
+	 * 	Get parsed/translated Mail Text
+	 *	@param all concatenate all
+	 *  @param parsed
+	 *	@return parsed/translated text
+	 */
+	public String getMailText(boolean all, boolean parsed)
+	{
 		translate();
 		if (!all)
-			return parse(m_MailText);
+			return parsed ? parse(m_MailText) : m_MailText;
 		//
 		StringBuilder sb = new StringBuilder();
 		sb.append(m_MailText);
@@ -102,7 +113,7 @@ public class MMailText extends X_R_MailText
 		if (s != null && s.length() > 0)
 			sb.append("\n").append(s);
 		//
-		return parse(sb.toString());
+		return parsed ? parse(sb.toString()) : sb.toString();
 	}	//	getMailText
 
 	/**
@@ -141,8 +152,18 @@ public class MMailText extends X_R_MailText
 	 */
 	public String getMailHeader()
 	{
+		return getMailHeader(true);
+	}
+	
+	/**
+	 * 	Get parsed/translated Mail Header
+	 *  @param parsed
+	 *	@return parsed/translated text
+	 */
+	public String getMailHeader(boolean parsed)
+	{
 		translate();
-		return parse(m_MailHeader);
+		return parsed ? parse(m_MailHeader) : m_MailHeader;
 	}	//	getMailHeader
 	
 	/**************************************************************************

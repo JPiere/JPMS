@@ -16,7 +16,7 @@ import org.adempiere.webui.component.Panel;
 import org.adempiere.webui.event.DialogEvents;
 import org.adempiere.webui.panel.CustomForm;
 import org.adempiere.webui.util.ZKUpdateUtil;
-import org.adempiere.webui.window.FDialog;
+import org.adempiere.webui.window.Dialog;
 import org.adempiere.webui.window.WTextEditorDialog;
 import org.compiere.model.MSysConfig;
 import org.compiere.process.ProcessInfo;
@@ -215,13 +215,13 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 
 		}catch (FileNotFoundException e) {
 
-			FDialog.error(windowNo, this, "AttachmentNotFound", e.toString());
+			Dialog.error(windowNo, "AttachmentNotFound", e.toString());
 			this.dispose();
 			log.saveError("Error", e);
 
 		}catch (Exception e) {
 
-			FDialog.error(windowNo, this, "Error", e.toString());
+			Dialog.error(windowNo, "Error", e.toString());
 			this.dispose();
 			log.saveError("Error", e);
 		}
@@ -352,6 +352,7 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 			File file = new File(attachmentFileRecord.getFileAbsolutePath());
 			AMedia media = null;
 
+			@SuppressWarnings("unused")
 			Component mimeType = e.getTarget();
 //			if (autoPreviewList.contains(mimeType))
 //			{

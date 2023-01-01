@@ -33,7 +33,7 @@ import org.adempiere.webui.component.Window;
 import org.adempiere.webui.event.DialogEvents;
 import org.adempiere.webui.theme.ThemeManager;
 import org.adempiere.webui.util.ZKUpdateUtil;
-import org.adempiere.webui.window.FDialog;
+import org.adempiere.webui.window.Dialog;
 import org.adempiere.webui.window.MultiFileDownloadDialog;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
@@ -320,7 +320,7 @@ public class JPiereAttchmentBaseWindow extends Window implements EventListener<E
 			}else if(btn.getId().equals("btnExport")) {
 
 				//Do you compress attachment files by ZIP?
-				FDialog.ask(adWindowContent.getWindowNo(), adWindowContent.getComponent(), "JP_AttachemntDownloadZIP", Msg.getMsg(Env.getCtx(), "JP_AttachemntDownloadZIP_Description"), new Callback<Boolean>() {
+				Dialog.ask(adWindowContent.getWindowNo(), "JP_AttachemntDownloadZIP", Msg.getMsg(Env.getCtx(), "JP_AttachemntDownloadZIP_Description"), new Callback<Boolean>() {
 
 					@Override
 					public void onCallback(Boolean result)

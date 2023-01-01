@@ -38,6 +38,7 @@ import org.compiere.model.MQuery;
 import org.compiere.model.MReportView;
 import org.compiere.model.MRole;
 import org.compiere.model.MTable;
+import org.compiere.model.SystemIDs;
 import org.compiere.util.CLogMgt;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -92,18 +93,28 @@ public class DataEngine
 	 */
 	public DataEngine (Language language)
 	{
-		this(language, null);
+		this(language, null, 0);
 	}	//	DataEngine
 
 	/**
 	 *	Constructor
-	 *	@param language Language of the data (for translation)
-	 *  @param trxName
+	 * @param language
+	 * @param trxName
 	 */
 	public DataEngine (Language language, String trxName){
+		this(language,trxName,0);
+	}
+	/**
+	 *	Constructor
+	 *	@param language Language of the data (for translation)
+	 *  @param trxName
+	 *	@param windowNo
+	 */
+	public DataEngine (Language language, String trxName, int windowNo){
 		if (language != null)
 			m_language = language;
 		m_trxName = trxName;
+		m_windowNo = windowNo;
 	}	//	DataEngine
 
 	/**	Logger							*/
@@ -129,6 +140,8 @@ public class DataEngine
 	private boolean 		m_summary = false;
 	/** Key Indicator in Report			*/
 	public static final String KEY = "*";
+	/** Window No 						*/
+	private int				m_windowNo = 0;
 
 	private Map<Object, Object> m_summarized = new HashMap<Object, Object>();
 
@@ -207,7 +220,7 @@ public class DataEngine
 						if (whereClause.indexOf("@") == -1) {
 							queryCopy.addRestriction(whereClause);
 						} else { // replace context variables
-							queryCopy.addRestriction(Env.parseContext(ctx, 0, whereClause.toString(), false, true));
+							queryCopy.addRestriction(Env.parseContext(ctx, m_windowNo, whereClause.toString(), false, true));
 						}
 					}
 
@@ -355,7 +368,7 @@ public class DataEngine
 				if (ColumnSQL != null && ColumnSQL.length() > 0 && ColumnSQL.startsWith("@SQL="))
 					ColumnSQL = "NULL";
 				if (ColumnSQL != null && ColumnSQL.contains("@"))
-					ColumnSQL = Env.parseContext(Env.getCtx(), -1, ColumnSQL, false, true);
+					ColumnSQL = Env.parseContext(Env.getCtx(), m_windowNo, ColumnSQL, false, true);
 				if (ColumnSQL == null)
 					ColumnSQL = "";
 				else{
@@ -435,7 +448,7 @@ public class DataEngine
 						if (script.startsWith("@SQL="))
 						{
 							script = "(" + script.replace("@SQL=", "").trim() + ")";
-							script = Env.parseContext(Env.getCtx(), 0, script, false);
+							script = Env.parseContext(Env.getCtx(), m_windowNo, script, false);
 						}
 						else
 							script = "'@SCRIPT" + script + "'";
@@ -753,7 +766,7 @@ public class DataEngine
 			}
 			//	Access Restriction
 			MRole role = MRole.getDefault(ctx, false);
-			if (role.getAD_Role_ID() == 0 && !Ini.isClient())
+			if (role.getAD_Role_ID() == SystemIDs.ROLE_SYSTEM && !Ini.isClient())
 				;	//	System Access
 			else
 				finalSQL = new StringBuilder (role.addAccessSQL (finalSQL.toString (),
@@ -1420,6 +1433,15 @@ public class DataEngine
 		query.addRestriction("AD_Table_ID", MQuery.LESS, 105);
 	}
 
+	public int getWindowNo()
+	{
+		return m_windowNo;
+	}
+
+	public void setWindowNo(int windowNo)
+	{
+		this.m_windowNo = windowNo;
+	}
 }	//	DataEngine
 
 /**

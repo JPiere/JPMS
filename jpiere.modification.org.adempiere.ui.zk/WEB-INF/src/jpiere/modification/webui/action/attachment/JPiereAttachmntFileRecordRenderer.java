@@ -23,7 +23,7 @@ import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.Label;
 import org.adempiere.webui.component.ToolBarButton;
 import org.adempiere.webui.theme.ThemeManager;
-import org.adempiere.webui.window.FDialog;
+import org.adempiere.webui.window.Dialog;
 import org.adempiere.webui.window.MultiFileDownloadDialog;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
@@ -346,7 +346,7 @@ public class JPiereAttachmntFileRecordRenderer implements RowRenderer<Object[]> 
 
 						if(!downloadFile.exists())
 						{
-							FDialog.error(0, "AttachmentNotFound", attachmentFileRecord.getFileAbsolutePath());
+							Dialog.error(0, "AttachmentNotFound", attachmentFileRecord.getFileAbsolutePath());
 							return ;
 
 						}
@@ -408,7 +408,7 @@ public class JPiereAttachmntFileRecordRenderer implements RowRenderer<Object[]> 
 								;//Noting to do
 							}else {
 
-								FDialog.error(0, "JP_CouldNotDeleteFile", attachmentFileRecord.getFileAbsolutePath());
+								Dialog.error(0, "JP_CouldNotDeleteFile", attachmentFileRecord.getFileAbsolutePath());
 								return ;
 
 							}
