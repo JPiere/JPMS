@@ -2446,7 +2446,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         if (adTabbox.getDirtyADTabpanel() == null) {
         	doOnFind();
         } else {
-        	onSave(false, false, new Callback<Boolean>() {
+        	onSave(false, true, new Callback<Boolean>() {//JPIERE
 				@Override
 				public void onCallback(Boolean result) {
 					if (result) {
@@ -4383,10 +4383,10 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
         	if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx())))
         	{
-        		Dialog.warn(adTabbox.getSelectedGridTab().getWindowNo(), null, "FindOverMax", Msg.getElement(ctx, "MaxQueryRecords")+ " : " + Integer.toString(maxRow)
-        									+ System.lineSeparator() + Msg.getMsg(ctx, "JP_FindWindow_Count_Action_Control"));
+        		Dialog.warn(adTabbox.getSelectedGridTab().getWindowNo(),  "FindOverMax", Msg.getElement(ctx, "MaxQueryRecords")+ " : " + Integer.toString(maxRow)
+        									+ System.lineSeparator() + Msg.getMsg(ctx, "JP_FindWindow_Count_Action_Control"), null);
         	}else {
-        		Dialog.warn(adTabbox.getSelectedGridTab().getWindowNo(), null, "FindOverMax", Msg.getElement(ctx, "MaxQueryRecords")+ " : " + Integer.toString(maxRow));
+        		Dialog.warn(adTabbox.getSelectedGridTab().getWindowNo(), "FindOverMax", Msg.getElement(ctx, "MaxQueryRecords")+ " : " + Integer.toString(maxRow), null);
         	}
     	}
 
