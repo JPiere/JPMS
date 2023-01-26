@@ -2446,7 +2446,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         if (adTabbox.getDirtyADTabpanel() == null) {
         	doOnFind();
         } else {
-        	onSave(false, true, new Callback<Boolean>() {//JPIERE
+            onSave(false, true, new Callback<Boolean>() {
 				@Override
 				public void onCallback(Boolean result) {
 					if (result) {
@@ -3179,7 +3179,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 				}
 			}
 		};
-		onSave(false, false, callback);
+		onSave(false, true, callback);
 	}
 
 	/**
@@ -3203,7 +3203,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 				}
 			}
 		};
-		onSave(false, false, callback);
+		onSave(false, true, callback);
 	}
 
 	private void onReport0() {
@@ -3452,7 +3452,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
 		if (adTabbox.needSave(true, false))
 		{
-			onSave(false, false, new Callback<Boolean>() {
+			onSave(false, true, new Callback<Boolean>() {
 				@Override
 				public void onCallback(Boolean result) {
 					if (result) {
@@ -3861,7 +3861,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 				}
 			}
 
-			ProcessModalDialog dialog = new ProcessModalDialog(this, curWindowNo, pi, startWOasking);
+			ProcessModalDialog dialog = new ProcessModalDialog(this, curWindowNo, adtabPanel.getGridTab().getTabNo(), pi, startWOasking);
 
 			if (dialog.isValid())
 			{
