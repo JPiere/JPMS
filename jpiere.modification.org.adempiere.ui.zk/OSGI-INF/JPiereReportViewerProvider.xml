@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE scr:component>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="jpiere.modification.webui.window.JPiereReportViewerProvider">
+   <implementation class="jpiere.modification.webui.window.JPiereZkReportViewerProvider"/>
+   <service>
+      <provide interface="org.compiere.print.ReportViewerProvider"/>
+   </service>
+   <property name="service.ranking" type="Integer" value="1"/>
+</scr:component>
