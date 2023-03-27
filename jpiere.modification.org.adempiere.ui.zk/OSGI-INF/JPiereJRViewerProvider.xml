@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE scr:component>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="jpiere.modification.webui.window.JPiereZkJRViewerProvider">
+   <implementation class="jpiere.modification.webui.window.JPiereZkJRViewerProvider"/>
+   <service>
+      <provide interface="org.adempiere.report.jasper.JRViewerProvider"/>
+      <provide interface="org.adempiere.report.jasper.JRViewerProviderList"/>
+   </service>
+   <property name="service.ranking" type="Integer" value="1"/>
+</scr:component>
