@@ -228,11 +228,20 @@ public class MMailText extends X_R_MailText
 	 *	@return translated variable or if not found the original tag
 	 */
 	protected String parseVariable (String variable, PO po)
-	{
-		if (variable.contains("<") && variable.contains(">")) { // IDEMPIERE-3096
-			return Env.parseVariable("@"+variable+"@", po, get_TrxName(), true);
-		}
-
+	{		
+		//JPIERE-0579 for Password Reset Mail with IsSecure='Y'
+		if(po instanceof I_AD_User)
+		{
+			MColumn col = MColumn.get(Env.getCtx(), po.get_TableName(), variable);
+			String value = null;
+			if (col != null && col.isSecure() && col.getName().equals("Password"))
+			{
+				value = po.get_ValueAsString(variable);
+				if(value != null)
+					return value;
+			}
+		}//JPIERE-0579
+		
 		return Env.parseVariable("@"+variable+"@", po, get_TrxName(), true, true, true);
 	}	//	translate
 	
