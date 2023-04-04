@@ -75,6 +75,7 @@ import org.apache.ecs.xhtml.thead;
 import org.apache.ecs.xhtml.tr;
 import org.compiere.model.MClient;
 import org.compiere.model.MColumn;
+import org.compiere.model.MDepositBatch;
 import org.compiere.model.MDunningRunEntry;
 import org.compiere.model.MInOut;
 import org.compiere.model.MInventory;
@@ -2097,25 +2098,28 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 	
 	/** JPiere Estimation = 13  */
 	public static final int		JP_ESTIMATION = 13; //JPIERE-0597: Choice of Print Format by DocType.
+	
+	/** Deposit Batch = 14  */
+	public static final int		DEPOSIT_BATCH = 14; //JPIERE-0600: Choice of Print Format by DocType.
 
 	private static final String[]	DOC_BASETABLES = new String[] {
 		"C_Order", "M_InOut", "C_Invoice", "C_Project",
 		"C_RfQResponse",
 		"C_PaySelectionCheck", "C_PaySelectionCheck",
 		"C_DunningRunEntry","PP_Order", "DD_Order", "M_Inventory", "M_Movement"
-		,"JP_Bill","JP_Estimation"};//JPIERE-0596,0597
+		,"JP_Bill","JP_Estimation","C_DepositBatch"};//JPIERE-0596,0597,600
 	private static final String[]	DOC_IDS = new String[] {
 		"C_Order_ID", "M_InOut_ID", "C_Invoice_ID", "C_Project_ID",
 		"C_RfQResponse_ID",
 		"C_PaySelectionCheck_ID", "C_PaySelectionCheck_ID",
 		"C_DunningRunEntry_ID" , "PP_Order_ID" , "DD_Order_ID", "M_Inventory_ID", "M_Movement_ID"
-		, "JP_Bill_ID","JP_Estimation_ID"};//JPIERE-0596,0597
+		, "JP_Bill_ID","JP_Estimation_ID","C_DepositBatch_ID"};//JPIERE-0596,0597,600
 	private static final int[]	DOC_TABLE_ID = new int[] {
 		MOrder.Table_ID, MInOut.Table_ID, MInvoice.Table_ID, MProject.Table_ID,
 		MRfQResponse.Table_ID,
 		MPaySelectionCheck.Table_ID, MPaySelectionCheck.Table_ID,
 		MDunningRunEntry.Table_ID, X_PP_Order.Table_ID, MDDOrder.Table_ID, MInventory.Table_ID, MMovement.Table_ID
-		, MTable.getTable_ID("JP_Bill"),MTable.getTable_ID("JP_Estimation")};//JPIERE-0596,0597
+		, MTable.getTable_ID("JP_Bill"),MTable.getTable_ID("JP_Estimation"),MDepositBatch.Table_ID};//JPIERE-0596,0597,600
 
 	/**************************************************************************
 	 * 	Get Document Print Engine for Document Type.
@@ -2171,6 +2175,20 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 					+ ", Type=" + type);
 			return null;
 		}
+		
+		//JPIERE-0596: Choice of Print Format by Business Partners.
+		String string_DocumentPrintType =Env.getContext(ctx, windowNo, "+DocumentPrintType");
+		if(!Util.isEmpty(string_DocumentPrintType))
+		{
+			if(string_DocumentPrintType.equals("JP_Bill"))
+				type = JP_BILL;
+			else if(string_DocumentPrintType.equals("JP_Estimation"))
+				type = JP_ESTIMATION;
+			else if (string_DocumentPrintType.equals("C_DepositBatch"))
+				type = DEPOSIT_BATCH;
+			
+		}//JPIERE-0596,0597,600
+		
 		//	Order - Print Shipment or Invoice
 		if (type == ORDER)
 		{
@@ -2186,16 +2204,6 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 		int C_BPartner_ID = 0;
 		String DocumentNo = null;
 		int copies = 1;
-
-		//JPIERE-0596: Choice of Print Format by Business Partners.
-		String string_DocumentPrintType =Env.getContext(ctx, windowNo, "+DocumentPrintType");
-		if(!Util.isEmpty(string_DocumentPrintType))
-		{
-			if(string_DocumentPrintType.equals("JP_Bill"))
-				type = JP_BILL;
-			else if(string_DocumentPrintType.equals("JP_Estimation"))
-				type = JP_ESTIMATION;
-		}//JPIERE-0596
 		
 		//	Language
 		MClient client = MClient.get(ctx);
@@ -2325,6 +2333,23 @@ queued-job-count = 0  (class javax.print.attribute.standard.QueuedJobCount)
 				.append(" LEFT OUTER JOIN C_BPartner bp ON (d.C_BPartner_ID=bp.C_BPartner_ID)")
 				.append(" LEFT OUTER JOIN C_DocType dt ON (d.C_DocTypeTarget_ID=dt.C_DocType_ID) ")
 				.append("WHERE d.JP_Estimation_ID =?")			//	info from PrintForm
+				.append(" AND pf.AD_Org_ID IN (0,d.AD_Org_ID) ")
+				.append("ORDER BY pf.AD_Org_ID DESC");
+		else if (type == DEPOSIT_BATCH )//JPIERE-0600: Choice of Print Format by DocType.
+			sql = new StringBuilder("SELECT pf.Order_PrintFormat_ID,pf.Shipment_PrintFormat_ID,")		//	1..2
+				.append(" 0, ") // 3
+				.append(" pf.Project_PrintFormat_ID, pf.Remittance_PrintFormat_ID,")		//	4..5
+				.append(" c.IsMultiLingualDocument,  c.AD_Language, ")						//	6..7
+				.append("  COALESCE(dt.DocumentCopies,0),") 	// 	8
+				.append(" 0, 0, d.DocumentNo, ")			//	9..11
+//				Prio: 1. BPartner 2. DocType, 3. PrintFormat (Org)	//	see InvoicePrint
+				.append(" 0 , 0, 0,COALESCE (dt.AD_PrintFormat_ID,pf.JP_Deposit_PrintFormat_ID)")//12..15
+				.append("FROM C_DepositBatch d")
+				.append(" INNER JOIN AD_Client c ON (d.AD_Client_ID=c.AD_Client_ID)")
+				.append(" INNER JOIN AD_PrintForm pf ON (c.AD_Client_ID=pf.AD_Client_ID)")
+				//.append(" LEFT OUTER JOIN C_BPartner bp ON (d.C_BPartner_ID=bp.C_BPartner_ID)")
+				.append(" LEFT OUTER JOIN C_DocType dt ON (d.C_DocType_ID=dt.C_DocType_ID) ")
+				.append("WHERE d.C_DepositBatch_ID =?")			//	info from PrintForm
 				.append(" AND pf.AD_Org_ID IN (0,d.AD_Org_ID) ")
 				.append("ORDER BY pf.AD_Org_ID DESC");
 		else	//	Get PrintFormat from Org or 0 of document client
