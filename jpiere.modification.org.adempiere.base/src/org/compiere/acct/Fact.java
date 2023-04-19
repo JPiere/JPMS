@@ -342,6 +342,10 @@ public final class Fact
 		if (m_lines.size() == 0)
 			return true;
 		
+		//JPIERE-0602: Corporation Balance Entry
+		if(m_acctSchema.get_ValueAsBoolean("IsCorpBalanceJP"))
+			balanceSegment("CORP");
+		
 		MAcctSchemaElement[] elements = m_acctSchema.getAcctSchemaElements();
 		//  check all balancing segments
 		for (int i = 0; i < elements.length; i++)
@@ -408,11 +412,7 @@ public final class Fact
 	 *              overwriting the segment value
 	 */
 	public void balanceSegments()
-	{
-		//JPIERE-0602: Corporation Balance Entry
-		if(m_acctSchema.get_ValueAsBoolean("IsCorpBalanceJP"))
-			balanceSegment("CORP");
-		
+	{		
 		MAcctSchemaElement[] elements = m_acctSchema.getAcctSchemaElements();
 		//  check all balancing segments
 		for (int i = 0; i < elements.length; i++)
