@@ -823,7 +823,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 
 
     /**
-     * preparing combo of history
+     * Prepare combo of history scope options
      */
     private void prepareHistoryCombo()
     {
