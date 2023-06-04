@@ -2646,7 +2646,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 				        } else {
 				        	adTabbox.getSelectedGridTab().dataRefresh(false); // Elaine 2008/07/25
 
-				        	isMaxRecords(true, null);//JPIERE-0181 & 0464
+				        	isMaxRecords(true, null);//JPIERE-0181 & 0466
 
 				        	if (!adTabbox.getSelectedTabpanel().isGridView()) { // See if we should force the grid view
 
@@ -4681,7 +4681,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
 	/**
 	 *
-	 * JPIERE-0464: Improvement of Max Records Controle at Window.
+	 * JPIERE-0466: Improvement of Max Records Controle at Window.
 	 * JPIERE-0181: Peformace improvement to Find Widnow
 	 *
 	 * @param isDisplayDialog
@@ -4692,17 +4692,19 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 	{
 		if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT", false, Env.getAD_Client_ID(Env.getCtx())))
 			return false;
-
+		
+		//Top Parent Tab only
+		if(adTabbox.getSelectedGridTab().getTabLevel() != 0)
+			return false;
+		
 		int maxRow = adTabbox.getSelectedGridTab().getMaxQueryRecords();
 		if(maxRow <= 0)
 			return false;
 
-    	int rowCount =adTabbox.getSelectedGridTab().getTableModel().getRowCount();
+    	int rowCount =adTabbox.getSelectedGridTab().getTableModel().getRowCount();    	
     	boolean isMaxRecords = rowCount >= maxRow;
-    	if(isMaxRecords &&  isDisplayDialog && (dse == null || !isDisplayedDeialog))
+    	if(isMaxRecords &&  isDisplayDialog && (dse == null || !isCheckedMaxRecordsOpeningWindow))
     	{
-    		isDisplayedDeialog = true;
-
         	if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx())))
         	{
         		Dialog.warn(adTabbox.getSelectedGridTab().getWindowNo(),  "FindOverMax", Msg.getElement(ctx, "MaxQueryRecords")+ " : " + Integer.toString(maxRow)
@@ -4711,9 +4713,12 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         		Dialog.warn(adTabbox.getSelectedGridTab().getWindowNo(), "FindOverMax", Msg.getElement(ctx, "MaxQueryRecords")+ " : " + Integer.toString(maxRow), null);
         	}
     	}
+    	
+    	//Only one time Max Records check when Opening window.
+    	isCheckedMaxRecordsOpeningWindow = true;
 
 		return isMaxRecords;
 	}
 
-	private boolean isDisplayedDeialog = false;//JPIERE-0464 & 0181
+	private boolean isCheckedMaxRecordsOpeningWindow = false;//JPIERE-0466 & 0181
 }
