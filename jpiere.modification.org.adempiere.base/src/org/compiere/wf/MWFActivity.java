@@ -2329,4 +2329,12 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 		return where;
 	}
 
+	public String getProcessMsg() {
+
+		if (m_process == null)
+			return null;
+
+		return m_process.getProcessMsg();
+	}
+
 }	//	MWFActivity
