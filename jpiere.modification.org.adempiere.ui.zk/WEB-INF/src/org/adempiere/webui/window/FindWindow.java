@@ -290,7 +290,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 
     /** IDEMPIERE-2836  User Query Where */
     private String          m_whereUserQuery;
-    /** Toolbar for avdance search tab. North of {@link #winAdvanced}. */
+    /** Toolbar for advance search tab. North of {@link #winAdvanced}. */
     private ToolBar advancedPanelToolBar;
 
     /**IDEMPIERE-4085*/
@@ -3655,6 +3655,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 	private void showAdvanced() {
 		advancedPanelToolBar.setVisible(true);
 		advancedPanel.setVisible(true);
+		winAdvanced.invalidate();
 	}
 
 	/**
