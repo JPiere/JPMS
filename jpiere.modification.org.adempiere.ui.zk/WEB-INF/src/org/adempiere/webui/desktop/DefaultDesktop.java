@@ -965,14 +965,13 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 				public void onEvent(Event event) throws Exception {
 					BroadCastMsg msg = (BroadCastMsg) event.getData();
 
-
+					MBroadcastMessage mbMessage = null;
 					switch (msg.getEventId()) {
 					case BroadCastUtil.EVENT_TEST_BROADCAST_MESSAGE:
-						MBroadcastMessage mbMessage = MBroadcastMessage.get(
-								Env.getCtx(), msg.getIntData());
-						String currSession = Integer
-								.toString(Env.getContextAsInt(Env.getCtx(),
-										"AD_Session_ID"));
+						mbMessage = MBroadcastMessage.get(Env.getCtx(), msg.getIntData());
+						if (mbMessage == null)
+							return;
+						String currSession = Integer.toString(Env.getContextAsInt(Env.getCtx(), "AD_Session_ID"));
 						if (currSession.equals(msg.getTarget())) {
 							BroadcastMessageWindow testMessageWindow = new BroadcastMessageWindow(
 										pnlHead);
@@ -982,8 +981,9 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 						}
 						break;
 					case BroadCastUtil.EVENT_BROADCAST_MESSAGE:
-						mbMessage = MBroadcastMessage.get(
-								Env.getCtx(), msg.getIntData());
+						mbMessage = MBroadcastMessage.get(Env.getCtx(), msg.getIntData());
+						if (mbMessage == null)
+							return;
 						if (mbMessage.isValidUserforMessage()) {
 
 							BroadcastMessageWindow messageWindow = new BroadcastMessageWindow(
@@ -1007,7 +1007,7 @@ public class DefaultDesktop extends TabbedDesktop implements MenuListener, Seria
 						if (currSession.equalsIgnoreCase(msg.getTarget())) {
 							new TimeoutPanel(pnlHead, msg.getIntData());
 						}
-
+						break;
 					}
 
 				}
