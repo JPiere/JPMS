@@ -53,7 +53,6 @@ import org.adempiere.base.Core;
 import org.compiere.model.MLocation;				//JPIERE-3 Import MLocation to LayoutEngine
 import org.compiere.model.MQuery;
 import org.compiere.model.MTable;
-import org.compiere.model.PO;
 import org.compiere.model.PrintInfo;
 import org.compiere.print.ArchiveEngine;
 import org.compiere.print.CPaper;
@@ -70,7 +69,6 @@ import org.compiere.print.util.SerializableMatrix;
 import org.compiere.print.util.SerializableMatrixImpl;
 import org.compiere.report.MReportLine;
 import org.compiere.util.CLogger;
-import org.compiere.util.CacheMgt;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
@@ -1675,20 +1673,21 @@ public class LayoutEngine implements Pageable, Printable, Doc
 				if (item.isNextLine() && item.getBelowColumn() != 0)
 				{
 					additionalLines.put(Integer.valueOf(col), Integer.valueOf(item.getBelowColumn()-1));
-					if (!item.isSuppressNull())
-					{
-						if (item.is_Immutable())
-							item = new MPrintFormatItem(item);
-						item.setIsSuppressNull(true);	//	display size will be set to 0 in TableElement
-						try {
-							//this can be tenant or system print format
-							PO.setCrossTenantSafe();
-							item.saveEx();
-						} finally {
-							PO.clearCrossTenantSafe();
-						}
-						CacheMgt.get().reset(MPrintFormat.Table_Name, format.get_ID());
-					}
+					//JPIERE-0606
+//					if (!item.isSuppressNull())
+//					{
+//						if (item.is_Immutable())
+//							item = new MPrintFormatItem(item);
+//						item.setIsSuppressNull(true);	//	display size will be set to 0 in TableElement
+//						try {
+//							//this can be tenant or system print format
+//							PO.setCrossTenantSafe();
+//							item.saveEx();
+//						} finally {
+//							PO.clearCrossTenantSafe();
+//						}
+//						CacheMgt.get().reset(MPrintFormat.Table_Name, format.get_ID());
+//					}//jpiere-0606
 				}
 				columnHeader[col] = new ValueNamePair(item.getColumnName(),
 					item.getPrintName(format.getLanguage()));
