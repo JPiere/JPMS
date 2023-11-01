@@ -73,6 +73,7 @@ import org.eevolution.model.MPPProductBOMLine;
 /**
  * Modify Info
  * JPIERE-0575: Reverse Accrual in case of Foreign currency is applied original Invoice rate.
+ * JPIERE-0608: Copy M_AttributeSetInstance_ID to Reverse Invoice line, because be copied M_AttributeSetInstance_ID = 0.
  */
 public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 {
@@ -2622,6 +2623,10 @@ public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 			rLine.setPriceLimit(oLine.getPriceLimit());
 			rLine.setPriceEntered(oLine.getPriceEntered());
 			rLine.setC_UOM_ID(oLine.getC_UOM_ID());
+			
+			//JPIERE-0608 Copy M_AttributeSetInstance_ID to Reverse Invoice line, because be copied M_AttributeSetInstance_ID = 0.
+			rLine.setM_AttributeSetInstance_ID(oLine.getM_AttributeSetInstance_ID());
+			
 			if (!rLine.save(get_TrxName()))
 			{
 				m_processMsg = "Could not correct Invoice Reversal Line";
