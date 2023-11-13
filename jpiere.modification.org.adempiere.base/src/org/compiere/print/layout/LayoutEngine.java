@@ -53,6 +53,7 @@ import org.adempiere.base.Core;
 import org.compiere.model.MLocation;				//JPIERE-3 Import MLocation to LayoutEngine
 import org.compiere.model.MQuery;
 import org.compiere.model.MTable;
+import org.compiere.model.PO;
 import org.compiere.model.PrintInfo;
 import org.compiere.print.ArchiveEngine;
 import org.compiere.print.CPaper;
@@ -69,6 +70,7 @@ import org.compiere.print.util.SerializableMatrix;
 import org.compiere.print.util.SerializableMatrixImpl;
 import org.compiere.report.MReportLine;
 import org.compiere.util.CLogger;
+import org.compiere.util.CacheMgt;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
@@ -1940,6 +1942,7 @@ public class LayoutEngine implements Pageable, Printable, Doc
 		//
 		ParameterElement pe = new ParameterElement(m_query, m_printCtx, m_format.getTableFormat());
 		pe.layout(0, 0, false, null);
+		pe.fitToPage((int) getPaper().getImageableWidth(true));
 		return pe;
 	}	//	layoutParameter
 
