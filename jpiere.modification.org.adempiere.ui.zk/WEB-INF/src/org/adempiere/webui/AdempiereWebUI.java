@@ -31,6 +31,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.adempiere.base.sso.ISSOPrincipalService;
+import org.adempiere.base.sso.SSOUtils;
 import org.adempiere.base.Service;			//JPIERE-0450 plugin of Desktop
 import org.adempiere.base.ServiceQuery;	//JPIERE-0450 plugin of Desktop
 import org.adempiere.util.ServerContext;
@@ -151,6 +153,9 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 	/** Login completed event */
 	private static final String ON_LOGIN_COMPLETED = "onLoginCompleted";
 	
+	/* SysConfig USE_ESC_FOR_TAB_CLOSING */
+	private boolean isUseEscForTabClosing = MSysConfig.getBooleanValue(MSysConfig.USE_ESC_FOR_TAB_CLOSING, false, Env.getAD_Client_ID(Env.getCtx()));
+	
 	/**
 	 * default constructor
 	 */
@@ -252,6 +257,9 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
      */
     public void onCancel()
     {
+		// do not allow to close tab for Events.ON_CTRL_KEY event
+    	if(isUseEscForTabClosing)
+    		SessionManager.getAppDesktop().setCloseTabWithShortcut(false);
     }
 
     /* (non-Javadoc)
@@ -392,19 +400,29 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
     private void processParameters() {
     	String action = getPrmString("Action");
     	if ("Zoom".equalsIgnoreCase(action)) {
+    		MTable table = null;
     		int tableID = getPrmInt("AD_Table_ID");
     		if (tableID == 0) {
     			String tableName = getPrmString("TableName");
     			if (!Util.isEmpty(tableName)) {
-    				MTable table = MTable.get(Env.getCtx(), tableName);
+    				table = MTable.get(Env.getCtx(), tableName);
     				if (table != null) {
     					tableID = table.getAD_Table_ID();
     				}
     			}
+    		} else {
+    			table = MTable.get(Env.getCtx(), tableID);
     		}
-    		int recordID = getPrmInt("Record_ID");
-    		if (tableID > 0) {
-    			AEnv.zoom(tableID, recordID);
+    		if (table != null) {
+        		String recordUU = getPrmString("Record_UU");
+        		if (!Util.isEmpty(recordUU)) {
+        			AEnv.zoomUU(tableID, recordUU);
+        		} else {
+            		int recordID = getPrmInt("Record_ID");
+            		if (tableID > 0) {
+            			AEnv.zoom(tableID, recordID);
+            		}
+        		}
     		}
     	}
     	m_URLParameters = null;
@@ -501,6 +519,9 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 	    final Desktop desktop = Executions.getCurrent().getDesktop();    	
 	    final WebApp wapp = desktop.getWebApp();
 	    final DesktopCache desktopCache = ((WebAppCtrl) wapp).getDesktopCache(desktop.getSession());	    	    
+	    boolean isAdminLogin = false;
+	    if (desktop.getSession().getAttribute(ISSOPrincipalService.SSO_ADMIN_LOGIN) != null)
+	    	isAdminLogin  = (boolean)desktop.getSession().getAttribute(ISSOPrincipalService.SSO_ADMIN_LOGIN);
 	    final Session session = logout0();
     	
     	//clear context, invalidate session
@@ -509,7 +530,7 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
     	desktop.setAttribute(DESKTOP_SESSION_INVALIDATED_ATTR, Boolean.TRUE);
 
         //redirect to login page
-        Executions.sendRedirect("index.zul");
+        Executions.sendRedirect(isAdminLogin ? "admin.zul" : "index.zul");       
         
         try {
     		desktopCache.removeDesktop(desktop);
@@ -713,6 +734,7 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 		Env.setContext(properties, Env.CLIENT_INFO_ORIENTATION, clientInfo.orientation);
 		Env.setContext(properties, Env.CLIENT_INFO_MOBILE, clientInfo.tablet);
 		Env.setContext(properties, Env.CLIENT_INFO_TIME_ZONE, clientInfo.timeZone.getID());
+		Env.setContext(properties, Env.MFA_Registration_ID, Env.getContext(Env.getCtx(), Env.MFA_Registration_ID));
 
 		Desktop desktop = Executions.getCurrent().getDesktop();
 		Locale locale = (Locale) desktop.getSession().getAttribute(Attributes.PREFERRED_LOCALE);
@@ -725,7 +747,7 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 		IDesktop appDesktop = getAppDeskop();
 		HttpSession session = httpRequest.getSession();
 		if (appDesktop != null)
-			appDesktop.logout(T -> {if (T) asyncChangeRole(session, locale, properties);});
+			appDesktop.logout(T -> {if (T) asyncChangeRole(session, locale, properties, desktop);});						
 	}
 	
 	/**
@@ -733,8 +755,9 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 	 * @param httpSession
 	 * @param locale
 	 * @param properties
+	 * @param desktop 
 	 */
-	private void asyncChangeRole(HttpSession httpSession, Locale locale, Properties properties) {
+	private void asyncChangeRole(HttpSession httpSession, Locale locale, Properties properties, Desktop desktop) {
 		//stop key listener
 		if (keyListener != null) {
 			keyListener.detach();
@@ -755,17 +778,20 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
     		String attribute = attributes.nextElement();
 
     		//need to keep zk's session attributes
-    		if (attribute.contains("zkoss."))
+    		if (attribute.contains("zkoss.") || attribute.startsWith("sso."))
     			continue;
 
     		httpSession.removeAttribute(attribute);
     	}
 
+    	httpSession.setAttribute(SSOUtils.ISCHANGEROLE_REQUEST, true);
     	//logout ad_session
     	AEnv.logout();
 		
     	//show change role window and set new context for env and session
 		onChangeRole(locale, properties);
+		
+		Executions.schedule(desktop, e -> DesktopWatchDog.removeOtherDesktopsInSession(desktop), new Event("onRemoveOtherDesktops"));
 	}
 
 	@Override

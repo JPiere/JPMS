@@ -30,7 +30,7 @@ import org.compiere.model.MDistribution;
 import org.compiere.model.MDistributionLine;
 import org.compiere.model.MElementValue;
 import org.compiere.model.MFactAcct;
-import org.compiere.model.MOrgInfo;
+import org.compiere.model.MOrgInfo;//JPIERE
 import org.compiere.util.CLogger;
 import org.compiere.util.Env;
 
@@ -115,8 +115,6 @@ public final class Fact
 	public FactLine createLine (DocLine docLine, MAccount account,
 		int C_Currency_ID, BigDecimal debitAmt, BigDecimal creditAmt)
 	{
-	//	log.fine("createLine - " + account	+ " - Dr=" + debitAmt + ", Cr=" + creditAmt);
-
 		//  Data Check
 		if (account == null)
 		{
@@ -294,10 +292,10 @@ public final class Fact
 	}	//	getSourceBalance
 
 	/**
-	 *	Create Source Line for Suspense Balancing.
+	 *	Create Source Line for Suspense Balancing.<br/>
 	 *  Only if Suspense Balancing is enabled and not a multi-currency document
-	 *  (double check as otherwise the rule should not have fired)
-	 *  If not balanced create balancing entry in currency of the document
+	 *  (double check as, otherwise the rule should not have fired). <br/>
+	 *  If not balanced, create balancing entry in currency of the document.
 	 *  @return FactLine
 	 */
 	public FactLine balanceSource()
@@ -331,8 +329,7 @@ public final class Fact
 		return line;
 	}   //  balancingSource
 
-	
-	/**************************************************************************
+	/**
 	 *  Are all segments balanced
 	 *  @return true if segments are balanced
 	 */
@@ -359,9 +356,9 @@ public final class Fact
 
 	/**
 	 *  Is Source Segment balanced.
-	 *  @param  segmentType - see AcctSchemaElement.SEGMENT_*
-	 *  Implemented only for Org
-	 *  Other sensible candidates are Project, User1/2
+	 *  @param  segmentType - see AcctSchemaElement.SEGMENT_*.<br/>
+	 *  Implemented only for Org.
+	 *  Other sensible candidates are Project, User1/2.
 	 *  @return true if segments are balanced
 	 */
 	public boolean isSegmentBalanced (String segmentType)
@@ -546,8 +543,7 @@ public final class Fact
 		}
 	}   //  balanceSegment
 
-	
-	/**************************************************************************
+	/**
 	 *	Are the lines Accounting Balanced
 	 *  @return true if accounting lines are balanced
 	 */
@@ -578,18 +574,19 @@ public final class Fact
 			FactLine line = (FactLine)m_lines.get(i);
 			result = result.add(line.getAcctBalance());
 		}
-	//	log.fine(result.toString());
 		return result;
 	}	//	getAcctBalance
 
 	/**
 	 *  Balance Accounting Currency.
+	 *  <pre>
 	 *  If the accounting currency is not balanced,
 	 *      if Currency balancing is enabled
 	 *          create a new line using the currency balancing account with zero source balance
 	 *      or
 	 *          adjust the line with the largest balance sheet account
 	 *          or if no balance sheet account exist, the line with the largest amount
+	 *  </pre>
 	 *  @return FactLine
 	 */
 	public FactLine balanceAccounting()
@@ -875,7 +872,7 @@ public final class Fact
 		return true;
 	}	//	distribute	
 	
-	/**************************************************************************
+	/**
 	 * String representation
 	 * @return String
 	 */
@@ -901,7 +898,7 @@ public final class Fact
 	}	//	getLines
 
 	/**
-	 *  Save Fact
+	 *  Save Fact Lines
 	 *  @param trxName transaction
 	 *  @return true if all lines were saved
 	 */
@@ -919,8 +916,8 @@ public final class Fact
 	}   //  commit
 
 	/**
-	 * 	Get Transaction
-	 *	@return trx
+	 * 	Get Transaction Name
+	 *	@return trx nam
 	 */
 	public String get_TrxName() 
 	{
@@ -946,7 +943,6 @@ public final class Fact
 	public static class Balance
 	{
 		/**
-		 * 	New Balance
 		 *	@param dr DR
 		 *	@param cr CR
 		 */

@@ -338,7 +338,7 @@ public class DataEngine
 				+ "','"
 				+ MPrintFormatItem.PRINTFORMATTYPE_Script
 				+ "') ")
-			.append("ORDER BY pfi.IsPrinted DESC, pfi.SeqNo");			//	Functions are put in first column
+			.append(" ORDER BY pfi.IsPrinted DESC, pfi.SeqNo");			//	Functions are put in first column
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try
@@ -464,7 +464,7 @@ public class DataEngine
 
 					sqlSELECT.append(script).append(" AS \"").append(m_synonym).append(pfiName).append("\",")
 					// Warning here: Oracle treats empty strings '' as NULL and the code below checks for wasNull on this column
-					.append("''").append(" AS \"").append(pfiName).append("\",");
+					.append("' '").append(" AS \"").append(pfiName).append("\",");
 					//
 					pdc = new PrintDataColumn(AD_PrintFormatItem_ID, -1, pfiName, DisplayType.Text, FieldLength, orderName, isPageBreak);
 					synonymNext();
@@ -1301,10 +1301,10 @@ public class DataEngine
 		if (pd.getRowCount() == 0)
 		{
 			if (CLogMgt.isLevelFiner())
-				log.warning("NO Rows - ms=" + (System.currentTimeMillis()-m_startTime)
+				log.finer("NO Rows - ms=" + (System.currentTimeMillis()-m_startTime) 
 					+ " - " + pd.getSQL());
 			else
-				log.warning("NO Rows - ms=" + (System.currentTimeMillis()-m_startTime));
+				log.info("NO Rows - ms=" + (System.currentTimeMillis()-m_startTime)); 
 		}
 		else
 			if (log.isLoggable(Level.INFO)) log.info("Rows=" + pd.getRowCount()

@@ -154,6 +154,9 @@ public abstract class AbstractExcelExporter
 	protected Boolean[] colSuppressRepeats;
 	private int noOfParameter = 0;
 
+	/**
+	 * Default constructor
+	 */
 	public AbstractExcelExporter() {
 		m_workbook = new HSSFWorkbook();
 		m_dataFormat = m_workbook.createDataFormat();
@@ -163,23 +166,39 @@ public abstract class AbstractExcelExporter
 		return Env.getCtx();
 	}
 
+	/**
+	 * @param colSplit column index to freeze
+	 * @param rowSplit row index to freeze
+	 */
 	protected void setFreezePane(int colSplit, int rowSplit) {
 		m_colSplit = colSplit;
 		m_rowSplit = rowSplit;
 	}
 
+	/**
+	 * Remove diacritics from str
+	 * @param str
+	 * @return fix string for Excel
+	 */
 	private String fixString(String str)
 	{
 		// ms excel doesn't support UTF8 charset
 		return Util.stripDiacritics(str);
 	}
 
+	/**
+	 * @return Language
+	 */
 	protected Language getLanguage() {
 		if (m_lang == null)
 			m_lang = Env.getLanguage(getCtx());
 		return m_lang;
 	}
 
+	/**
+	 * @param isHeader
+	 * @return HSSFFont
+	 */
 	private HSSFFont getFont(boolean isHeader) {
 		HSSFFont font = null;
 		if (isHeader) {
@@ -207,7 +226,7 @@ public abstract class AbstractExcelExporter
 	 * Get Excel number format string by given {@link NumberFormat}
 	 * @param df number format
 	 * @param isHighlightNegativeNumbers highlight negative numbers using RED color
-	 * @return number excel format string
+	 * @return excel format pattern
 	 */
 	private String getFormatString(NumberFormat df, boolean isHighlightNegativeNumbers) {
 		StringBuilder format = new StringBuilder();
@@ -243,6 +262,11 @@ public abstract class AbstractExcelExporter
 
 	}
 
+	/**
+	 * @param row
+	 * @param col
+	 * @return HSSFCellStyle
+	 */
 	private HSSFCellStyle getStyle(int row, int col) {
 		int displayType = getDisplayType(row, col);
 
@@ -321,6 +345,11 @@ public abstract class AbstractExcelExporter
 
 	}
 
+	/**
+	 * @param row
+	 * @param col
+	 * @return Excel format pattern for cell
+	 */
 	protected String getCellFormat(int row, int col) {
 		boolean isHighlightNegativeNumbers = true;
 		int displayType = getDisplayType(row, col);
@@ -336,6 +365,10 @@ public abstract class AbstractExcelExporter
 		return cellFormat;
 	}
 
+	/**
+	 * @param col
+	 * @return HSSFCellStyle for column
+	 */
 	private HSSFCellStyle getHeaderStyle(int col)
 	{
 		String key = "header-"+col;
@@ -355,6 +388,11 @@ public abstract class AbstractExcelExporter
 		return cs_header;
 	}
 
+	/**
+	 * auto size column
+	 * @param sheet
+	 * @param lastColumnIndex
+	 */
 	private void fixColumnWidth(HSSFSheet sheet, int lastColumnIndex)
 	{
 		for (short colnum = 0; colnum < lastColumnIndex; colnum++)
@@ -363,6 +401,12 @@ public abstract class AbstractExcelExporter
 		}
 	}
 
+	/**
+	 * Update sheet setting prior to closing it
+	 * @param prevSheet
+	 * @param prevSheetName
+	 * @param colCount
+	 */
 	private void closeTableSheet(HSSFSheet prevSheet, String prevSheetName, int colCount)
 	{
 		if (prevSheet == null)
@@ -381,6 +425,11 @@ public abstract class AbstractExcelExporter
 			}
 		}
 	}
+	
+	/**
+	 * Create new sheet
+	 * @return HSSFSheet
+	 */
 	private HSSFSheet createTableSheet()
 	{
 		HSSFSheet sheet= m_workbook.createSheet();
@@ -396,11 +445,18 @@ public abstract class AbstractExcelExporter
 		return sheet;
 	}
 
+	/**
+	 * @param sheet
+	 */
 	private void createTableHeader(HSSFSheet sheet)
 	{
 		createTableHeader(sheet, Math.max(noOfParameter, 0));
 	}
 
+	/**
+	 * @param sheet
+	 * @param headerRowNum
+	 */
 	private void createTableHeader(HSSFSheet sheet, int headerRowNum)
 	{
 		int colnumMax = 0;
@@ -430,28 +486,41 @@ public abstract class AbstractExcelExporter
 				colnum++;
 			}	//	printed
 		}	//	for all columns
-//		m_workbook.setRepeatingRowsAndColumns(m_sheetCount, 0, 0, 0, 0);
 	}
 
 	private int C_Currency_ColumnIndex = -1; //JPIERE-0463
 	private String currencyString = Msg.getElement(Env.getCtx(), "C_Currency_ID");//JPIERE-0463
 
 
+	/**
+	 * @return number of parameter
+	 */
 	protected int getNoOfParameter()
 	{
 		return noOfParameter;
 	}
 
+	/**
+	 * @param noOfParameter
+	 */
 	protected void setNoOfParameter(int noOfParameter)
 	{
 		this.noOfParameter = noOfParameter;
 	}
 
+	/**
+	 * Create parameter
+	 * @param sheet
+	 */
 	protected void createParameter(HSSFSheet sheet)
 	{
 
 	}
 
+	/**
+	 * Create sheet header and footer
+	 * @param sheet
+	 */
 	protected void createHeaderFooter(HSSFSheet sheet)
 	{
 		// Sheet Header
@@ -476,6 +545,10 @@ public abstract class AbstractExcelExporter
 
 	}
 
+	/**
+	 * Format sheet
+	 * @param sheet
+	 */
 	protected void formatPage(HSSFSheet sheet)
 	{
 		sheet.setFitToPage(true);
@@ -487,11 +560,17 @@ public abstract class AbstractExcelExporter
 		ps.setLandscape(false);
 	}
 
+	/**
+	 * @return true if export current record only
+	 */
 	protected boolean isCurrentRowOnly()
 	{
 		return currentRowOnly;
 	}
 
+	/**
+	 * @param b
+	 */
 	protected void setCurrentRowOnly(boolean b)
 	{
 		currentRowOnly = b;
@@ -693,6 +772,12 @@ public abstract class AbstractExcelExporter
 			Env.startBrowser(file.toURI().toString());
 	}
 
+	/**
+	 * Export to work book
+	 * @param workbook
+	 * @param language
+	 * @throws Exception
+	 */
 	public void exportToWorkbook(HSSFWorkbook workbook, Language language)
 	throws Exception
 	{
@@ -710,10 +795,9 @@ public abstract class AbstractExcelExporter
 	}
 
 	/**
-	 *
 	 * @param row
 	 * @param col
-	 * @return true if column is visible
+	 * @return true if cell is visible
 	 */
 	protected boolean isVisible(int row, int col)
 	{
@@ -721,7 +805,6 @@ public abstract class AbstractExcelExporter
 	}
 
 	/**
-	 *
 	 * @param col
 	 * @return true if column should be hidden when it is null
 	 */
@@ -730,7 +813,6 @@ public abstract class AbstractExcelExporter
 	}
 
 	/**
-	 *
 	 * @param col
 	 * @return true if column is use to set new row position
 	 */

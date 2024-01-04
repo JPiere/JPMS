@@ -143,6 +143,19 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 	}	//	getActivityInfo
 
 
+    /**
+    * UUID based Constructor
+    * @param ctx  Context
+    * @param AD_WF_Activity_UU  UUID key
+    * @param trxName Transaction
+    */
+    public MWFActivity(Properties ctx, String AD_WF_Activity_UU, String trxName) {
+        super(ctx, AD_WF_Activity_UU, trxName);
+		if (Util.isEmpty(AD_WF_Activity_UU))
+			throw new IllegalArgumentException ("Cannot create new WF Activity directly");
+		m_state = new StateEngine (getWFState());
+    }
+
 	/**************************************************************************
 	 * 	Standard Constructor
 	 *	@param ctx context
@@ -204,12 +217,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			setEndWaitTime(new Timestamp(limitMS + System.currentTimeMillis()));
 		//	Responsible
 		setResponsible(process);
-		try {
-			PO.setCrossTenantSafe();
-			saveEx();
-		} finally {
-			PO.clearCrossTenantSafe();
-		}
+		saveCrossTenantSafeEx();
 		//
 		m_audit = new MWFEventAudit(this);
 		m_audit.setAD_Org_ID(getAD_Org_ID());//Add by Hideaki Hagiwara
@@ -1133,7 +1141,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 				getAD_Table_ID(), getRecord_ID());
 			pi.setAD_User_ID(getAD_User_ID());
 			pi.setAD_Client_ID(getAD_Client_ID());
-			MPInstance pInstance = new MPInstance(getCtx(), process.getAD_Process_ID(), getRecord_ID());
+			MPInstance pInstance = new MPInstance(getCtx(), process.getAD_Process_ID(), getAD_Table_ID(), getRecord_ID(), null); // TODO: Support WFActivity with Record_UU
 			pInstance.saveEx();
 			fillParameter(pInstance, trx);
 			pi.setAD_PInstance_ID(pInstance.getAD_PInstance_ID());
@@ -1150,7 +1158,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			note.setRecord(getAD_Table_ID(), getRecord_ID());
 			note.saveEx();
 			//	Attachment
-			MAttachment attachment = new MAttachment (getCtx(), MNote.Table_ID, note.getAD_Note_ID(), get_TrxName());
+			MAttachment attachment = new MAttachment (getCtx(), MNote.Table_ID, note.getAD_Note_ID(), note.getAD_Note_UU(), get_TrxName());
 			attachment.addEntry(report);
 			attachment.setTextMsg(m_node.getName(true));
 			attachment.saveEx();
