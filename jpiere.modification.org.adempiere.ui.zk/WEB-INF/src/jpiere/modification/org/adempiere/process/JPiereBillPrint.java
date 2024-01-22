@@ -35,15 +35,21 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 import org.adempiere.util.IProcessUI;
+import org.compiere.model.MBPartner;
 import org.compiere.model.MClient;
 import org.compiere.model.MClientInfo;
+import org.compiere.model.MDocType;
 import org.compiere.model.MMailText;
 import org.compiere.model.MProcessPara;
 import org.compiere.model.MQuery;
+import org.compiere.model.MRefList;
 import org.compiere.model.MRole;
 import org.compiere.model.MTable;
 import org.compiere.model.MUser;
@@ -67,8 +73,8 @@ import org.compiere.util.Util;
 import jpiere.modification.org.adempiere.model.MAttachmentFileRecord;
 
 /**
- *	JPIERE-0604
- *  Print Bill
+ *	JPIERE-0604: Print Bill(Process)
+ *	JPIERE-0610: Print Bill(Manual)
  *
  *  Ref: InvoicePrit.java - Print Invoices on Paper or send PDFs
  *
@@ -91,18 +97,33 @@ public class JPiereBillPrint extends SvrProcess
 	protected String		p_DocumentNo_From = null;
 	protected String		p_DocumentNo_To = null;
 	private String			p_IsPaid = null;
-	private int			p_C_DocType_ID = 0;
+	private int				p_C_DocType_ID = 0;
 	private String			p_IsPrinted = null;
 	private String			p_PaymentRule = null;
-	private int	  	    p_C_PaymentTerm_ID = 0;
+	private int	  	    	p_C_PaymentTerm_ID = 0;
 	private String			p_DocStatus = null;
 	private boolean 		p_IsAttachmentFileJP = false;
 
 	protected volatile StringBuffer sql = new StringBuffer();
+	
 	protected volatile List<Object> params = new ArrayList<Object>();
 
-	IProcessUI processMonitor = null;
+	private IProcessUI processMonitor = null;
+	
+	/**True if called from info window, and False otherwise.*/
+	private boolean isCalledFromInfoWindow = false;
+	
+	/**Bills selected at the info window.*/
+	private ArrayList<PO> p_selectedBills = null;
 
+	private MMailText mailText = null;
+	
+	private MClient client = null;
+	
+	private final List<File> pdfList = new ArrayList<File>();
+	
+	private MTable m_Table = null;
+	
 	/**
 	 *  Prepare - e.g., get Parameters.
 	 */
@@ -158,6 +179,8 @@ public class JPiereBillPrint extends SvrProcess
 			p_DocumentNo_To = null;
 		
 		processMonitor = Env.getProcessUI(getCtx());
+		client = MClient.get(getCtx());
+		m_Table = MTable.get(getCtx(), "JP_Bill");
 		
 	}	//	prepare
 
@@ -168,6 +191,25 @@ public class JPiereBillPrint extends SvrProcess
 	 */
 	protected String doIt() throws java.lang.Exception
 	{
+		//Check InfoWindow process.
+		String whereClauseInfoWindow = "EXISTS (SELECT T_Selection_ID FROM T_Selection WHERE T_Selection.AD_PInstance_ID=? " +
+				"AND T_Selection.T_Selection_ID = JP_Bill.JP_Bill_ID)";
+
+		Collection<PO> selectedBills = new Query(getCtx(), "JP_Bill", whereClauseInfoWindow, get_TrxName())
+						.setClient_ID()
+						.setParameters(new Object[]{getAD_PInstance_ID()})
+						.list();
+
+		 //If Bills are selected, then this is considered to be called from InfoWindow.
+		if(selectedBills.size() != 0)
+		{
+			isCalledFromInfoWindow = true;
+			p_selectedBills = (ArrayList<PO>) selectedBills;
+		}
+		
+		//Get Default Print Format
+		getDefaultPrintFormat();
+		
 		//	Need to have Template
 		if (p_EMailPDF && p_R_MailText_ID == 0)
 			throw new AdempiereUserError ("@NotFound@: @R_MailText_ID@");
@@ -183,21 +225,13 @@ public class JPiereBillPrint extends SvrProcess
 			+ ", C_PaymentTerm_ID=" + p_C_PaymentTerm_ID
 			+ ", DocStatus=" + p_DocStatus);
 		
-		MMailText mText = null;
 		if (p_R_MailText_ID != 0)
 		{
-			mText = new MMailText(getCtx(), p_R_MailText_ID, get_TrxName());
-			if (mText.get_ID() != p_R_MailText_ID)
+			mailText = new MMailText(getCtx(), p_R_MailText_ID, get_TrxName());
+			if (mailText.get_ID() != p_R_MailText_ID)
 				throw new AdempiereUserError ("@NotFound@: @R_MailText_ID@ - " + p_R_MailText_ID);
 		}
 
-		//	Too broad selection
-		if (p_C_BPartner_ID == 0 && p_JP_Bill_ID == 0 && p_JPDateBilled_From == null && p_JPDateBilled_To == null
-			&& p_DocumentNo_From == null && p_DocumentNo_To == null && p_PaymentRule == null && p_C_PaymentTerm_ID == 0
-			&& p_DocStatus == null)
-			throw new AdempiereUserError ("@RestrictSelection@");
-
-		MClient client = MClient.get(getCtx());
 		if(p_EMailPDF)
 		{
 			if(Util.isEmpty(client.getSMTPHost()) || client.getSMTPHost().equals("localhost"))
@@ -216,200 +250,80 @@ public class JPiereBillPrint extends SvrProcess
 			}
 		}
 		
-		setSQLAndParams();
-		if (log.isLoggable(Level.FINE)) log.fine(sql.toString());
-
-		MPrintFormat format = null;
-		String tableName = null;
-
-		int old_AD_PrintFormat_ID = -1;
-		int C_BPartner_ID = 0;
-		String docStatus = null;
-		int count = 0;
+		//	print
+		int success = 0;
 		int errors = 0;
-		int JP_Bill_Table_ID = MTable.getTable_ID("JP_Bill");
-		MTable m_Table = MTable.get(JP_Bill_Table_ID);
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		
-		final List<File> pdfList = new ArrayList<File>();
-		try
+		if(isCalledFromInfoWindow)
 		{
-			pstmt = DB.prepareStatement(sql.toString(), get_TrxName());
-			int idx = 1;
-			for (Object param : params) {
-				if (param instanceof Integer)
-					pstmt.setInt(idx, (Integer) param);
-				else if (param instanceof Timestamp)
-					pstmt.setTimestamp(idx, (Timestamp) param);
-				else
-					pstmt.setString(idx, param.toString());
-				idx++;
-			}
-			rs = pstmt.executeQuery();
-						
-			while (rs.next())
+			for(PO m_Bill : p_selectedBills)
 			{
-				int JP_Bill_ID = rs.getInt(1);
-				
-				//	Set Language when enabled
-				Language language = Language.getLoginLanguage();		//	Base Language
-				String AD_Language = rs.getString(2);
-				if (AD_Language != null && "Y".equals(rs.getString(3)))
-					language = Language.getLanguage(AD_Language);
-				//
-				int AD_PrintFormat_ID = rs.getInt(4);
-				int copies = rs.getInt(5);
-				if (copies == 0)
-					copies = 1;
-				int AD_User_ID = rs.getInt(6);
-				MUser to = new MUser (getCtx(), AD_User_ID, get_TrxName());
-				String DocumentNo = rs.getString(7);
-				C_BPartner_ID = rs.getInt(8);
-				docStatus = rs.getString(9);
-				
-				
-				if(!DocAction.STATUS_Completed.equals(docStatus)
-						&& !DocAction.STATUS_Closed.equals(docStatus))
-				{
-					StringBuilder whereClause = new StringBuilder("JP_Bill_ID=?");
-					List<PO> list = new Query(getCtx(), "JP_BillLine", whereClause.toString(), get_TrxName())
-													.setParameters(JP_Bill_ID)
-													.list();
-					
-					if(list == null || list.size() == 0)
-					{
-						addBufferLog(0, null, null, DocumentNo + " - " + Msg.getMsg(getCtx(), "NoLines"), JP_Bill_Table_ID, JP_Bill_ID);
-						continue;
-					}
-				}
-				
-				
-				if (p_EMailPDF && (to.get_ID() == 0 || to.getEMail() == null || to.getEMail().length() == 0))
-				{
-					addBufferLog(0, null, null, DocumentNo + " - " + Msg.getMsg(getCtx(), "RequestActionEMailNoTo") + " - " + to.getName()
-										, JP_Bill_Table_ID, JP_Bill_ID);
-					errors++;
-					continue;
-				}
-				
-				if (AD_PrintFormat_ID == 0)
-				{
-					addBufferLog(0, null, null, DocumentNo + " - " +Msg.getMsg(Env.getCtx(), "NotFound") + " "+ Msg.getElement(Env.getCtx(), "AD_PrintFormat_ID")
-											, JP_Bill_Table_ID, JP_Bill_ID);
-					errors++;
-					continue;
-				}
-				
-				//	Get Format & Data
-				if (AD_PrintFormat_ID != old_AD_PrintFormat_ID)
-				{
-					format = MPrintFormat.get (getCtx(), AD_PrintFormat_ID, false);
-					old_AD_PrintFormat_ID = AD_PrintFormat_ID;
-					tableName = MTable.get(format.getAD_Table_ID()).getTableName();
-				}
-				format.setLanguage(language);
-				format.setTranslationLanguage(language);
-				
-				if(processMonitor != null)
-					processMonitor.statusUpdate(DocumentNo);
-				
-				//	query
-				MQuery query = new MQuery(tableName);
-				query.addRestriction("JP_Bill_ID", MQuery.EQUAL, Integer.valueOf(JP_Bill_ID));
-
-				//	Engine
-				PrintInfo info = new PrintInfo(
-					DocumentNo,
-					JP_Bill_Table_ID,
-					JP_Bill_ID,
-					C_BPartner_ID);
-				info.setCopies(copies);
-				ReportEngine re = new ReportEngine(getCtx(), format, query, info);
-				String fileName = re.getName()+ "_" + getAD_PInstance_ID() + ".pdf";
-				boolean printed = false;
-				if (p_EMailPDF)
-				{
-					//Context
-					mText.setUser(to);					
-					mText.setPO(m_Table.getPO(JP_Bill_ID, get_TrxName()));
-					mText.setBPartner(C_BPartner_ID);
-					
-					String subject = mText.getMailHeader() + " - " + DocumentNo;
-					String message = mText.getMailText(true);
-					EMail email = client.createEMail(to.getEMail(), subject, message, mText.isHtml());
-					if (!email.isValid())
-					{
-						addBufferLog(0, null, null, DocumentNo + " - "+ Msg.getMsg(getCtx(), "RequestActionEMailError") + " Invalid EMail: " +  to.getName(), JP_Bill_Table_ID, JP_Bill_ID);
-						errors++;
-						continue;
-					}
-					
-					File attachment = re.getPDF();
-					email.addAttachment(attachment);
-					
-					//
-					String msg = email.send();
-					if (msg.equals(EMail.SENT_OK))
-					{
-						MUserMail um = new MUserMail(mText, getAD_User_ID(), email);
-						um.setR_MailText_ID(0);
-						um.setSubject(subject);
-						um.setMailText(message);
-						um.setIsDelivered("Y");
-						um.saveEx();
-						
-						commitEx();
-						
-						setSendEMail(JP_Bill_ID);
-						pdfList.add(attachment);
-						
-						addLog (0, null, null,
-						  DocumentNo + " - " + Msg.getMsg(getCtx(),"RequestActionEMailOK") + " - " + to.getEMail(), JP_Bill_Table_ID, JP_Bill_ID);
-						count++;
-						printed = true;
-						
-						if(printed)
-							setPrinted(JP_Bill_ID);
-						
-						if(p_IsAttachmentFileJP)
-							attachmentFile(re, fileName, JP_Bill_Table_ID, JP_Bill_ID);
-						
-						commitEx();
-					}
-					else
-					{
-						addBufferLog(0, null, null, DocumentNo + " - " + Msg.getMsg(getCtx(),"RequestActionEMailError") + " - " + to.getEMail(), JP_Bill_Table_ID, JP_Bill_ID);
-						errors++;
-					}
-					
-				}
+				if(doPrint(m_Bill, 0, 0, null, 0))
+					success++;
 				else
-				{
-					pdfList.add(re.getPDF());
-					count++;
-					printed = true;
-					
-					if (printed)
-						setPrinted(JP_Bill_ID);
-					
-					if(p_IsAttachmentFileJP)
-						attachmentFile(re, fileName, JP_Bill_Table_ID, JP_Bill_ID);
+					errors++;
+			}
+			
+		}else {
+			
+			if (p_C_BPartner_ID == 0 && p_JP_Bill_ID == 0 && p_JPDateBilled_From == null && p_JPDateBilled_To == null
+					&& p_DocumentNo_From == null && p_DocumentNo_To == null && p_PaymentRule == null && p_C_PaymentTerm_ID == 0
+					&& p_DocStatus == null)
+					throw new AdempiereUserError ("@RestrictSelection@");
+			
+			setSQLAndParams();
+			if (log.isLoggable(Level.FINE)) log.fine(sql.toString());
 
+			PreparedStatement pstmt = null;
+			ResultSet rs = null;			
+			try
+			{
+				pstmt = DB.prepareStatement(sql.toString(), get_TrxName());
+				int idx = 1;
+				for (Object param : params) {
+					if (param instanceof Integer)
+						pstmt.setInt(idx, (Integer) param);
+					else if (param instanceof Timestamp)
+						pstmt.setTimestamp(idx, (Timestamp) param);
+					else
+						pstmt.setString(idx, param.toString());
+					idx++;
+				}
+				rs = pstmt.executeQuery();
+							
+				while (rs.next())
+				{
+					int JP_Bill_ID = rs.getInt(1);
+					
+					//	Set Language when enabled
+					Language language = Language.getLoginLanguage();		//	Base Language
+					String AD_Language = rs.getString(2);
+					if (AD_Language != null && "Y".equals(rs.getString(3)))
+						language = Language.getLanguage(AD_Language);
+					//
+					int AD_PrintFormat_ID = rs.getInt(4);
+					int copies = rs.getInt(5);
+					if (copies == 0)
+						copies = 1;
+					int AD_User_ID = rs.getInt(6);
+					
+					if(doPrint(JP_Bill_ID, AD_User_ID, AD_PrintFormat_ID, language, copies))
+						success++;
+					else
+						errors++;
 				}
 				
-			}	//	for all entries
-			
+			}catch (Exception e)
+			{
+				log.log(Level.SEVERE, "doIt - " + sql, e);
+				throw new Exception (e);
+			}
+			finally {
+				DB.close(rs, pstmt);
+				pstmt = null;
+				rs = null;
+			}
 		}
-		catch (Exception e)
-		{
-			log.log(Level.SEVERE, "doIt - " + sql, e);
-			throw new Exception (e);
-		}
-		finally {
-			DB.close(rs, pstmt);
-		}
-		
+
 		if (processUI != null && pdfList.size() > 0)
 		{
 			processUI.showReports(pdfList);
@@ -417,9 +331,220 @@ public class JPiereBillPrint extends SvrProcess
 
 		//
 		if (p_EMailPDF)
-			return "@Sent@=" + count + " - @Errors@=" + errors;
-		return "@Printed@=" + count;
+			return "@Sent@=" + success + " - @Errors@=" + errors;
+		return "@Printed@=" + success + " - @Errors@=" + errors;
 	}	//	doIt
+	
+	private Map<Integer,Integer> defaultPrintFormat = new HashMap<Integer, Integer>();
+	
+	private void getDefaultPrintFormat()throws Exception
+	{
+		String getFormatSQL = " SELECT AD_Org_ID, JP_Bill_PrintFormat_ID FROM AD_PrintForm WHERE AD_Client_ID = ? ORDER BY AD_Org_ID ";
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try
+		{
+			pstmt = DB.prepareStatement(getFormatSQL, get_TrxName());
+			pstmt.setInt(1, client.getAD_Client_ID());
+			rs = pstmt.executeQuery();
+			while (rs.next())
+				defaultPrintFormat.put(rs.getInt(1), rs.getInt(2));
+			
+		}catch (Exception e)
+		{
+			log.log(Level.SEVERE, "doIt - " + sql, e);
+			throw new Exception (e);
+		}
+		finally {
+			DB.close(rs, pstmt);
+			pstmt = null;
+			rs = null;
+		}
+	}
+	
+
+	
+	private boolean doPrint(int JP_Bill_ID, int mailTo_AD_User_ID, int AD_PrintFormat_ID, Language language, int copies) throws Exception
+	{
+		return doPrint(m_Table.getPO(JP_Bill_ID, get_TrxName()), mailTo_AD_User_ID, AD_PrintFormat_ID, language, copies) ;
+	}
+	
+	private boolean doPrint(PO m_Bill, int mailTo_AD_User_ID, int AD_PrintFormat_ID, Language language, int copies) throws Exception
+	{
+		DocAction i_DocAction = (DocAction)m_Bill;
+		MUser mailToUser = null;
+		MPrintFormat format = null;
+		String format_TableName = null;
+		
+		//Check Bill Lines.
+		if(!DocAction.STATUS_Completed.equals(i_DocAction.getDocStatus())
+				&& !DocAction.STATUS_Closed.equals(i_DocAction.getDocStatus()))
+		{
+			StringBuilder whereClause = new StringBuilder("JP_Bill_ID=?");
+			List<PO> list = new Query(getCtx(), "JP_BillLine", whereClause.toString(), get_TrxName())
+											.setParameters(m_Bill.get_ID())
+											.list();
+			
+			if(list == null || list.size() == 0)
+			{
+				addBufferLog(0, null, null, i_DocAction.getDocumentNo() + " - " + Msg.getMsg(getCtx(), "NoLines"), m_Bill.get_Table_ID(), m_Bill.get_ID());
+				return false;
+			}
+		}
+		
+		//Check send mail.
+		if(mailTo_AD_User_ID == 0)
+			mailTo_AD_User_ID = m_Bill.get_ValueAsInt("AD_User_ID");
+		if(mailTo_AD_User_ID != 0)
+			mailToUser = new MUser(getCtx(),mailTo_AD_User_ID, get_TrxName());
+		if (p_EMailPDF && (mailToUser == null || mailToUser.getEMail() == null || mailToUser.getEMail().length() == 0))
+		{
+			addBufferLog(0, null, null, i_DocAction.getDocumentNo()  + " - " + Msg.getMsg(getCtx(), "RequestActionEMailNoTo") , m_Bill.get_Table_ID(), m_Bill.get_ID());
+			return false;
+		}
+		
+		if (p_EMailPDF)
+		{
+			/* if mailed to customer only select Completed & CLosed Bills */ 
+			String docStatus = i_DocAction.getDocStatus();
+			if(!docStatus.equals(DocAction.STATUS_Completed) && !docStatus.equals(DocAction.STATUS_Closed))
+			{
+				addBufferLog(0, null, null, i_DocAction.getDocumentNo()  + " - " + Msg.getMsg(getCtx(), "RequestActionEMailError") 
+																		+ Msg.getElement(getCtx(), "DocStatus") + " = " + MRefList.getListName(getCtx(), 131, docStatus)
+																		, m_Bill.get_Table_ID(), m_Bill.get_ID());
+				return false;
+			}
+		}
+		
+		//Check Print Format
+		if(AD_PrintFormat_ID == 0)
+			AD_PrintFormat_ID = MBPartner.get(getCtx(),m_Bill.get_ValueAsInt("C_BPartner_ID")).get_ValueAsInt("JP_Bill_PrintFormat_ID");
+		if(AD_PrintFormat_ID == 0)
+			AD_PrintFormat_ID = MDocType.get(getCtx(), m_Bill.get_ValueAsInt("C_DocType_ID")).get_ValueAsInt("AD_PrintFormat_ID");
+		if(AD_PrintFormat_ID == 0)
+		{
+			Integer  default_JP_Bill_PrintFormat_ID = defaultPrintFormat.get(m_Bill.getAD_Org_ID());
+			if(default_JP_Bill_PrintFormat_ID == null || default_JP_Bill_PrintFormat_ID.intValue() == 0)
+			{
+				default_JP_Bill_PrintFormat_ID = defaultPrintFormat.get(0);
+				if(default_JP_Bill_PrintFormat_ID == null)
+					default_JP_Bill_PrintFormat_ID = 0;
+			}
+			AD_PrintFormat_ID = default_JP_Bill_PrintFormat_ID.intValue();
+		}
+		if (AD_PrintFormat_ID == 0)
+		{
+			addBufferLog(0, null, null, i_DocAction.getDocumentNo() + " - " +Msg.getMsg(Env.getCtx(), "NotFound") + " "+ Msg.getElement(Env.getCtx(), "AD_PrintFormat_ID")
+															, m_Bill.get_Table_ID(), m_Bill.get_ID());
+			return false;
+		}
+		
+		//	Get Format
+		format = MPrintFormat.get (getCtx(), AD_PrintFormat_ID, false);
+		format_TableName = MTable.get(format.getAD_Table_ID()).getTableName();
+		if(language == null)
+		{
+			if(MClient.get(getCtx()).isMultiLingualDocument())
+			{
+				MBPartner m_BP = MBPartner.get(getCtx(),m_Bill.get_ValueAsInt("C_BPartner_ID"));
+				String AD_Language = m_BP.getAD_Language();
+				language = Language.getLanguage(AD_Language);
+			}
+			
+			if(language == null)
+				language = Language.getLoginLanguage();		//	Base Language
+		}
+		format.setLanguage(language);
+		format.setTranslationLanguage(language);
+		
+		if(processMonitor != null)
+			processMonitor.statusUpdate(i_DocAction.getDocumentNo());
+		
+		//	query
+		MQuery query = new MQuery(format_TableName);
+		query.addRestriction("JP_Bill_ID", MQuery.EQUAL, m_Bill.get_ID());
+		
+		//	Engine
+		PrintInfo info = new PrintInfo(
+				i_DocAction.getDocumentNo() ,
+				m_Bill.get_Table_ID(),
+				m_Bill.get_ID(),
+				m_Bill.get_ValueAsInt("C_BPartner_ID"));
+		if (copies == 0)
+			copies = 1;
+		info.setCopies(copies);
+		ReportEngine re = new ReportEngine(getCtx(), format, query, info);
+		String fileName = re.getName()+ "_" + getAD_PInstance_ID() + ".pdf";
+		boolean printed = false;
+		
+		if (p_EMailPDF)
+		{
+			//Context
+			mailText.setUser(mailToUser);					
+			mailText.setPO(m_Bill);
+			mailText.setBPartner(m_Bill.get_ValueAsInt("C_BPartner_ID"));
+			
+			String subject = mailText.getMailHeader() + " - " + i_DocAction.getDocumentNo();
+			String message = mailText.getMailText(true);
+			EMail email = client.createEMail(mailToUser.getEMail(), subject, message, mailText.isHtml());
+			if (!email.isValid())
+			{
+				addBufferLog(0, null, null, i_DocAction.getDocumentNo() + " - "+ Msg.getMsg(getCtx(), "RequestActionEMailError") + " Invalid EMail: " +  mailToUser.getName(), m_Bill.get_Table_ID(), m_Bill.get_ID());
+				return false;
+			}
+			
+			File attachment = re.getPDF();
+			email.addAttachment(attachment);
+			
+			//
+			String msg = email.send();
+			if (msg.equals(EMail.SENT_OK))
+			{
+				MUserMail um = new MUserMail(mailText, getAD_User_ID(), email);
+				um.setR_MailText_ID(0);
+				um.setSubject(subject);
+				um.setMailText(message);
+				um.setIsDelivered("Y");
+				um.saveEx();
+				
+				commitEx();
+				
+				setSendEMail(m_Bill.get_ID());
+				pdfList.add(attachment);
+				
+				addLog (0, null, null, i_DocAction.getDocumentNo() + " - " + Msg.getMsg(getCtx(),"RequestActionEMailOK") + " - " + mailToUser.getEMail(), m_Bill.get_Table_ID(), m_Bill.get_ID());
+				printed = true;
+				
+				if(printed)
+					setPrinted(m_Bill.get_ID());
+				
+				if(p_IsAttachmentFileJP)
+					attachmentFile(re, fileName, m_Bill.get_Table_ID(), m_Bill.get_ID());
+				
+				commitEx();
+			}
+			else
+			{
+				addBufferLog(0, null, null, i_DocAction.getDocumentNo() + " - " + Msg.getMsg(getCtx(),"RequestActionEMailError") + " - " + mailToUser.getEMail(), m_Bill.get_Table_ID(), m_Bill.get_ID());
+				return false;
+			}
+			
+		}
+		else
+		{
+			pdfList.add(re.getPDF());
+			printed = true;
+			
+			if (printed)
+				setPrinted(m_Bill.get_ID());
+			
+			if(p_IsAttachmentFileJP)
+				attachmentFile(re, fileName, m_Bill.get_Table_ID(), m_Bill.get_ID());
+
+		}
+		
+		return true;
+	}
 
 	protected void setSQLAndParams() {
 		//	Get Info
@@ -503,7 +628,7 @@ public class JPiereBillPrint extends SvrProcess
 			
 			if (p_EMailPDF)
 			{
-				/* if emailed to customer only select COmpleted & CLosed invoices */ 
+				/* if mailed to customer only select Completed & CLosed Bills */ 
 				sql.append(" AND i.DocStatus IN ('CO','CL') "); 
 			}else {
 				
