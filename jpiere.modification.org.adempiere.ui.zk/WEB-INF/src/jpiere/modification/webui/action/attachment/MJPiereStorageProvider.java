@@ -34,6 +34,7 @@ import org.compiere.util.Env;
 */
 public class MJPiereStorageProvider extends X_AD_StorageProvider {
 
+	private static final long serialVersionUID = -3826309701401409584L;
 
 	public MJPiereStorageProvider(Properties ctx, int AD_StorageProvider_ID, String trxName) {
 		super(ctx, AD_StorageProvider_ID, trxName);

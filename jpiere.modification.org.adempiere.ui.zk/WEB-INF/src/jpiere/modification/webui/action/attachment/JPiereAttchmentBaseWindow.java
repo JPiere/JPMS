@@ -65,6 +65,7 @@ import jpiere.modification.org.adempiere.model.MAttachmentFileRecord;
 */
 public class JPiereAttchmentBaseWindow extends Window implements EventListener<Event>{
 
+	private static final long serialVersionUID = -5237020323915426689L;
 	protected ADWindow adWindow;
 	protected ADWindowContent  adWindowContent;
 

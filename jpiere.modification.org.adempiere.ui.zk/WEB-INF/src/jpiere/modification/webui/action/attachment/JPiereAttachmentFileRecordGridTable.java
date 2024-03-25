@@ -34,6 +34,8 @@ import jpiere.modification.org.adempiere.model.MAttachmentFileRecord;
 */
 public class JPiereAttachmentFileRecordGridTable extends AbstractTableModel {
 
+	private static final long serialVersionUID = 3847038829673684289L;
+
 	private ArrayList<MAttachmentFileRecord> list_POs;
 
 	private ADWindow adWindow = null;

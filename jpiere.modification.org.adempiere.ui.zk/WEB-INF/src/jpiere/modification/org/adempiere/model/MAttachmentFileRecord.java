@@ -43,6 +43,8 @@ import jpiere.modification.webui.action.attachment.MJPiereStorageProvider;
 */
 public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 
+	private static final long serialVersionUID = -3239337345724851225L;
+
 	public MAttachmentFileRecord(Properties ctx, int JP_AttachmentFileRecord_ID, String trxName)
 	{
 		super(ctx, JP_AttachmentFileRecord_ID, trxName);
