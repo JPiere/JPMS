@@ -222,7 +222,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
     private ArrayList<WEditor>          m_sEditorsTo = new ArrayList<WEditor>();
     /** Tab number for lookup and context */
     public static final int     TABNO = 99;
-    /** Max display lenght of Fields on simple search tab   */
+    /** Max display length of Fields on simple search tab   */
     public static final int     FIELDLENGTH = 20;
     /** AD_Tab_ID of calling tab */
     private int m_AD_Tab_ID = 0;
@@ -569,7 +569,6 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         ZKUpdateUtil.setHeight(winLookupRecord, "100%");
         winLookupRecord.addEventListener(Events.ON_OK, this);
         LayoutUtils.addSclass("find-window-simple", winLookupRecord);
-
     }   //  initSimple
 
     /**
@@ -581,7 +580,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         if (ThemeManager.isUseFontIconForImage())
         	btnNew.setIconSclass("z-icon-New");
         else
-        btnNew.setImage(ThemeManager.getThemeResource("images/New24.png"));
+        	btnNew.setImage(ThemeManager.getThemeResource("images/New24.png"));
         btnNew.setAttribute("name", "btnNewAdv");
         btnNew.addEventListener(Events.ON_CLICK, this);
 
@@ -590,7 +589,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         if (ThemeManager.isUseFontIconForImage())
         	btnDelete.setIconSclass("z-icon-Delete");
         else
-        btnDelete.setImage(ThemeManager.getThemeResource("images/Delete24.png"));
+        	btnDelete.setImage(ThemeManager.getThemeResource("images/Delete24.png"));
         btnDelete.addEventListener(Events.ON_CLICK, this);
 
         Button btnOk = ButtonFactory.createNamedButton(ConfirmPanel.A_OK);
@@ -722,7 +721,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         if (ThemeManager.isUseFontIconForImage())
         	btnSave.setIconSclass("z-icon-Save");
         else
-        btnSave.setImage(ThemeManager.getThemeResource("images/Save24.png"));
+        	btnSave.setImage(ThemeManager.getThemeResource("images/Save24.png"));
         btnSave.addEventListener(Events.ON_CLICK, this);
         btnSave.setId("btnSave");
         btnSave.setStyle("vertical-align: middle;");
@@ -953,6 +952,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 				findField.setPlaceholder(null);
 				mField = findField;
 			}
+			
 			if (mField.isSelectionColumn()) {
             	gridFieldList.add(mField); // isSelectionColumn
             } else {
@@ -1387,10 +1387,8 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 	                	break;
 	        		}
 	        	}
-	    	}
-
-        }
-
+	    	}	    	
+        }        
    }    // createFields
 
     /**
@@ -1435,7 +1433,6 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 
 	        //Add Attribute
 	        if(isAttributeTable()){
-
 	        	String header = Msg.translate(Env.getCtx(), MAttribute.COLUMNNAME_M_Attribute_ID);
 	        	ValueNamePair pp = new ValueNamePair(MAttribute.COLUMNNAME_M_Attribute_ID , header);
 	            tables.add(pp);	        	
@@ -1453,7 +1450,6 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 	    	columnName = fields.length > INDEX_COLUMNNAME ? fields[INDEX_COLUMNNAME] : "";
         	operator = fields.length > INDEX_OPERATOR ? fields[INDEX_OPERATOR] : ""; 
 
-
         	if (m_windowPanel != null)
         	{	
         		// update listTable
@@ -1467,8 +1463,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 			 	        {
 			 	           	listTable.setSelectedIndex(listTable.getItemCount()-1);
 			 	        	selected = true;		 	        	
-			 	        }
-	
+			 	        }	
 		            } else {
 		 	            if (item.getValue().equals(tableName))
    						{
@@ -1850,11 +1845,11 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 	                		Comboitem column = listColumn.getSelectedItem();
 	                		ValueNamePair selected = column != null ? column.getValue() : null;
 	                		if (column != null && selected.getValue().length() > 0)
-                		{
-                			addOperators(column, listOperator);
-                		}
+	                		{
+	                			addOperators(column, listOperator);
+	                		}
+	                	}
                 	}
-                }
                 }
                 
                 // Attribute
@@ -2027,7 +2022,6 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
             	}
             }
         }
-
     }   //  onEvent
 
     /**
@@ -2118,7 +2112,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
     		return;
 
     	String code = userQuery.getCode();
-    	if (code.startsWith("@SQL=")) {
+    	if (code.startsWith(MColumn.VIRTUAL_UI_COLUMN_PREFIX)) {
 			m_whereUserQuery = "(" + code.substring(code.indexOf("=")+1, code.length()) + ")";
 			if (log.isLoggable(Level.INFO))
 				log.log(Level.INFO, m_whereUserQuery);
@@ -2501,9 +2495,9 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 
 	               	 	m_query.addRestriction(where, and, not, isExistCondition, openBrackets);
 	                } else {
-                	m_query.addRangeRestriction(ColumnSQL, parsedValue, parsedValue2,
+		                m_query.addRangeRestriction(ColumnSQL, parsedValue, parsedValue2,
 		                    infoName, infoDisplay, infoDisplay_to, andOr, openBrackets);
-            	}
+	                }
 	            } else if (isProductCategoryField && MQuery.OPERATORS[MQuery.EQUAL_INDEX].getValue().equals(Operator)) {
                 	if (!(parsedValue instanceof Integer)) {
                     	continue;
@@ -3059,10 +3053,10 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
             return null;
         if (m_gridTab == null) { // when filtering a report dialog
             for (int c = 0; c < m_findFields.length; c++) {
-            GridField field = m_findFields[c];
-            if (field != null && columnName.equals(field.getColumnName()))
-                return field;
-        	}
+                GridField field = m_findFields[c];
+                if (field != null && columnName.equals(field.getColumnName()))
+                    return field;
+            }
         } else {
             for (int c = 0; c < m_gridTab.getFields().length; c++) {
                 GridField field = m_gridTab.getFields()[c];
@@ -3071,7 +3065,6 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
             }
         }
         return null;
-
     }   //  getTargetMField
 
     /**
@@ -3129,7 +3122,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 		return retDays;
 
 	}
-
+    
 
     /**
      * Adding where clause from history data
@@ -3364,7 +3357,6 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         if (log.isLoggable(Level.FINE)) log.fine(ret.toString());
         StringBuilder msgreturn = new StringBuilder(ret.toString()).append(productCategoryId);
         return msgreturn.toString();
-
     }   //  getSubCategoriesString
 
     /**
@@ -3487,7 +3479,6 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
     public int getTotalRecords()
     {
         return m_total;
-
     }   //  getTotalRecords
 
     @Override
@@ -3728,30 +3719,30 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 			.append(" M_AttributeInstance.M_Attribute_ID  = ")
 			.append( M_Attribute_ID );
 
-		  if(attribute.getAttributeValueType().equals(String.valueOf(MAttribute.ATTRIBUTEVALUETYPE_AD_Reference_ID))) {	        	
-	        	//TODO Reference        	
+	    if(attribute.getAttributeValueType().equals(String.valueOf(MAttribute.ATTRIBUTEVALUETYPE_AD_Reference_ID))) {	        	
+        	//TODO Reference        	
 
-	        }
-	        else if(attribute.getAttributeValueType().equals(MAttribute.ATTRIBUTEVALUETYPE_Date)) {	        	
+        }
+        else if(attribute.getAttributeValueType().equals(MAttribute.ATTRIBUTEVALUETYPE_Date)) {	        	
 
-	        	attributeSQL.append(" AND datevalue ");
+        	attributeSQL.append(" AND datevalue ");
 
-	        }
-	        else if(attribute.getAttributeValueType().equals(MAttribute.ATTRIBUTEVALUETYPE_List)) {	        	
+        }
+        else if(attribute.getAttributeValueType().equals(MAttribute.ATTRIBUTEVALUETYPE_List)) {	        	
 
-	        	attributeSQL.append(" AND M_AttributeValue_ID ");
+        	attributeSQL.append(" AND M_AttributeValue_ID ");
 
-	        }
-	        else if(attribute.getAttributeValueType().equals(MAttribute.ATTRIBUTEVALUETYPE_Number)) {
+        }
+        else if(attribute.getAttributeValueType().equals(MAttribute.ATTRIBUTEVALUETYPE_Number)) {
 
-	        	attributeSQL.append(" AND valuenumber ");	        	
+        	attributeSQL.append(" AND valuenumber ");	        	
 
-	        }
-	        else if(attribute.getAttributeValueType().equals(MAttribute.ATTRIBUTEVALUETYPE_StringMax40)) {        	
+        }
+        else if(attribute.getAttributeValueType().equals(MAttribute.ATTRIBUTEVALUETYPE_StringMax40)) {        	
 
-	        	attributeSQL.append(" AND value ");
+        	attributeSQL.append(" AND value ");
 
-	        }
+        }
 
 		return attributeSQL.toString();
 	}	// getAttributeSQL
@@ -3781,7 +3772,6 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 
         boolean enabled = !isValueTo || (isValueTo && between); 
 
-
 		MAttribute attribute = new MAttribute(Env.getCtx(), M_Attribute_ID, null);
 
 		//  Create Editor
@@ -3790,25 +3780,19 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 	    String attributeValue = attribute.getAttributeValueType();
 
 	    if(attributeValue.equals(String.valueOf(MAttribute.ATTRIBUTEVALUETYPE_AD_Reference_ID))) {
-
 	    	editor = new WNumberEditor();
 
 	    	int i = Integer.parseInt(value);
 	       	editor.setValue(i);
-
-
 	    }
 	    else if(attributeValue.equals(MAttribute.ATTRIBUTEVALUETYPE_Date)) {
-
 	       	editor = new WDateEditor(); 	      
 
             long time = DisplayType.getDateFormat_JDBC().parse(value.toString()).getTime();
 
 	       	editor.setValue(new Timestamp(time));
-
 	    }
 	    else if(attributeValue.equals(MAttribute.ATTRIBUTEVALUETYPE_List)) {
-
 	       	int AD_Column_ID = MColumn.getColumn_ID(MAttributeValue.Table_Name, MAttributeValue.COLUMNNAME_M_AttributeValue_ID);
 	    	MLookup attributeValues = MLookupFactory.get(Env.getCtx(), m_targetWindowNo, AD_Column_ID, DisplayType.TableDir, Env.getLanguage(Env.getCtx()), 
 	    			MAttributeValue.COLUMNNAME_M_AttributeValue_ID, 0, true, 
@@ -3816,17 +3800,13 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 	    	editor = new WTableDirEditor("M_AttributeValue_ID", true, false, true, attributeValues); 
 
 	    	editor.setValue(Integer.valueOf(value));	
-
 	    }
 	    else if(attributeValue.equals(MAttribute.ATTRIBUTEVALUETYPE_Number)) {
-
 	       	editor = new WNumberEditor();
 	       	//BigDecimal
 	       	editor.setValue(new BigDecimal(value));
-
 	    }
 	    else if(attributeValue.equals(MAttribute.ATTRIBUTEVALUETYPE_StringMax40)) {        	
-
 	       	editor = new WStringEditor("Test", true, false, true, 40, 40, null, null);
 	       	//String
 	       	editor.setValue(value);
@@ -3853,7 +3833,6 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 	 * @param fields value for {@link #advancedPanel} columns
      */
 	private void setAttributes(Combobox listColumn, Combobox listOperator, String[] fields) {
-
 		String columnName = null;
 		String operator = null;
 		if(fields != null) {
@@ -3925,24 +3904,20 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 
 	} //setAttributes
 
-
 	/**
 	 * add operators to listOperator depends on the type of attribute
      * @param column
      * @param listOperator
      */
     private void addOperatorsAttribute(Comboitem column, Combobox listOperator) {
-
     	ValueNamePair pair = column.getValue();
     	MAttribute attribute = new MAttribute(Env.getCtx(), Integer.valueOf(pair.getID()), null);
 
 		if(attribute.getAttributeValueType().equals(MAttribute.ATTRIBUTEVALUETYPE_Date) ||
 				attribute.getAttributeValueType().equals(MAttribute.ATTRIBUTEVALUETYPE_Number)) {
-
 			addOperators(MQuery.OPERATORS_NUMBERS, listOperator);          	
 		}
 		else {
-
 			addOperators(MQuery.OPERATORS_LOOKUP, listOperator);          	
 		} 
   	} // addOperatorsAttribute
@@ -3978,32 +3953,22 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         String attributeValue = attribute.getAttributeValueType();
 
         if(attributeValue.equals(String.valueOf(MAttribute.ATTRIBUTEVALUETYPE_AD_Reference_ID))) {
-
         	editor = new WNumberEditor();
-
-
         }
         else if(attributeValue.equals(MAttribute.ATTRIBUTEVALUETYPE_Date)) {
-
         	editor = new WDateEditor();
-
         }
         else if(attributeValue.equals(MAttribute.ATTRIBUTEVALUETYPE_List)) {
-
         	int AD_Column_ID = MColumn.getColumn_ID(MAttributeValue.Table_Name, MAttributeValue.COLUMNNAME_M_AttributeValue_ID);
     		MLookup attributeValues = MLookupFactory.get(Env.getCtx(), m_targetWindowNo, AD_Column_ID, DisplayType.TableDir, Env.getLanguage(Env.getCtx()), 
     				MAttributeValue.COLUMNNAME_M_AttributeValue_ID, 0, true, 
     				" M_AttributeValue.M_Attribute_ID = " + attribute.get_ID());
     		editor = new WTableDirEditor("M_AttributeValue_ID", true, false, true, attributeValues);     
-
         }
         else if(attributeValue.equals(MAttribute.ATTRIBUTEVALUETYPE_Number)) {
-
         	editor = new WNumberEditor();
-
         }
         else if(attributeValue.equals(MAttribute.ATTRIBUTEVALUETYPE_StringMax40)) {        	
-
         	editor = new WStringEditor("Test", true, false, true, 40, 40, null, null);
         }
 
