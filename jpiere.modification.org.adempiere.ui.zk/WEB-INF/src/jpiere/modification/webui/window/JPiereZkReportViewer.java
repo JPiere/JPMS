@@ -48,6 +48,7 @@ import jpiere.modification.org.adempiere.model.MAttachmentFileRecord;
 */
 public class JPiereZkReportViewer extends ZkReportViewer {
 
+	private static final long serialVersionUID = -5329255604108151944L;
 	protected ToolBarButton		btn_JPiereAttachment			= new ToolBarButton();
 	protected ReportEngine 		m_reportEngine;
 	

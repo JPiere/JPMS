@@ -49,6 +49,7 @@ import net.sf.jasperreports.engine.JasperPrint;
 */
 public class JPiereZkJRViewer extends ZkJRViewer {
 
+	private static final long serialVersionUID = 6294105846429782339L;
 	protected ToolBarButton		btn_JPiereAttachment = new ToolBarButton();
 	private PrintInfo			m_printInfo;
 	
