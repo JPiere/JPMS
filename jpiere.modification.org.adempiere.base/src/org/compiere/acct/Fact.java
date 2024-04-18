@@ -35,7 +35,8 @@ import org.compiere.util.CLogger;
 import org.compiere.util.Env;
 
 /**
- *  Accounting Fact
+ *  Accounting Fact for {@link Doc}.<br/>
+ *  Create and save one or more {@link FactLine} for an accounting document.
  *
  *  @author 	Jorg Janke
  *  @version 	$Id: Fact.java,v 1.2 2006/07/30 00:53:33 jjanke Exp $
@@ -61,7 +62,6 @@ public final class Fact
 		if (log.isLoggable(Level.CONFIG)) log.config(toString());
 	}	//	Fact
 
-
 	/**	Log					*/
 	private static final CLogger	log = CLogger.getCLogger(Fact.class);
 
@@ -84,13 +84,11 @@ public final class Fact
 	/** Encumbrance Posting */
 	public static final String	POST_Reservation = MFactAcct.POSTINGTYPE_Reservation;
 
-
 	/** Is Converted        */
 	private boolean		    m_converted = false;
 
 	/** Lines               */
 	private ArrayList<FactLine>	m_lines = new ArrayList<FactLine>();
-
 
 	/**
 	 *  Dispose
@@ -328,7 +326,7 @@ public final class Fact
 		m_lines.add(line);
 		return line;
 	}   //  balancingSource
-
+	
 	/**
 	 *  Are all segments balanced
 	 *  @return true if segments are balanced
@@ -340,7 +338,7 @@ public final class Fact
 			return true;
 		
 		//JPIERE-0602: Corporation Balance Entry
-		if(m_acctSchema.get_ValueAsBoolean("IsCorpBalanceJP"))
+		if(m_acctSchema.get_ColumnIndex("IsCorpBalanceJP") > -1 && m_acctSchema.get_ValueAsBoolean("IsCorpBalanceJP"))
 			balanceSegment("CORP");
 		
 		MAcctSchemaElement[] elements = m_acctSchema.getAcctSchemaElements();
@@ -409,7 +407,7 @@ public final class Fact
 	 *              overwriting the segment value
 	 */
 	public void balanceSegments()
-	{		
+	{
 		MAcctSchemaElement[] elements = m_acctSchema.getAcctSchemaElements();
 		//  check all balancing segments
 		for (int i = 0; i < elements.length; i++)
@@ -542,7 +540,7 @@ public final class Fact
 			map.clear();
 		}
 	}   //  balanceSegment
-
+	
 	/**
 	 *	Are the lines Accounting Balanced
 	 *  @return true if accounting lines are balanced
