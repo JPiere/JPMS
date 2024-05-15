@@ -20,6 +20,8 @@ package org.adempiere.webui.adwindow;
 import static org.compiere.model.MSysConfig.*;
 import static org.compiere.model.SystemIDs.*;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -206,7 +208,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
     protected StatusBar     statusBar;
 
     /** UI part for AD_Tabs */
-    protected IADTabbox          	 adTabbox;
+    protected IADTabbox          adTabbox;
 
     /** register window (desktop tab) no */ 
     private int                  curWindowNo;
@@ -255,7 +257,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 	/**
 	 * Maintain no of quick form tabs open
 	 */
-	protected ArrayList <Integer>			quickFormOpenTabs	= new ArrayList <Integer>();
+	protected ArrayList <Integer> quickFormOpenTabs	= new ArrayList <Integer>();
 
 	/** track last focus field editor component */
 	protected Component lastFocusEditor = null;
@@ -292,6 +294,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         comp.addEventListener(ON_DEFER_SET_DETAILPANE_SELECTION_EVENT, this);
         comp.addEventListener(ON_FOCUS_DEFER_EVENT, this);
         comp.setAttribute(ITabOnSelectHandler.ATTRIBUTE_KEY, this);
+        
         return comp;
     }
 
@@ -317,8 +320,8 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 	 */
     private void initComponents()
     {
-        /** Initalise toolbar */
-        toolbar = new ADWindowToolbar(this,getWindowNo());
+        /** Initialise toolbar */
+        toolbar = new ADWindowToolbar(this, getWindowNo());
         toolbar.setId("windowToolbar");
         toolbar.addListener(this);
 
@@ -829,7 +832,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 			}
 			else
 			{
-				logger.log(Level.SEVERE, "No implementaton for tab type " + type + " Found", new Exception("No implementaton for tab type " + type + " Found"));
+				logger.log(Level.SEVERE, "No implementation for tab type " + type + " Found", new Exception("No implementation for tab type " + type + " Found"));
 			}
 		}
 		else if (gTab.isSortTab())
@@ -934,15 +937,9 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
                 }
             }
             //
-            StringBuffer sql = new StringBuffer("SELECT COUNT(*) FROM ")
-                    .append(mTab.getTableName());
-            if (where.length() > 0)
-                sql.append(" WHERE ").append(where);
-            String finalSQL = MRole.getDefault().addAccessSQL(sql.toString(),
-            		mTab.getTableName(), MRole.SQL_NOTQUALIFIED, MRole.SQL_RO);
-            int no = DB.getSQLValue(null, finalSQL.toString());
-            //
-            require = mTab.isQueryRequire(no);
+            int no = getRecordCount(mTab, where);
+            // show find dialog if count timeout/exception
+            require = no == -1 ? true : mTab.isQueryRequire(no);
         }
         
         // Show find window (if required)
@@ -996,6 +993,35 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         	callback.onCallback(query);
         }
     } // initialQuery
+
+    /**
+     * Get record count
+     * @param mTab
+     * @param where
+     * @return record count
+     */
+	private int getRecordCount(GridTab mTab, StringBuffer where) {
+		StringBuffer sql = new StringBuffer("SELECT COUNT(*) FROM ")
+		        .append(mTab.getTableName());
+		if (where.length() > 0)
+		    sql.append(" WHERE ").append(where);
+		String finalSQL = MRole.getDefault().addAccessSQL(sql.toString(),
+				mTab.getTableName(), MRole.SQL_NOTQUALIFIED, MRole.SQL_RO);
+		int no = -1;
+        int timeout = MSysConfig.getIntValue(MSysConfig.GRIDTABLE_INITIAL_COUNT_TIMEOUT_IN_SECONDS, 
+        		GridTable.DEFAULT_GRIDTABLE_COUNT_TIMEOUT_IN_SECONDS, Env.getAD_Client_ID(Env.getCtx()));
+		try (PreparedStatement stmt = DB.prepareStatement(finalSQL, null)) {
+			if (timeout > 0)
+				stmt.setQueryTimeout(timeout);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next())
+				no = rs.getInt(1);
+		} catch (SQLException e) {
+			logger.log(Level.WARNING, e.getMessage(), e);
+			no = -1;
+		}
+		return no;
+	}	
 
     /**
      * Setup find window UI properties
@@ -1810,17 +1836,8 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
 		toolbar.enableQuickForm(adTabbox.getSelectedTabpanel().isEnableQuickFormButton() && !adTabbox.getSelectedGridTab().isReadOnly());
 
-        boolean isNewRow = adTabbox.getSelectedGridTab().getRowCount() == 0 || adTabbox.getSelectedGridTab().isNew();
-        //Deepak-Enabling customize button IDEMPIERE-364
-        if(adTabbox.getSelectedTabpanel() instanceof ADSortTab){//consistent with dataStatusChanged
-        	toolbar.enableProcessButton (false);
-        	toolbar.enableCustomize(false);
-        }else{
-        	ADTabpanel adtab = (ADTabpanel) adTabbox.getSelectedTabpanel();
-            toolbar.enableProcessButton(!isNewRow && adtab != null && adtab.getToolbarButtons().size() > 0);
-            toolbar.enableCustomize(adtab.isGridView());
-        }
-
+		boolean isNewRow = adTabbox.getSelectedGridTab().getRowCount() == 0 || adTabbox.getSelectedGridTab().isNew();
+        
 		IADTabpanel adtab = adTabbox.getSelectedTabpanel();
         toolbar.enableProcessButton(adtab != null && adtab.isEnableProcessButton());
         toolbar.enableCustomize(adtab.isEnableCustomizeButton());
@@ -1843,7 +1860,16 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
     {
     	//ignore non-ui thread event.
     	if (Executions.getCurrent() == null)
+    	{
+    		// Re-post incremental loading event to UI thread
+    		if (e.isLoading() && e.getSource() != null && e.getSource().equals(adTabbox.getSelectedGridTab().getTableModel()))
+    		{
+    			Executions.schedule(getComponent().getDesktop(), evt -> {
+    				this.dataStatusChanged(e);
+    			}, new Event("onAsynchronousDataStatusChanged"));
+    		}
     		return;
+    	}
 
     	boolean detailTab = false;
     	if (e.getSource() instanceof GridTable)
@@ -3251,40 +3277,40 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 				.append(indices.length).append(" ").append(Msg.getMsg(Env.getCtx(), "Selected"));
 			if(Util.isEmpty(deleteConfirmationLogic)) {
 				Dialog.ask(sb.toString(), curWindowNo,"DeleteSelection", new Callback<Boolean>() {
-				@Override
-				public void onCallback(Boolean result) {
-					if(result){
-						adTabbox.getSelectedGridTab().clearSelection();
-						Arrays.sort(indices);
-						int offset = 0;
-						int count = 0;
-						for (int i = 0; i < indices.length; i++)
-						{
-							adTabbox.getSelectedGridTab().navigate(indices[i]-offset);
-							if (adTabbox.getSelectedGridTab().dataDelete())
+					@Override
+					public void onCallback(Boolean result) {
+						if(result){
+							adTabbox.getSelectedGridTab().clearSelection();						
+							Arrays.sort(indices);
+							int offset = 0;
+							int count = 0;
+							for (int i = 0; i < indices.length; i++)
 							{
-								offset++;
-								count++;
+								adTabbox.getSelectedGridTab().navigate(indices[i]-offset);
+								if (adTabbox.getSelectedGridTab().dataDelete())
+								{
+									offset++;
+									count++;
+								}
 							}
-						}
-			            adTabbox.getSelectedGridTab().dataRefreshAll(true, true);
-			    		adTabbox.getSelectedGridTab().refreshParentTabs();
-
-						adTabbox.getSelectedTabpanel().dynamicDisplay(0);
-						if (getActiveGridTab().isQuickForm)
-						{
-							statusBarQF.setStatusLine(Msg.getMsg(Env.getCtx(), "Deleted") + ": " + count, false);
-						}
-						else
-						{
-							statusBar.setStatusLine(Msg.getMsg(Env.getCtx(), "Deleted")+": "+count, false);
-						}
+				            adTabbox.getSelectedGridTab().dataRefreshAll(true, true);
+				    		adTabbox.getSelectedGridTab().refreshParentTabs();
+							
+							adTabbox.getSelectedTabpanel().dynamicDisplay(0);
+							if (getActiveGridTab().isQuickForm)
+							{
+								statusBarQF.setStatusLine(Msg.getMsg(Env.getCtx(), "Deleted") + ": " + count, false);
+							}
+							else
+							{
+								statusBar.setStatusLine(Msg.getMsg(Env.getCtx(), "Deleted") + ": " + count, false);
+							}
 				            MRecentItem.publishChangedEvent(Env.getAD_User_ID(ctx));
+						}
+						if (postCallback != null)
+							postCallback.onCallback(result);
 					}
-					if (postCallback != null)
-						postCallback.onCallback(result);
-				}
-			});
+				});
 			}
 			else {
 				deleteConfirmationLogic = Msg.getMsg(ctx, "DeleteSelection");
@@ -3473,7 +3499,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 			if (record_ID <= 0) {
 				MTable table = MTable.get(adTabbox.getSelectedGridTab().getAD_Table_ID());
 				if (!table.isUUIDKeyTable())
-				return;
+					return;
 			}
 
 			//	Query
