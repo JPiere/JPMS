@@ -93,6 +93,9 @@ public class JPiereBillPrint extends SvrProcess
 	protected Timestamp	p_JPDateBilled_From = null;
 	protected Timestamp	p_JPDateBilled_To = null;
 	protected int			p_C_BPartner_ID = 0;
+	protected int			p_C_BP_Group_ID = 0;
+	protected int			p_JP_BillSchema_ID = 0;
+	protected int			p_JP_BillSchemaPO_ID = 0;
 	protected int			p_JP_Bill_ID = 0;
 	protected String		p_DocumentNo_From = null;
 	protected String		p_DocumentNo_To = null;
@@ -148,6 +151,12 @@ public class JPiereBillPrint extends SvrProcess
 				p_AD_Org_ID = para[i].getParameterAsInt();
 			else if (name.equals("C_BPartner_ID"))
 				p_C_BPartner_ID = para[i].getParameterAsInt();
+			else if (name.equals("C_BP_Group_ID"))
+				p_C_BP_Group_ID = para[i].getParameterAsInt();
+			else if (name.equals("JP_BillSchema_ID"))
+				p_JP_BillSchema_ID = para[i].getParameterAsInt();
+			else if (name.equals("JP_BillSchemaPO_ID"))
+				p_JP_BillSchemaPO_ID = para[i].getParameterAsInt();
 			else if (name.equals("JP_Bill_ID"))
 				p_JP_Bill_ID = para[i].getParameterAsInt();
 			else if (name.equals("DocumentNo"))
@@ -582,6 +591,25 @@ public class JPiereBillPrint extends SvrProcess
 			{
 				sql.append (" AND i.C_BPartner_ID=?");
 				params.add(p_C_BPartner_ID);
+			}else {
+				
+				if (p_C_BP_Group_ID != 0)
+				{
+					sql.append (" AND bp.C_BP_Group_ID=?");
+					params.add(p_C_BP_Group_ID);
+				}
+				
+				if(p_JP_BillSchema_ID != 0)
+				{
+					sql.append (" AND bp.JP_BillSchema_ID=?");
+					params.add(p_JP_BillSchema_ID);
+				}
+				
+				if(p_JP_BillSchemaPO_ID != 0)
+				{
+					sql.append (" AND bp.JP_BillSchemaPO_ID=?");
+					params.add(p_JP_BillSchemaPO_ID);
+				}
 			}
 			
 			if (p_JPDateBilled_From != null && p_JPDateBilled_To != null)
