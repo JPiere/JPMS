@@ -967,12 +967,12 @@ public class DataEngine
 		try
 		{
 			int maxRows = MSysConfig.getIntValue(MSysConfig.GLOBAL_MAX_REPORT_RECORDS, DEFAULT_GLOBAL_MAX_REPORT_RECORDS, Env.getAD_Client_ID(Env.getCtx()));
-			if (maxRows > 0 && DB.getDatabase().isPagingSupported())
+			if (maxRows > 0 && DB.getDatabase().isPagingSupported() && getLimitCount() <= 0)//JPIERE-0264:Limit Report Rows
 				sql = DB.getDatabase().addPagingSQL(sql, 1, maxRows+1);
 			pstmt = DB.prepareNormalReadReplicaStatement(sql, m_trxName);
-			if (maxRows > 0 && ! DB.getDatabase().isPagingSupported())
+			if (maxRows > 0 && ! DB.getDatabase().isPagingSupported() && getLimitCount() <= 0)//JPIERE-0264:Limit Report Rows
 				pstmt.setMaxRows(maxRows+1);
-			if (timeout > 0)
+			if (timeout > 0 && getLimitCount() <= 0)//JPIERE-0264:Limit Report Rows
 				pstmt.setQueryTimeout(timeout);
 			rs = pstmt.executeQuery();
 
