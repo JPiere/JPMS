@@ -2091,8 +2091,8 @@ public class MPayment extends X_C_Payment
 			{
 				m_processMsg = status.getErrorMsg();
 					return DocAction.STATUS_Invalid;
-				}
 			}
+		}
 
 		//	Counter Doc
 		MPayment counter = createCounterDoc();
