@@ -324,10 +324,17 @@ public class MAllocationHdr extends X_C_AllocationHdr implements DocAction
 			if(Util.isEmpty(getDocumentNo()))
 			{
 				int C_DocType_ID = getC_DocType_ID();
+				String documentNo = null;
 				if(C_DocType_ID == 0)
-					setDocumentNo(DB.getDocumentNo(getAD_Client_ID(), p_info.getTableName(), null, this));
-				else
-					setDocumentNo(DB.getDocumentNo(C_DocType_ID, null, false, this));
+				{
+					documentNo = DB.getDocumentNo(getAD_Client_ID(), p_info.getTableName(), null, this);
+				}else {
+					documentNo = DB.getDocumentNo(C_DocType_ID, null, false, this);
+					if(documentNo == null)
+						documentNo = DB.getDocumentNo(getAD_Client_ID(), p_info.getTableName(), null, this);
+				}
+					
+				setDocumentNo(documentNo);
 			}
 		}
 		
