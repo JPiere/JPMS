@@ -1289,8 +1289,12 @@ public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 			if(Util.isEmpty(docNo))
 			{
 				int C_DocType_ID = getC_DocTypeTarget_ID();
+				String documentNo = null;
 				if(C_DocType_ID != 0)
-					setDocumentNo(DB.getDocumentNo(C_DocType_ID, null, false, this));
+					documentNo = DB.getDocumentNo(C_DocType_ID, null, false, this);
+				if (documentNo == null)	//	not overwritten by DocType and not manually entered
+					documentNo = DB.getDocumentNo(getAD_Client_ID(), p_info.getTableName(), null, this);
+				setDocumentNo(documentNo);
 			}
 		}
 		
