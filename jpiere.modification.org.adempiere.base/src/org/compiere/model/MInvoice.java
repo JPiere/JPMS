@@ -78,6 +78,7 @@ import org.eevolution.model.MPPProductBOMLine;
  * Modify Info
  * JPIERE-0575: Reverse Accrual in case of Foreign currency is applied original Invoice rate.
  * JPIERE-0608: Copy M_AttributeSetInstance_ID to Reverse Invoice line, because be copied M_AttributeSetInstance_ID = 0.
+ * JPIERE-0624: DB Transaction of Auto control DocumentNo  at Invoice
  */
 public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 {
@@ -1276,6 +1277,20 @@ public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 			else
 			{
 				setCurrencyRate(null);
+			}
+		}
+		
+		//JPIERE-0624: DB Transaction of Auto control DocumentNo at Invoice
+		if(newRecord && MSysConfig.getBooleanValue("JP_DOCUMENTNO_TRX_INVOICE", true, getAD_Client_ID()))
+		{
+			String docNo = getDocumentNo();
+			if (docNo != null && docNo.startsWith("<") && docNo.endsWith(">"))
+				docNo = null;
+			if(Util.isEmpty(docNo))
+			{
+				int C_DocType_ID = getC_DocTypeTarget_ID();
+				if(C_DocType_ID != 0)
+					setDocumentNo(DB.getDocumentNo(C_DocType_ID, null, false, this));
 			}
 		}
 		
