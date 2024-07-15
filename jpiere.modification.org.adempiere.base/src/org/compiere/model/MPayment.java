@@ -72,6 +72,7 @@ import org.compiere.util.ValueNamePair;
  * JPIERE-0214:
  * JPIERE-0218: 出納帳が記帳されるまで入金伝票を完成にしない(Complete Payment after recondile with Bank Statement)
  * JPIERE-0574: Reverse Accrual in case of Foreign currency is applied original payment rate.
+ * JPIERE-0623: DB Transaction of Auto control DocumentNo.
  */
 public class MPayment extends X_C_Payment
 	implements DocAction, ProcessCall, PaymentInterface, IDocsPostProcess
@@ -898,6 +899,17 @@ public class MPayment extends X_C_Payment
 				{
 					set_Value(COLUMNNAME_CreditCardExpYY, null);
 				}
+			}
+		}
+		
+		//JPIERE-0623: DB Transaction of Auto control DocumentNo.
+		if(newRecord && MSysConfig.getBooleanValue("JP_DOCUMENTNO_TRX_PAYMENT", true, getAD_Client_ID()))
+		{
+			if(Util.isEmpty(getDocumentNo()))
+			{
+				int C_DocType_ID = getC_DocType_ID();
+				if(C_DocType_ID != 0)
+					setDocumentNo(DB.getDocumentNo(C_DocType_ID, null, false, this));
 			}
 		}
 		
