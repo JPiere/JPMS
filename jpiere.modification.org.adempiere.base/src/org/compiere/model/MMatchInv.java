@@ -50,7 +50,6 @@ import org.compiere.util.Util;
 /**
  * Modify Info
  * JPIERE-0226: MMatchInvのgetInOutLine()メソッド不具合 (Bug fix - getInOutLine())
- * JPIERE-0621: DB Transaction of Auto control DocumentNo.
  */
 public class MMatchInv extends X_M_MatchInv
 {
@@ -237,15 +236,6 @@ public class MMatchInv extends X_M_MatchInv
 		{
 			MInOutLine iol = new MInOutLine (getCtx(), getM_InOutLine_ID(), get_TrxName());
 			setM_AttributeSetInstance_ID(iol.getM_AttributeSetInstance_ID());
-		}
-		
-		//JPIERE-0621: DB Transaction of Auto control DocumentNo.
-		if(newRecord && MSysConfig.getBooleanValue("JP_DOCUMENTNO_TRX_MATCHINV", true, getAD_Client_ID()))
-		{
-			if(Util.isEmpty(getDocumentNo()))
-			{
-				setDocumentNo(DB.getDocumentNo(getAD_Client_ID(), p_info.getTableName(), null, this));
-			}
 		}
 		
 		return true;
