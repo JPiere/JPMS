@@ -2,13 +2,14 @@
 
 .z-chosenbox {
 	background-color: #FFF;
-	background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.85, white), color-stop(0.99, #EEEEEE));
+	/*JPIERE*/
+	/* background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.85, white), color-stop(0.99, #EEEEEE));
 	background-image: -webkit-linear-gradient(center bottom, white 85%, #EEEEEE 99%);
 	background-image: -moz-linear-gradient(center bottom, white 85%, #EEEEEE 99%);
 	background-image: -o-linear-gradient(bottom, white 85%, #EEEEEE 99%);
 	background-image: -ms-linear-gradient(top, #FFFFFF 85%,#EEEEEE 99%);
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FFFFFF', endColorstr='#EEEEEE',GradientType=0 );
-	background-image: linear-gradient(top, #FFFFFF 85%,#EEEEEE 99%);
+	background-image: linear-gradient(top, #FFFFFF 85%,#EEEEEE 99%); */
 
 	display:-moz-inline-box;
 	display: inline-block;
@@ -27,6 +28,13 @@
     margin: 0;
     padding: 2px 5px;
     line-height: 14px;
+    height: 100% !important;/*JPIERE*/
+    overflow-y: auto;/*JPIERE*/
+}
+
+.jpiere-chosenbox-disd .z-chosenbox{/*JPIERE*/
+    border: 1px solid #bbbbbb;
+    background-color: #f0f0f0;
 }
 
 .z-chosenbox-focus {
