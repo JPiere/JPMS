@@ -449,9 +449,9 @@ public class WChosenboxSearchEditor extends WEditor implements ContextMenuListen
 					ValueChangeEvent changeEvent = new ValueChangeEvent(this, this.getColumnName(), "", newValue);
 					super.fireValueChange(changeEvent);	
 					if(gridTab != null)
-						newValue = gridTab.getValue(getColumnName());//JPIERE-0626 In case of be updated value at callout, we need to get new value that was processed by callout.
-			        setValue(newValue);	//JPIERE-0626
-					this.value = newValue.toString();
+						newValue = gridTab.getValue(getColumnName());//JPIERE-0627 In case of be updated value at callout, we need to get new value that was processed by callout.
+			        setValue(newValue);	//JPIERE-0627
+					this.value = newValue == null? null : newValue.toString();//JPIERE-0627
 				} finally {
 					if (gridField != null) 
 						gridField.setLookupEditorSettingValue(false);
