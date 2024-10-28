@@ -530,6 +530,11 @@ public class WChosenboxSearchEditor extends WEditor implements ContextMenuListen
 			}
 			fireValueChangeEvent(newValue);
 	
+			//JPIERE-0627
+			if(gridTab != null)
+				newValue = gridTab.get_ValueAsString(columnName);
+			//JPIERE-0627
+			
 			//  is the value updated ?
 			boolean updated = false;
 			if (newValue == null && getValue() == null) {
