@@ -3,6 +3,11 @@ Bundle-ManifestVersion: 2
 Bundle-Name: jpiere.modification.org.adempiere.ui.zk
 Bundle-SymbolicName: jpiere.modification.org.adempiere.ui.zk;singleton:=true
 Bundle-Version: 11.0.0.qualifier
+Export-Package: jpiere.modification.org.adempiere.model,
+ jpiere.modification.org.adempiere.process,
+ jpiere.modification.webui.action.attachment,
+ jpiere.modification.webui.apps.form,
+ jpiere.modification.webui.window
 Bundle-Vendor: OSS ERP Solutions
 Fragment-Host: org.adempiere.ui.zk;bundle-version="11.0.0"
 Automatic-Module-Name: jpiere.modification.org.adempiere.ui.zk
