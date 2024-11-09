@@ -311,7 +311,7 @@ public class JPiereAttachmentWindow extends Window implements EventListener<Even
 	{
 		if (media != null && media.getByteData().length>0)
 		{
-			;//Noting to do;
+			;//Nothing to do;
 		}
 		else
 		{

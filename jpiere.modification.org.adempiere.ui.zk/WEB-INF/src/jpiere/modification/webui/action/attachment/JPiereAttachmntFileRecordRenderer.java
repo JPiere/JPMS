@@ -405,7 +405,7 @@ public class JPiereAttachmntFileRecordRenderer implements RowRenderer<Object[]> 
 						{
 							if(attachmentFileRecord.delete(true))
 							{
-								;//Noting to do
+								;//Nothing to do
 							}else {
 
 								Dialog.error(0, "JP_CouldNotDeleteFile", attachmentFileRecord.getFileAbsolutePath());
