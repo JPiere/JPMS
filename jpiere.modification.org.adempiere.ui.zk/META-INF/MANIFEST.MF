@@ -13,3 +13,4 @@ Fragment-Host: org.adempiere.ui.zk;bundle-version="11.0.0"
 Automatic-Module-Name: jpiere.modification.org.adempiere.ui.zk
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Service-Component: OSGI-INF/*.xml
+Bundle-ActivationPolicy: lazy
