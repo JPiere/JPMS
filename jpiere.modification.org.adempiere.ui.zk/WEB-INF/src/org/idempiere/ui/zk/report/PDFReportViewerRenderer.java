@@ -24,14 +24,16 @@ package org.idempiere.ui.zk.report;
 import java.io.File;
 import java.util.logging.Level;
 
+//import org.adempiere.base.Core; //JPIERE Unused
 import org.adempiere.webui.window.ZkReportViewer;
 import org.compiere.print.ReportEngine;
 import org.compiere.tools.FileUtil;
 import org.compiere.util.CLogger;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
+//import org.idempiere.print.renderer.IReportRenderer; //JPIERE Unused
+//import org.idempiere.print.renderer.IReportRendererConfiguration; //JPIERE Unused
 import org.idempiere.print.renderer.PDFReportRendererConfiguration;
-import org.idempiere.ui.zk.report.IReportViewerRenderer;
 import org.osgi.service.component.annotations.Component;
 import org.zkoss.util.media.AMedia;
 
