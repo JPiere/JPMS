@@ -13,6 +13,8 @@
  *****************************************************************************/
 package org.compiere.util;
 
+import java.util.logging.Level;
+
 import org.compiere.process.SvrProcess;
 
 /**
@@ -38,8 +40,26 @@ public class CacheReset_PostgreSQL extends SvrProcess
 	 */
 	protected String doIt() throws java.lang.Exception
 	{
-		int count = CacheMgt.get().reset("DB_PostgreSQL_Convert_Cache");
-		return "Cache Reset - SQL of PostgreSQL #" + count;
+		int total = 0;
+		int counter = 0;
+		CacheInterface[] instances = CacheMgt.get().getInstancesAsArray();
+		for (CacheInterface stored : instances)
+		{
+			if (stored != null && stored instanceof CCache)
+			{
+				CCache<?, ?> cc = (CCache<?, ?>)stored;
+				if (cc.getName().startsWith("DB_PostgreSQL_Convert_Cache"))		//JPIERE-0283
+				{
+					{
+						if (log.isLoggable(Level.FINE)) log.fine("(all) - " + stored);
+						total += stored.reset();
+						counter++;
+					}
+				}
+			}
+		}
+		
+		return "Cache Reset - SQL of PostgreSQL #Count: "+ counter + " #Total: " + total;
 	}	//	doIt
 
 }	//	CacheReset
