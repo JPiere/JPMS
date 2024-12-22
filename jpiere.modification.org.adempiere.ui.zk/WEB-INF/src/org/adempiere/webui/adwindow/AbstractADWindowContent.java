@@ -2185,7 +2185,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
             	toolbar.setPressed("Attachment",adTabbox.getSelectedGridTab().hasAttachment());
         	}
 
-            //JPIERE-0436 JPiere Attachemnt File
+            //JPIERE-0436 JPiere Attachment File
             if(toolbar.getButton("JPiereAttachment") != null && !toolbar.getButton("JPiereAttachment").isInvalidated())
             {
             	toolbar.getButton("JPiereAttachment").setDisabled(false);
@@ -2195,8 +2195,8 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         else
         {
             toolbar.enableAttachment(false);
-            if(toolbar.getButton("JPiereAttachment") != null)				//JPIERE-0436 JPiere Attachemnt File
-            	toolbar.getButton("JPiereAttachment").setDisabled(true); 	//JPIERE-0436 JPiere Attachemnt File
+            if(toolbar.getButton("JPiereAttachment") != null)				//JPIERE-0436 JPiere Attachment File
+            	toolbar.getButton("JPiereAttachment").setDisabled(true); 	//JPIERE-0436 JPiere Attachment File
         }
 
         // Check Chat and PostIt
@@ -4806,7 +4806,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 	}
 
 	/*
-	 * JPIERE-0436 JPiere Attachemnt File
+	 * JPIERE-0436 JPiere Attachment File
 	 */
 	private boolean hasAttachment(GridTab gridTab)
 	{
@@ -4814,7 +4814,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 	}	//	hasAttachment
 
 	/*
-	 * JPIERE-0436 JPiere Attachemnt File
+	 * JPIERE-0436 JPiere Attachment File
 	 */
 	private int getAD_AttachmentID(GridTab gridTab)
 	{
@@ -4828,8 +4828,8 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
 	/**
 	 *
-	 * JPIERE-0466: Improvement of Max Records Controle at Window.
-	 * JPIERE-0181: Peformace improvement to Find Widnow
+	 * JPIERE-0466: Improvement of Max Records Control at Window.
+	 * JPIERE-0181: Performance improvement to Find Window
 	 *
 	 * @param isDisplayDialog
 	 * @param dse
