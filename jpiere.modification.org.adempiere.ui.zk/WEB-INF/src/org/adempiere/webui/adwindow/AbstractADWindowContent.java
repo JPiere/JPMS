@@ -2443,7 +2443,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
     @Override
     public void onNew()
     {
-    	//JJPIERE-0181 & 0464 -- start
+    	//JPIERE-0181 & 0464 -- start
     	if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx()))
     		&& isMaxRecords(true, null))
     		return;
@@ -2537,7 +2537,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
     @Override
     public void onCopy()
     {
-    	//JJPIERE-0181 & 0464 -- start
+    	//JPIERE-0181 & 0464 -- start
     	if(MSysConfig.getBooleanValue("JP_FINDWINDOW_COUNT_ACTION_CONTROL", true, Env.getAD_Client_ID(Env.getCtx()))
     		&& isMaxRecords(true, null))
     		return;
