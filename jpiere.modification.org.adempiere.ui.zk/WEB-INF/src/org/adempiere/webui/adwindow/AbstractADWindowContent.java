@@ -338,7 +338,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
         gridWindow = new GridWindow(gWindowVO, true);
         title = gridWindow.getName();
         image = gridWindow.getMImage();
-    }
+    }    
 
     /**
      * Override to create {@link IADTabbox} instance.
@@ -524,45 +524,34 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 				List<List<Object>> parentIds = DB.getSQLArrayObjectsEx(null, sql.toString());
 				if (parentIds!=null && parentIds.size() > 0)
 				{
-					GridTab parentTab = null;
+					//Tab Index:MQuery
 					Map<Integer, MQuery>queryMap = new TreeMap<Integer, MQuery>();
-					Map<Integer, MQuery>childrenQueryMap = new TreeMap<Integer, MQuery>();//JPIERE-0464: JPiere Zoom to Detail
 
 					for (List<Object>parentIdList : parentIds)
 					{
 						Object parentId = parentIdList.get(0);
+						//Tab Index:(ColumnName,Value)
 						Map<Integer, Object[]>parentMap = new TreeMap<Integer, Object[]>();
-						Map<Integer, Object[]>childrenMap = new TreeMap<Integer, Object[]>();//JPIERE-0464: JPiere Zoom to Detail
-
 						int index = tabIndex;
 						Object oldpid = parentId;
 						GridTab currentTab = gTab;
+						//walk backward to level 0 tab
 						while (index > 0)
 						{
 							index--;
 							GridTab pTab = gridWindow.getTab(index);
 							if (pTab.getTabLevel() < currentTab.getTabLevel())
 							{
-								if (parentTab == null)
-									parentTab = pTab;
 								gridWindow.initTab(index);
 								if (index > 0)
-								{
+								{									
 									if (pTab.getLinkColumnName() != null && pTab.getLinkColumnName().trim().length() > 0)
 									{
 										int pid = DB.getSQLValue(null, "SELECT " + pTab.getLinkColumnName() + " FROM " + pTab.getTableName() + " WHERE " + currentTab.getLinkColumnName() + " = ?", oldpid);
 										if (pid > 0)
 										{
-											//JPIERE-0464: JPiere Zoom to Detail -- start
-											if(MSysConfig.getBooleanValue("JPIERE_ZOOM_TO_DETAIL", true, Env.getAD_Client_ID(Env.getCtx())))
-											{
-												parentMap.put(index, new Object[]{pTab.getLinkColumnName(), pid});
-												childrenMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
-											}else {
-												//store current link column, parent id and move one level up
-												parentMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
-											}
-											//JPIERE-0464: JPiere Zoom to Detail -- end
+											//store current link column, parent id and move one level up
+											parentMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
 											oldpid = pid;
 											currentTab = pTab;
 										}
@@ -577,120 +566,91 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 								{
 									//reach tab 0/top level
 									parentMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});
-									childrenMap.put(index, new Object[]{currentTab.getLinkColumnName(), oldpid});//JPIERE-0464: JPiere Zoom to Detail
 								}
 							}
 						}
-
+	
 						//create query for each parent tab
 						for(Map.Entry<Integer, Object[]> entry : parentMap.entrySet())
 						{
 							GridTab pTab = gridWindow.getTab(entry.getKey());
 							Object[] value = entry.getValue();
-							MQuery pquery = queryMap.get(entry.getKey());
-							if (pquery == null)
-							{
-								pquery = new MQuery(pTab.getAD_Table_ID());
-								queryMap.put(entry.getKey(), pquery);
-								pquery.addRestriction((String)value[0], "=", value[1]);
-							}
-							else
-							{
-								pquery.addRestriction((String)value[0], "=", value[1], null, null, false, 0);
-							}
+							MQuery pquery = new MQuery(pTab.getAD_Table_ID());
+							queryMap.put(entry.getKey(), pquery);
+							pquery.addRestriction((String)value[0], "=", value[1]);
 						}
-
-						//JPIERE-0464: JPiere Zoom to Detail -- start
-						if(MSysConfig.getBooleanValue("JPIERE_ZOOM_TO_DETAIL", true, Env.getAD_Client_ID(Env.getCtx())))
-						{
-							for(Map.Entry<Integer, Object[]> entry : childrenMap.entrySet())
-							{
-								GridTab pTab = gridWindow.getTab(entry.getKey());
-								Object[] value = entry.getValue();
-								MQuery pquery = childrenQueryMap.get(entry.getKey());
-								if (pquery == null)
-								{
-									pquery = new MQuery(pTab.getAD_Table_ID());
-									pquery.setZoomValue(value[1]);
-									childrenQueryMap.put(entry.getKey(), pquery);
-									pquery.addRestriction((String)value[0], "=", value[1]);
-								}
-								else
-								{
-									pquery.addRestriction((String)value[0], "=", value[1], null, null, false, 0);
-								}
-							}
-						}//JPIERE-0464 -- end
 					}
 
 					//execute query for each parent tab
+					GridTab pTab = null;
 					for (Map.Entry<Integer, MQuery> entry : queryMap.entrySet())
 					{
-						GridTab pTab = gridWindow.getTab(entry.getKey());
+						pTab = gridWindow.getTab(entry.getKey());
 						IADTabpanel tp = adTabbox.findADTabpanel(pTab);
         				tp.createUI();
         				if (tp.getTabLevel() == 0)
         				{
         					pTab.setQuery(entry.getValue());
         					tp.query();
+        					//update context
+        					if (pTab.getRowCount() > 0)
+        					{
+        						boolean pTabUpdateWindowContext = pTab != null ? pTab.isUpdateWindowContext(): false ;
+        						if (pTab != null && !pTabUpdateWindowContext)
+        							pTab.setUpdateWindowContext(true);
+        						pTab.setCurrentRow(0, false);
+        						if (pTab != null && !pTabUpdateWindowContext)
+        							pTab.setUpdateWindowContext(false);
+        					}
         				}
-        				else
-        				{
+        				else 
+        				{     
+        					//retrieve records of sub tab
         					tp.query();
-        					pTab.setQuery(entry.getValue());
-        					tp.query();
-
-        					//JPIERE-0464: JPiere Zoom to Detail -- start
-        					if(MSysConfig.getBooleanValue("JPIERE_ZOOM_TO_DETAIL", true, Env.getAD_Client_ID(Env.getCtx())))
-    						{
-        						MQuery childQuery = childrenQueryMap.get(entry.getKey());
-            					int zoom_ID = Integer.parseInt(childQuery.getZoomValue().toString());
-
-            					int zoomColumnIndex = -1;
-            					GridTable table = pTab.getTableModel();
-            					for (int i = 0; i < table.getColumnCount(); i++)
-            					{
-            						if (table.getColumnName(i).equalsIgnoreCase(gTab.getLinkColumnName()))
-            						{
-            							zoomColumnIndex = i;
-            							break;
-            						}
-            					}
-
-                				int count = table.getRowCount();
-                				for(int i = 0; i < count; i++)
-                				{
-                					int id = -1;
-                					if (zoomColumnIndex >= 0)
-                					{
-                						Object zoomValue = table.getValueAt(i, zoomColumnIndex);
-                						if (zoomValue != null && zoomValue instanceof Number)
-                						{
-                							id = ((Number)zoomValue).intValue();
-                						}
-                					}
-                					else
-                					{
-                						id = table.getKeyID(i);
-                					}
-
-                					if (id == zoom_ID)
-                					{
-                						pTab.setCurrentRow(i);
-                						parentTab = pTab;
-                						//tp.getGridView().onPostSelectedRowChanged();
-                						break;
-                					}
-                				}
-    						}
-            				//JPIERE-0464 -- end
+        					//find sub tab row that match the stored query
+        					MQuery tabQuery = entry.getValue();
+        					int rowFound = -1;
+        					for(int i = 0; i < pTab.getRowCount(); i++) 
+        					{
+        						Object tabValue = pTab.getValue(i, tabQuery.getColumnName(0));
+        						if (tabValue != null && tabQuery.getCode(0) != null) 
+        						{
+        							//handle potential difference in numeric datatype, for e.g integer vs bigdecimal
+        							if (tabQuery.getColumnName(0).endsWith("_ID") && tabValue instanceof Number n1 && tabQuery.getCode(0) instanceof Number n2)
+        							{
+        								if (n1.intValue() == n2.intValue())
+        								{
+        									rowFound = i;
+            								break;
+        								}
+        							}
+        							else if (tabValue.equals(tabQuery.getCode(0)))
+        							{
+        								rowFound = i;
+        								break;
+        							}
+        						}
+        					}        					
+        					if (rowFound == -1)
+        					{
+        						//fall back to execution of stored query
+        						pTab.setQuery(entry.getValue());
+        						tp.query();
+        						rowFound = 0;
+        					}
+        					//update context
+        					if (pTab.getRowCount() > 0) {
+        						boolean pTabUpdateWindowContext = pTab != null ? pTab.isUpdateWindowContext(): false ;
+        						if (pTab != null && !pTabUpdateWindowContext)
+        							pTab.setUpdateWindowContext(true);
+        						pTab.setCurrentRow(rowFound, false);
+        						if (pTab != null && !pTabUpdateWindowContext)
+        							pTab.setUpdateWindowContext(false);
+        					}
         				}
 					}
 
 					//execute query for detail tab
-					MQuery targetQuery = new MQuery(gTab.getAD_Table_ID());
-					targetQuery.addRestriction(gTab.getLinkColumnName(), "=", parentTab.getRecord_ID());
-					gTab.setQuery(targetQuery);
 					IADTabpanel gc = null;
 					gc = adTabbox.findADTabpanel(gTab);
 					gc.createUI();
@@ -713,7 +673,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
     				for(int i = 0; i < count; i++)
     				{
     					Object id = null;
-    					if (zoomColumnIndex >= 0)
+    					if (zoomColumnIndex >= 0) 
     					{
     						Object zoomValue = table.getValueAt(i, zoomColumnIndex);
     						if (zoomValue != null && zoomValue instanceof Number)
@@ -730,11 +690,17 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
     						if (tbl.isUUIDKeyTable())
     							id = table.getUUID(i);
     						else
-    						id = table.getKeyID(i);
+    							id = table.getKeyID(i);
     					}
     					if (id != null && id.equals(query.getZoomValue()))
     					{
+    						//make sure last parent tab will update window context
+    						boolean pTabUpdateWindowContext = pTab != null ? pTab.isUpdateWindowContext(): false ;
+    						if (pTab != null && !pTabUpdateWindowContext)
+    							pTab.setUpdateWindowContext(true);
     						setActiveTab(gridWindow.getTabIndex(gTab), null);
+    						if (pTab != null && !pTabUpdateWindowContext)
+    							pTab.setUpdateWindowContext(false);
     						gTab.navigate(i);
     						return true;
     					}
