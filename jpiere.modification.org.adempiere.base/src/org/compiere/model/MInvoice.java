@@ -56,7 +56,6 @@ import org.compiere.util.Util;
 import org.eevolution.model.MPPProductBOM;
 import org.eevolution.model.MPPProductBOMLine;
 
-
 /**
  *  <pre>
  *	Invoice Model.
@@ -71,7 +70,7 @@ import org.eevolution.model.MPPProductBOMLine;
  * 			<li> FR [ 2520591 ] Support multiples calendar for Org
  *			@see https://sourceforge.net/p/adempiere/feature-requests/631/
  *  Modifications: Added RMA functionality (Ashley Ramdass)
- *  Modifications: Generate DocNo^ instead of using a new number whan an invoice is reversed (Diego Ruiz-globalqss)
+ *  Modifications: Generate DocNo^ instead of using a new number when an invoice is reversed (Diego Ruiz-globalqss)
  */
 
 /**
@@ -907,7 +906,6 @@ public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 		return getLines(false);
 	}	//	getLines
 
-
 	/**
 	 * 	Renumber Lines
 	 *	@param step start and step to increment
@@ -1138,7 +1136,7 @@ public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 	}	//	validatePaySchedule
 
 	private volatile static boolean recursiveCall = false;
-
+	
 	/**
 	 * 	Before Save
 	 *	@param newRecord new
@@ -1355,7 +1353,6 @@ public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 		return msgreturn.toString();
 	}	//	getDocumentInfo
 
-
 	/**
 	 * 	After Save
 	 *	@param newRecord new
@@ -1381,7 +1378,6 @@ public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 		
 		return true;
 	}	//	afterSave
-
 
 	/**
 	 * 	Set Price List (and Currency) when valid
@@ -1531,6 +1527,7 @@ public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 	{
 		return getOpenAmt(creditMemoAdjusted, paymentDate, false);
 	}
+	
 	/**
 	 * 	Get Open Amount
 	 * 	@param creditMemoAdjusted true to negate return amount
@@ -1559,7 +1556,7 @@ public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 	}	//	getOpenAmt
 
 	/**
-     *    Get open amt depending on payment date
+     * Get open amt depending on payment date
      * @param paymentDate
      * @return open Amt
      */
@@ -1579,7 +1576,7 @@ public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
     }    //    getOpenAmt
 
     /**
-     *    Get discount amt depending on payment date
+     * Get discount amt depending on payment date
      * @param paymentDate
      * @return discount Amt
      */
@@ -1900,7 +1897,6 @@ public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 		return true;
 	}	//	calculateTaxTotal
 
-
 	/**
 	 * 	(Re) Create Pay Schedule
 	 *	@return true if valid schedule
@@ -1929,7 +1925,6 @@ public class MInvoice extends X_C_Invoice implements DocAction, IDocsPostProcess
 				return isValid;
 		}
 	}	//	createPaySchedule
-
 
 	/**
 	 * 	Approve Document

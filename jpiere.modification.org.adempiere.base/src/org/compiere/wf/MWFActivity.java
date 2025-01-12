@@ -69,6 +69,7 @@ import org.compiere.util.Trace;
 import org.compiere.util.Trx;
 import org.compiere.util.TrxEventListener;
 import org.compiere.util.Util;
+import org.compiere.util.ValueNamePair;
 
 /**
  *	Extended Workflow Activity Model for AD_WF_Activity. <br/>
@@ -80,14 +81,14 @@ import org.compiere.util.Util;
  *  @version $Id: MWFActivity.java,v 1.4 2006/07/30 00:51:05 jjanke Exp $
  */
 public class MWFActivity extends X_AD_WF_Activity implements Runnable
-{
+{	
 	/**
-	 * generated serial id
+	 * 
 	 */
-	private static final long serialVersionUID = 8180781075902940080L;
+	private static final long serialVersionUID = 7274149891086011624L;
 
 	private static final String CURRENT_WORKFLOW_PROCESS_INFO_ATTR = "Workflow.ProcessInfo";
-
+	
 	/**
 	 * 	Get Activities for table/record
 	 *	@param ctx context
@@ -141,13 +142,12 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 		return sb.toString();
 	}	//	getActivityInfo
 
-
     /**
-    * UUID based Constructor
-    * @param ctx  Context
-    * @param AD_WF_Activity_UU  UUID key
-    * @param trxName Transaction
-    */
+     * UUID based Constructor
+     * @param ctx  Context
+     * @param AD_WF_Activity_UU  UUID key
+     * @param trxName Transaction
+     */
     public MWFActivity(Properties ctx, String AD_WF_Activity_UU, String trxName) {
         super(ctx, AD_WF_Activity_UU, trxName);
 		if (Util.isEmpty(AD_WF_Activity_UU))
@@ -224,7 +224,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 		//
 		m_process = process;
 	}	//	MWFActivity
-
+	
 	/**
 	 * 	Process-aware Parent Constructor
 	 *	@param process process
@@ -237,7 +237,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 		super(ctx, rs, trxName);
 		m_process = process;
 	}
-
+	
 	/**
 	 * 	Parent Constructor
 	 *	@param process process
@@ -325,7 +325,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 				+ WFState + ", Current=" + getWFState();
 			log.log(Level.SEVERE, msg);
 			Trace.printStack();
-			setTextMsg(msg);
+			setTextMsgBefore(msg);
 			saveEx();
 			// TODO: teo_sarca: throw exception ? please analyze the call hierarchy first
 		}
@@ -533,7 +533,6 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 		return getNode().getHelp(true);
 	}	//	getNodeHelp
 
-
 	/**
 	 * 	Is this an user Approval step?
 	 *	@return true if User Approval
@@ -561,9 +560,8 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 		return getNode().isUserChoice();
 	}	//	isUserChoice
 
-
 	/**
-	 * 	Set Text Msg (add to existing)
+	 * 	Set Text Msg (add after existing)
 	 *	@param TextMsg
 	 */
 	public void setTextMsg (String TextMsg)
@@ -576,6 +574,21 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 		else if (TextMsg != null && TextMsg.length() > 0)
 			super.setTextMsg (Util.trimSize(oldText + "\n - " + TextMsg,1000));
 	}	//	setTextMsg
+
+	/**
+	 * 	Set Text Msg (add before existing)
+	 *	@param TextMsg
+	 */
+	public void setTextMsgBefore (String TextMsg)
+	{
+		if (TextMsg == null || TextMsg.length() == 0)
+			return;
+		String oldText = getTextMsg();
+		if (oldText == null || oldText.length() == 0)
+			super.setTextMsg (Util.trimSize(TextMsg,1000));
+		else if (TextMsg != null && TextMsg.length() > 0)
+			super.setTextMsg (Util.trimSize(TextMsg + "\n - " + oldText,1000));
+	}	//	setTextMsgBefore
 
 	/**
 	 * 	Add to Text Msg
@@ -745,14 +758,14 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 						BigDecimal amtApprovedAccum = getAmtAccum(m_po, daysAmtAcc.intValue(), user.getAD_User_ID());
 						amtApprovedAccum = amtApprovedAccum.add(amount); // include amount of current doc
 						approved = amtApprovedAccum.compareTo(roleAmtAcc) <= 0;
-						if (log.isLoggable(Level.INFO)) log.info("ApprovedAccum=" + approved
+						if (log.isLoggable(Level.INFO)) log.info("ApprovedAccum=" + approved 
 								+ " - User=" + user.getName() + ", Role=" + role.getName()
 								+ ", ApprovalAmtAccum=" + roleAmtAcc
 								+ ", AccumDocsApproved=" + amtApprovedAccum
 								+ " in past " + daysAmtAcc.intValue() + " days");
 					}
 				}
-
+				
 				if (approved)
 					return user.getAD_User_ID();
 			}
@@ -864,7 +877,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			DB.close(rs, pstmt);
 			rs = null; pstmt = null;
 		}
-
+		
 		return amtaccum;
 	}
 
@@ -877,7 +890,6 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 	{
 		if (log.isLoggable(Level.INFO)) log.info ("Node=" + getNode());
 		m_newValue = null;
-
 
 		Trx trx = null;
 		boolean localTrx = false;
@@ -910,7 +922,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 
 			if (!m_state.isValidAction(StateEngine.ACTION_Start))
 			{
-				setTextMsg("State=" + getWFState() + " - cannot start");
+				setTextMsgBefore("State=" + getWFState() + " - cannot start");
 				addTextMsg(new Exception(""));
 				setWFState(StateEngine.STATE_Terminated);
 				return;
@@ -920,7 +932,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 
 			if (getNode().get_ID() == 0)
 			{
-				setTextMsg("Node not found - AD_WF_Node_ID=" + getAD_WF_Node_ID());
+				setTextMsgBefore("Node not found - AD_WF_Node_ID=" + getAD_WF_Node_ID());
 				setWFState(StateEngine.STATE_Aborted);
 				return;
 			}
@@ -970,14 +982,14 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			String processMsg = e.getLocalizedMessage();
 			if (processMsg == null || processMsg.length() == 0)
 				processMsg = e.getMessage();
-			setTextMsg(processMsg);
+			setTextMsgBefore(processMsg);
 			// addTextMsg(e); // do not add the exception text
 			boolean contextLost = false;
 			if (e instanceof AdempiereException && "Context lost".equals(e.getMessage()))
 			{
-				contextLost = true;
+				contextLost = true;			
 				m_docStatus = DocAction.STATUS_Invalid;
-			}
+			}			
 			try {
 				if (contextLost)
 				{
@@ -990,7 +1002,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 				{
 					setWFState (StateEngine.STATE_Terminated);	//	unlocks
 				}
-
+							
 				//	Set Document Status
 				if (m_po != null && m_po instanceof DocAction && m_docStatus != null)
 				{
@@ -1034,7 +1046,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			return (ProcessInfo) o;
 		return null;
 	}
-
+	
 	/**
 	 * 	Perform action of current workflow node.
 	 * 	Set Text Msg.
@@ -1096,8 +1108,6 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 						m_process.setProcessMsg(e.getLocalizedMessage());
 					throw e;
 				}
-				if (m_process != null)
-					m_process.setProcessMsg(processMsg);
 			}
 			else
 				throw new IllegalStateException("Persistent Object not DocAction - "
@@ -1109,6 +1119,9 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 				success = false;
 				m_docStatus = null;
 				processMsg = "SaveError";
+				ValueNamePair ppE = CLogger.retrieveError();
+				if (ppE != null)
+					processMsg = ppE.getName();
 			}
 			if (!success)
 			{
@@ -1174,14 +1187,14 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 				//
 				ProcessInfo pi = new ProcessInfo (m_node.getName(true), m_node.getAD_Process_ID(),
 					getAD_Table_ID(), getRecord_ID());
-
+				
 				//check record id overwrite
 				MWFNodePara[] nParams = m_node.getParameters();
-				for(MWFNodePara p : nParams)
+				for(MWFNodePara p : nParams) 
 				{
-					if (p.getAD_Process_Para_ID() == 0 && p.getAttributeName().equalsIgnoreCase("Record_ID") && !Util.isEmpty(p.getAttributeValue(), true))
+					if (p.getAD_Process_Para_ID() == 0 && p.getAttributeName().equalsIgnoreCase("Record_ID") && !Util.isEmpty(p.getAttributeValue(), true)) 
 					{
-						try
+						try 
 						{
 							Object value = parseNodeParaAttribute(p);
 							if (value == p || value == null)
@@ -1196,12 +1209,12 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 						break;
 					}
 				}
-
+	
 				pi.setAD_User_ID(getAD_User_ID());
 				pi.setAD_Client_ID(getAD_Client_ID());
 				pi.setAD_PInstance_ID(pInstance.getAD_PInstance_ID());
 				boolean success = process.processItWithoutTrxClose(pi, trx);
-				setTextMsg(pi.getSummary());
+				setTextMsgBefore(pi.getSummary());
 			
 				//JPIERE-0586 Roll back when Process is failed.
 				if(!success)
@@ -1237,7 +1250,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			{
 				m_emails = new ArrayList<String>();
 				sendEMail();
-				setTextMsg(m_emails.toString());
+				setTextMsgBefore(m_emails.toString());
 			} else
 			{
 				MClient client = MClient.get(getCtx(), getAD_Client_ID());
@@ -1504,7 +1517,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 
 		if (textMsg != null && textMsg.length() > 0)
 			msg += " - " + textMsg;
-		setTextMsg (msg);
+		setTextMsgBefore (msg);
 		m_newValue = value;
 		return true;
 	}	//	setVariable
@@ -1541,7 +1554,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 				{
 					newState = StateEngine.STATE_Aborted;
 					if (!(doc.processIt (DocAction.ACTION_Reject)))
-						setTextMsg ("Cannot Reject - Document Status: " + doc.getDocStatus());
+						setTextMsgBefore ("Cannot Reject - Document Status: " + doc.getDocStatus());
 				}
 				else
 				{
@@ -1568,7 +1581,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 								if (!(doc.processIt (DocAction.ACTION_Approve)))
 								{
 									newState = StateEngine.STATE_Aborted;
-									setTextMsg ("Cannot Approve - Document Status: " + doc.getDocStatus());
+									setTextMsgBefore ("Cannot Approve - Document Status: " + doc.getDocStatus());
 								}
 							}
 
@@ -1587,7 +1600,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 							if (nextAD_User_ID <= 0)
 							{
 								newState = StateEngine.STATE_Aborted;
-								setTextMsg (Msg.getMsg(getCtx(), "NoApprover"));
+								setTextMsgBefore (Msg.getMsg(getCtx(), "NoApprover"));
 								doc.processIt (DocAction.ACTION_Reject);
 							}
 							else if (startAD_User_ID != nextAD_User_ID)
@@ -1600,7 +1613,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 								if (!(doc.processIt (DocAction.ACTION_Approve)))
 								{
 									newState = StateEngine.STATE_Aborted;
-									setTextMsg ("Cannot Approve - Document Status: " + doc.getDocStatus());
+									setTextMsgBefore ("Cannot Approve - Document Status: " + doc.getDocStatus());
 								}
 							}
 
@@ -1653,7 +1666,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 							if (!(doc.processIt (DocAction.ACTION_Approve)))
 							{
 								newState = StateEngine.STATE_Aborted;
-								setTextMsg ("Cannot Approve - Document Status: " + doc.getDocStatus());
+								setTextMsgBefore ("Cannot Approve - Document Status: " + doc.getDocStatus());
 							}
 						}
 
@@ -1664,7 +1677,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			catch (Exception e)
 			{
 				newState = StateEngine.STATE_Terminated;
-				setTextMsg ("User Choice: " + e.toString());
+				setTextMsgBefore ("User Choice: " + e.toString());
 				addTextMsg(e);
 				log.log(Level.WARNING, "", e);
 			}
@@ -1764,7 +1777,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 		setWFState (StateEngine.STATE_Running);
 		setAD_User_ID(AD_User_ID);
 		if (textMsg != null)
-			setTextMsg (textMsg);
+			setTextMsgBefore (textMsg);
 		setWFState (StateEngine.STATE_Completed);
 	}	//	setUserConfirmation
 
@@ -1789,7 +1802,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			iPara.setInfo(processParams[pi].getName());
 			for (int np = 0; np < nParams.length; np++)
 			{
-				MWFNodePara nPara = nParams[np];
+				MWFNodePara nPara = nParams[np];				
 				if (iPara.getParameterName().equals(nPara.getAttributeName()))
 				{
 					String variableName = nPara.getAttributeValue();
@@ -1915,7 +1928,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 		}	//	@variable@
 		return value;
 	}
-
+	
 	/**
 	 * 	Send EMail
 	 */
@@ -1938,8 +1951,8 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 			message = text.getMailText(true).replaceAll("@_noDocInfo_@", "");
 		else
 			message = text.getMailText(true)
-			+ "\n-----\n" + doc.getDocumentInfo()
-			+ "\n" + doc.getSummary();
+				+ "\n-----\n" + doc.getDocumentInfo()
+				+ "\n" + doc.getSummary();
 		File pdf = doc != null && m_node.isAttachedDocumentToEmail() ? doc.createPDF() : null;
 		//
 		MClient client = MClient.get(doc.getCtx(), doc.getAD_Client_ID());
@@ -2125,7 +2138,6 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 		return m_po.getPdfAttachment();
 	}	//	getPdfAttachment
 
-
 	/**
 	 * 	String Representation
 	 *	@return info
@@ -2245,7 +2257,7 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 		}
 		MWFActivity activity = new MWFActivity (getCtx(), get_ID(), get_TrxName());
 		trx = Trx.get(get_TrxName(), true);
-		trx.addTrxEventListener(new TrxListener(activity));
+		trx.addTrxEventListener(new TrxListener(activity));		
 	}
 
 	/** Transaction event listener to update workflow activity in the after commit event */
@@ -2256,11 +2268,11 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 		protected TrxListener(MWFActivity activity) {
 			this.activity = activity;
 		}
-
+		
 		@Override
 		public void afterRollback(Trx trx, boolean success) {
 		}
-
+		
 		@Override
 		public void afterCommit(Trx trx, boolean success) {
 			if (success) {
@@ -2268,11 +2280,11 @@ public class MWFActivity extends X_AD_WF_Activity implements Runnable
 				activity.setWFState (StateEngine.STATE_Completed);
 			}
 		}
-
+		
 		@Override
 		public void afterClose(Trx trx) {
 			trx.removeTrxEventListener(this);
-		}
+		}		
 	}
 
 	/**

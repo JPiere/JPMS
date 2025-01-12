@@ -292,7 +292,7 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 			{
 				if (m_tableColumns != null && columnIndex < m_tableColumns.size()
 						&& m_tableColumns.get(columnIndex).getColumnClass() != null
-						&& m_tableColumns.get(columnIndex).getColumnClass().getName().equals(MImage.class.getName())
+						&& m_tableColumns.get(columnIndex).getColumnClass().getName().equals(MImage.class.getName()) 
 						&& value instanceof Integer)
 				{
 					MImage mImage = MImage.get(Env.getCtx(), (Integer) value);
@@ -332,7 +332,7 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 						numberbox.setEnabled(true);
 						numberbox.setStyle("text-align:right; width: 96%;"
 										+ listcell.getStyle());
-						numberbox.addEventListener(Events.ON_CHANGE, this);
+						numberbox.addEventListener(Events.ON_CHANGE, this);						
 						listcell.appendChild(numberbox);
 						if (ClientInfo.isMobile())
 							numberbox.getButton().setVisible(false);
@@ -509,6 +509,7 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 	{
 		addColumn(header, description, 0);
 	}
+	
 	/**
 	 *  Add Table Column.
 	 *  @param header The header text for the column
@@ -656,8 +657,8 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 		} else
 			m_headers.set(index, header);
 	}
-
-    /**
+	
+	/**
 	 * get list header
 	 * @param index index of column
 	 * @return ListHeader
@@ -685,7 +686,6 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
      */
     public static class ColumnComparator implements Comparator<Object>
     {
-
     	private int columnIndex;
 		private MSort sort;
 
@@ -712,7 +712,7 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 	/**
 	 * Render column headers
 	 *
-	 * @param head	The ListHead component to render.
+	 * @param head The ListHead component to render.
 	 * @see #addColumn(String)
 	 * @see #WListItemRenderer(List)
 	 */
@@ -865,7 +865,7 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 	/**
 	 * Get the column index of the given <code>source</code> component.
 	 *
-	 * @param source	The component for which the column index is to be found.
+	 * @param source The component for which the column index is to be found.
 	 * @return The column index of the given component.
 	 */
 	protected int getColumnPosition(Component source)
@@ -878,7 +878,6 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 
 		return col;
 	}
-
 
 	/**
 	 * Reset the renderer.
@@ -996,7 +995,7 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 			m_tableColumns.get(index).setColumnClass(classType);
 		}
 	}
-
+	
 	/**
 	 * @return Unmodifiable list of {@link WTableColumn}
 	 */

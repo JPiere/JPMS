@@ -964,7 +964,6 @@ public class MCostDetail extends X_M_CostDetail
 		MAcctSchema as = MAcctSchema.get(getCtx(), getC_AcctSchema_ID());
 		MProduct product = new MProduct(getCtx(), getM_Product_ID(), get_TrxName());
 		String CostingLevel = product.getCostingLevel(as);
-		
 		//	Org Element
 		int Org_ID = getAD_Org_ID();
 		int M_ASI_ID = getM_AttributeSetInstance_ID();
@@ -1050,7 +1049,7 @@ public class MCostDetail extends X_M_CostDetail
 	 */
 	protected boolean process (MAcctSchema as, MProduct product, MCostElement ce, 
 		int Org_ID, int M_ASI_ID)
-	{		
+	{
 		//handle compatibility issue between average invoice and average po
 		String costingMethod = product.getCostingMethod(as);
 		if (X_M_Cost.COSTINGMETHOD_AverageInvoice.equals(costingMethod)) {
@@ -1060,7 +1059,6 @@ public class MCostDetail extends X_M_CostDetail
 			if (ce.isAverageInvoice())
 				return true;
 		}
-		
 		
 		MCost cost = MCost.get(product, M_ASI_ID, as, 
 			Org_ID, ce.getM_CostElement_ID(), get_TrxName());

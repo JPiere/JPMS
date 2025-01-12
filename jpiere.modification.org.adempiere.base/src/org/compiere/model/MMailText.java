@@ -39,7 +39,7 @@ public class MMailText extends X_R_MailText
 	 */
 	private static final long serialVersionUID = -6458808409321394821L;
 
-	/**
+    /**
      * UUID based Constructor
      * @param ctx  Context
      * @param R_MailText_UU  UUID key

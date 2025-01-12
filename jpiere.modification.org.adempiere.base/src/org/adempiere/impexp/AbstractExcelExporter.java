@@ -50,7 +50,6 @@ import org.compiere.util.Util;
 /**
  * Abstract MS Excel Format (xls) Exporter
  * @author Teo Sarca, SC ARHIPAC SERVICE SRL
- *
  */
 
 /**
@@ -128,7 +127,7 @@ public abstract class AbstractExcelExporter
 
 	/**
 	 * Check if there is a display logic
-	 *
+	 * 
 	 * @param row row index
 	 * @param col column index
 	 * @return true if there is no logic or evaluate logic specified in print item
@@ -153,7 +152,7 @@ public abstract class AbstractExcelExporter
 
 	protected Boolean[] colSuppressRepeats;
 	private int noOfParameter = 0;
-
+	
 	/**
 	 * Default constructor
 	 */
@@ -257,7 +256,6 @@ public abstract class AbstractExcelExporter
 		}
 		//
 		if (log.isLoggable(Level.FINEST)) log.finest("NumberFormat: "+format);
-
 		return format.toString();
 
 	}
@@ -342,9 +340,8 @@ public abstract class AbstractExcelExporter
 			m_styles.put(key, cs);
 		}
 		return cs;
-
 	}
-
+	
 	/**
 	 * @param row
 	 * @param col
@@ -354,14 +351,14 @@ public abstract class AbstractExcelExporter
 		boolean isHighlightNegativeNumbers = true;
 		int displayType = getDisplayType(row, col);
 		String cellFormat = null;
-
+		
 		if (DisplayType.isDate(displayType)) {
 			cellFormat = DisplayType.getDateFormat(getLanguage()).toPattern();
 		} else if (DisplayType.isNumeric(displayType)) {
 			DecimalFormat df = DisplayType.getNumberFormat(displayType, getLanguage());
 			cellFormat = getFormatString(df, isHighlightNegativeNumbers);
 		}
-
+		
 		return cellFormat;
 	}
 
@@ -507,16 +504,16 @@ public abstract class AbstractExcelExporter
 	{
 		this.noOfParameter = noOfParameter;
 	}
-
+	
 	/**
 	 * Create parameter
 	 * @param sheet
 	 */
 	protected void createParameter(HSSFSheet sheet)
 	{
-
+		
 	}
-
+	
 	/**
 	 * Create sheet header and footer
 	 * @param sheet
@@ -532,7 +529,7 @@ public abstract class AbstractExcelExporter
 
 		String s = MSysConfig.getValue(MSysConfig.ZK_FOOTER_SERVER_MSG, "", Env.getAD_Client_ID(Env.getCtx()));
 		if (Util.isEmpty(s, true))
-			footer.setCenter(Env.getHeader(getCtx(), 0));
+			footer.setCenter(Env.getHeader(getCtx(), 0));	
 		else
 			footer.setCenter(Msg.parseTranslation(Env.getCtx(), s));
 
@@ -584,11 +581,11 @@ public abstract class AbstractExcelExporter
 	protected void export(OutputStream out) throws Exception
 	{
 		HSSFSheet sheet= null;
-		if (out != null)
+		if (out != null) 
 		{
 			sheet = createTableSheet();
 		}
-		else
+		else  
 		{
 			m_dataFormat = m_workbook.createDataFormat();
 			sheet = m_workbook.getSheetAt(0);
@@ -604,13 +601,13 @@ public abstract class AbstractExcelExporter
 		if (colSuppressRepeats != null){
 			preValues = new Object [colSuppressRepeats.length];
 		}
-
+		
 		int initxls_rownum = 0;
 		if (out != null)
 			initxls_rownum = Math.max(noOfParameter+1, 1);
-		else
+		else 
 			initxls_rownum = Math.max(noOfParameter+1, sheet.getLastRowNum()+1);
-
+		
 		for (int xls_rownum = initxls_rownum; rownum < lastRowNum; rownum++, xls_rownum++)
 		{
 			if (!isCurrentRowOnly())
@@ -657,7 +654,7 @@ public abstract class AbstractExcelExporter
 					{
 						cell = row.createCell(colnum);
 					}
-
+					
 					int displayType = getDisplayType(rownum, col);
 					if (obj == null || !isDisplayed(rownum, col)){
 						if (colSuppressRepeats != null && colSuppressRepeats[printColIndex]){
@@ -726,13 +723,13 @@ public abstract class AbstractExcelExporter
 		else
 			closeTableSheet(sheet, sheetName, colnumMax);
 		//
-
+		
 		if(out!=null)
 		{
 			m_workbook.write(out);
 			out.close();
 		}
-
+		
 		//
 		// Workbook Info
 		if (log.isLoggable(Level.FINE)) {
@@ -785,7 +782,7 @@ public abstract class AbstractExcelExporter
 		m_workbook = workbook;
 		export(null);
 	}
-
+	
 	/**
 	 * @return true if it is form layout
 	 */
@@ -793,7 +790,7 @@ public abstract class AbstractExcelExporter
 	{
 		return false;
 	}
-
+	
 	/**
 	 * @param row
 	 * @param col
@@ -803,7 +800,7 @@ public abstract class AbstractExcelExporter
 	{
 		return true;
 	}
-
+	
 	/**
 	 * @param col
 	 * @return true if column should be hidden when it is null

@@ -30,21 +30,20 @@ import org.compiere.util.Util;
 /**
  *	Match Invoice (Receipt&lt;&gt;Invoice) Model.
  *  <pre>
- *	Accounting:
- *	- Not Invoiced Receipts (relief)
- *	- IPV
+ *  Accounting:
+ *  - Not Invoiced Receipts (relief)
+ *  - IPV
  *	</pre>
  *  @author Jorg Janke
  *  @version $Id: MMatchInv.java,v 1.3 2006/07/30 00:51:05 jjanke Exp $
- *
- * @author Teo Sarca, SC ARHIPAC SERVICE SRL
+ * 
+ *  @author Teo Sarca, SC ARHIPAC SERVICE SRL
  * 			<li>BF [ 1926113 ] MMatchInv.getNewerDateAcct() should work in trx
- * @author victor.perez@e-evolution.com, e-Evolution http://www.e-evolution.com
- * 			<li> FR [ 2520591 ] Support multiples calendar for Org
+ *  @author victor.perez@e-evolution.com, e-Evolution http://www.e-evolution.com
+ * 			<li> FR [ 2520591 ] Support multiples calendar for Org 
  *			@see https://sourceforge.net/p/adempiere/feature-requests/631/
- * @author Bayu Cahya, Sistematika
+ *  @author Bayu Cahya, Sistematika
  * 			<li>BF [ 2240484 ] Re MatchingPO, MMatchPO doesn't contains Invoice info
- *
  */
 
 /**
@@ -57,7 +56,6 @@ public class MMatchInv extends X_M_MatchInv
 	 * generated serial id
 	 */
 	private static final long serialVersionUID = -6673764788466220541L;
-
 
 	/**
 	 * 	Get InOut-Invoice Matches
@@ -97,7 +95,7 @@ public class MMatchInv extends X_M_MatchInv
 		.list();
 		return list.toArray (new MMatchInv[list.size()]);
 	}	//	getInvoiceLine
-
+	
 	/**
 	 * 	Get Invoice Matches for InOut
 	 *	@param ctx context
@@ -111,7 +109,7 @@ public class MMatchInv extends X_M_MatchInv
 			return new MMatchInv[]{};
 		//
 		final String whereClause = "EXISTS (SELECT 1 FROM M_InOutLine l"
-			+" WHERE M_MatchInv.M_InOutLine_ID=l.M_InOutLine_ID AND l.M_InOut_ID=?)";
+			+" WHERE M_MatchInv.M_InOutLine_ID=l.M_InOutLine_ID AND l.M_InOut_ID=?)"; 
 		List<MMatchInv> list = new Query(ctx, I_M_MatchInv.Table_Name, whereClause, trxName)
 		.setParameters(M_InOut_ID)
 		.list();
@@ -125,7 +123,7 @@ public class MMatchInv extends X_M_MatchInv
 	 *	@param trxName transaction
 	 *	@return array of matches
 	 */
-	public static MMatchInv[] getInvoice (Properties ctx,
+	public static MMatchInv[] getInvoice (Properties ctx, 
 		int C_Invoice_ID, String trxName)
 	{
 		if (C_Invoice_ID == 0)
@@ -139,12 +137,11 @@ public class MMatchInv extends X_M_MatchInv
 		.list();
 		return list.toArray (new MMatchInv[list.size()]);
 	}	//	getInvoice
-
-
+	
 	/**	Static Logger	*/
 	@SuppressWarnings("unused")
 	private static CLogger	s_log	= CLogger.getCLogger (MMatchInv.class);
-
+	
     /**
      * UUID based Constructor
      * @param ctx  Context
@@ -190,7 +187,7 @@ public class MMatchInv extends X_M_MatchInv
 	{
 		super(ctx, rs, trxName);
 	}	//	MMatchInv
-
+	
 	/**
 	 * 	Invoice Line Constructor
 	 *	@param iLine invoice line
@@ -210,9 +207,7 @@ public class MMatchInv extends X_M_MatchInv
 		setQty (qty);
 		setProcessed(true);		//	auto
 	}	//	MMatchInv
-
-
-
+		
 	/**
 	 * 	Before Save
 	 *	@param newRecord new
@@ -237,15 +232,14 @@ public class MMatchInv extends X_M_MatchInv
 			MInOutLine iol = new MInOutLine (getCtx(), getM_InOutLine_ID(), get_TrxName());
 			setM_AttributeSetInstance_ID(iol.getM_AttributeSetInstance_ID());
 		}
-		
 		return true;
 	}	//	beforeSave
-
+	
 	@Override
 	protected boolean afterSave(boolean newRecord, boolean success) {
 		if (!success)
 			return false;
-
+		
 		if (getM_InOutLine_ID() > 0)
 		{
 			MInOutLine line = new MInOutLine(getCtx(), getM_InOutLine_ID(), get_TrxName());
@@ -279,7 +273,7 @@ public class MMatchInv extends X_M_MatchInv
 		}
 		return true;
 	}
-
+	
 	/**
 	 * 	Get the newer Date Acct between invoice and shipment
 	 *	@return date or null
@@ -306,8 +300,7 @@ public class MMatchInv extends X_M_MatchInv
 			return invoiceDate;
 		return shipDate;
 	}	//	getNewerDateAcct
-
-
+		
 	/**
 	 * 	Before Delete
 	 *	@return true if acct was deleted
@@ -323,8 +316,7 @@ public class MMatchInv extends X_M_MatchInv
 		}
 		return true;
 	}	//	beforeDelete
-
-
+	
 	/**
 	 * 	After Delete
 	 *	@param success success
@@ -339,7 +331,7 @@ public class MMatchInv extends X_M_MatchInv
 		}
 		return success;
 	}	//	afterDelete
-
+	
 	/**
 	 * Delete cost detail records for M_MatchInv
 	 * @return empty string
@@ -351,23 +343,23 @@ public class MMatchInv extends X_M_MatchInv
 		for(int asn = 0; asn < acctschemas.length; asn++)
 		{
 			MAcctSchema as = acctschemas[asn];
-
+			
 			if (as.isSkipOrg(getAD_Org_ID()))
 			{
 				continue;
 			}
-
-			MCostDetail cd = MCostDetail.get (getCtx(), "M_MatchInv_ID=?",
+			
+			MCostDetail cd = MCostDetail.get (getCtx(), "M_MatchInv_ID=?", 
 					getM_MatchInv_ID(), getM_AttributeSetInstance_ID(), as.getC_AcctSchema_ID(), get_TrxName());
 			if (cd != null)
 			{
 				cd.deleteEx(true);
 			}
 		}
-
+		
 		return "";
 	}
-
+	
 	/**
 	 * 	Get Invoice Matches for InOutLine
 	 *	@param ctx context
@@ -375,7 +367,7 @@ public class MMatchInv extends X_M_MatchInv
 	 *	@param trxName transaction
 	 *	@return array of matches
 	 */
-	public static MMatchInv[] getInOutLine (Properties ctx,
+	public static MMatchInv[] getInOutLine (Properties ctx, 
 		int M_InOutLine_ID, String trxName)
 	{
 		if (M_InOutLine_ID <= 0)
@@ -390,16 +382,16 @@ public class MMatchInv extends X_M_MatchInv
 		.list();
 		return list.toArray (new MMatchInv[list.size()]);
 	}	//	getInOutLine
-
+	
 	/**
 	 * 	Reverse this MatchInv document.
 	 *  @param reversalDate
 	 *	@return true if reversed
 	 */
-	public boolean reverse(Timestamp reversalDate)
+	public boolean reverse(Timestamp reversalDate)  
 	{
 		if (this.isProcessed() && this.getReversal_ID() == 0)
-		{
+		{		
 			MMatchInv reversal = new MMatchInv (getCtx(), 0, get_TrxName());
 			PO.copyValues(this, reversal);
 			reversal.setAD_Org_ID(this.getAD_Org_ID());
@@ -419,7 +411,6 @@ public class MMatchInv extends X_M_MatchInv
 		return false;
 	}
 	
-		
 	@Override
 	public MInOutLine getM_InOutLine() throws RuntimeException {
 		return new MInOutLine(Env.getCtx(), getM_InOutLine_ID(), get_TrxName());

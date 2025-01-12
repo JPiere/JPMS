@@ -149,7 +149,7 @@ public class DataEngine
 	private int				m_windowNo = 0;
 
 	private Map<Object, Object> m_summarized = new HashMap<Object, Object>();
-	
+
 	public static final int DEFAULT_REPORT_LOAD_TIMEOUT_IN_SECONDS = 120;
 
 	public static final int DEFAULT_GLOBAL_MAX_REPORT_RECORDS = 100000;
