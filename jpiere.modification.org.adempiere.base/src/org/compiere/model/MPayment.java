@@ -904,6 +904,13 @@ public class MPayment extends X_C_Payment
 		return true;
 	}	//	beforeSave
 
+	@Override
+	protected boolean beforeDelete() {
+		@SuppressWarnings("unused")
+		boolean ok = MPaySelectionCheck.deleteGeneratedDraft(getCtx(), getC_Payment_ID(), get_TrxName());
+		return true;
+	}
+
 	/**
 	 * 	Document Status is Complete or Closed
 	 *	@return true if CO, CL or RE
