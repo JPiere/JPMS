@@ -671,14 +671,10 @@ public class MPayment extends X_C_Payment
 		return retValue;    //  Payment processed
 	}   //  startProcess
 	
-	/**
-	 * 	Before Save
-	 *	@param newRecord new
-	 *	@return save
-	 */
 	@Override
 	protected boolean beforeSave (boolean newRecord)
 	{
+		// Disallow changes to fields with financial implications if payment have been processed
 		if (isProcessed() && 
 			! is_ValueChanged(COLUMNNAME_Processed) &&
             (   is_ValueChanged(COLUMNNAME_C_BankAccount_ID)
@@ -694,7 +690,7 @@ public class MPayment extends X_C_Payment
 			log.saveError("PaymentAlreadyProcessed", Msg.translate(getCtx(), "C_Payment_ID"));
 			return false;
 		}
-		// @Trifon - CashPayments
+		// Validate that either cash book or bank account is mandatory depending on whether this is a cash book transaction
 		if ( isCashbookTrx()) {
 			// Cash Book Is mandatory
 			if ( getC_CashBook_ID() <= 0 ) {
@@ -708,9 +704,9 @@ public class MPayment extends X_C_Payment
 				return false;
 			}
 		}
-		// end @Trifon - CashPayments
 		
-		//	We have a charge
+		// Reset order, invoice, write off, discount, isOverUnderPayment, OverUnderAmt and IsPrepayment for new Charge payment 
+		// or after Charge have been changed
 		if (getC_Charge_ID() != 0) 
 		{
 			if (newRecord || is_ValueChanged("C_Charge_ID"))
@@ -723,8 +719,7 @@ public class MPayment extends X_C_Payment
 				setOverUnderAmt(Env.ZERO);
 				setIsPrepayment(false);
 			}
-		}
-		//	We need a BPartner
+		}		
 		else if (getC_BPartner_ID() == 0 && !isCashTrx())
 		{
 			if (getC_Invoice_ID() != 0)
@@ -737,7 +732,7 @@ public class MPayment extends X_C_Payment
 				return false;
 			}
 		}
-		//	Prepayment: No charge and order or project (not as acct dimension)
+		// Update IsPrepayment flag
 		if (newRecord 
 			|| is_ValueChanged("C_Charge_ID") || is_ValueChanged("C_Invoice_ID")
 			|| is_ValueChanged("C_Order_ID") || is_ValueChanged("C_Project_ID"))
@@ -754,7 +749,7 @@ public class MPayment extends X_C_Payment
 						|| (getC_Project_ID() != 0 && getC_Invoice_ID() == 0)));
 			}
 		}
-		
+		// Prepayment: reset write off, discount,IsOverUnderPayment and OverUnderAmt for new record or after change of order/project.
 		if (isPrepayment())
 		{
 			if (newRecord 
@@ -792,8 +787,7 @@ public class MPayment extends X_C_Payment
 				setAD_Org_ID(ba.getAD_Org_ID());
 		}
 		
-		// [ adempiere-Bugs-1885417 ] Validate BP on Payment Prepare or BeforeSave
-		// there is bp and (invoice or order)
+		// Validate C_BPartner_ID same as C_BPartner_ID from order and invoice
 		if (getC_BPartner_ID() != 0 && (getC_Invoice_ID() != 0 || getC_Order_ID() != 0)) {
 			if (getC_Invoice_ID() != 0) {
 				MInvoice inv = new MInvoice(getCtx(), getC_Invoice_ID(), get_TrxName());
@@ -810,7 +804,7 @@ public class MPayment extends X_C_Payment
 				}
 			}
 		}
-		
+		// Encrypt credit card number and cvv
 		if (isProcessed())
 		{
 			if (getCreditCardNumber() != null)
@@ -827,7 +821,7 @@ public class MPayment extends X_C_Payment
 					setCreditCardVV(encrpytedCvv);
 			}
 		}
-
+		// Validate IBAN
 		if (MSysConfig.getBooleanValue(MSysConfig.IBAN_VALIDATION, true, Env.getAD_Client_ID(Env.getCtx()))) {
 			if (!Util.isEmpty(getIBAN())) {
 				setIBAN(IBAN.normalizeIBAN(getIBAN()));
@@ -837,7 +831,7 @@ public class MPayment extends X_C_Payment
 				}
 			}
 		}
-
+		// Validate IsOverrideCurrencyRate and Currency Rate
 		if (!isProcessed())
 		{
 			MClientInfo info = MClientInfo.get(getCtx(), getAD_Client_ID(), get_TrxName()); 
@@ -870,6 +864,7 @@ public class MPayment extends X_C_Payment
 			}
 		}
 
+		// Clear credit card fields if tender type is not credit card
 		if (!isProcessed())
 		{
 			if (!TENDERTYPE_CreditCard.equals(getTenderType()))
@@ -903,13 +898,6 @@ public class MPayment extends X_C_Payment
 		
 		return true;
 	}	//	beforeSave
-
-	@Override
-	protected boolean beforeDelete() {
-		@SuppressWarnings("unused")
-		boolean ok = MPaySelectionCheck.deleteGeneratedDraft(getCtx(), getC_Payment_ID(), get_TrxName());
-		return true;
-	}
 
 	/**
 	 * 	Document Status is Complete or Closed
@@ -1957,7 +1945,8 @@ public class MPayment extends X_C_Payment
 				if (length > 0)		//	get last invoice
 					setC_Invoice_ID (invoices[length-1].getC_Invoice_ID());
 				//
-				if (getC_Invoice_ID() == 0)
+				MDocType orderDocType = MDocType.get(getCtx(), order.getC_DocType_ID());
+				if (orderDocType.isAutoGenerateInvoice() && getC_Invoice_ID() == 0)
 				{
 					m_processMsg = "@NotFound@ @C_Invoice_ID@";
 					return DocAction.STATUS_Invalid;
@@ -2203,9 +2192,11 @@ public class MPayment extends X_C_Payment
 			}
 		}
 		if (dt.isOverwriteSeqOnComplete()) {
-			String value = DB.getDocumentNo(getC_DocType_ID(), get_TrxName(), true, this);
-			if (value != null)
-				setDocumentNo(value);
+			if (this.getProcessedOn().signum() == 0) {
+				String value = DB.getDocumentNo(getC_DocType_ID(), get_TrxName(), true, this);
+				if (value != null)
+					setDocumentNo(value);
+			}
 		}
 	}
 
@@ -2612,6 +2603,11 @@ public class MPayment extends X_C_Payment
 	{
 		if (log.isLoggable(Level.INFO)) log.info(toString());		
 		
+		if (getC_DepositBatch_ID() > 0 && getC_DepositBatch().isProcessed()) {
+			m_processMsg = Msg.translate(getCtx(), "DepositBatchProcessed") + getC_DepositBatch();
+			return false;
+		}
+		
 		if (DOCSTATUS_Closed.equals(getDocStatus())
 			|| DOCSTATUS_Reversed.equals(getDocStatus())
 			|| DOCSTATUS_Voided.equals(getDocStatus()))
@@ -2707,6 +2703,12 @@ public class MPayment extends X_C_Payment
 	public boolean reverseCorrectIt()
 	{
 		if (log.isLoggable(Level.INFO)) log.info(toString());
+		
+		if (getC_DepositBatch_ID() != 0 && getC_DepositBatch().isProcessed()) {
+			m_processMsg = Msg.translate(getCtx(), "DepositBatchProcessed" )+ getC_DepositBatch();
+			return false;
+		}
+		
 		// Before reverseCorrect
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REVERSECORRECT);
 		if (m_processMsg != null)
@@ -2747,6 +2749,17 @@ public class MPayment extends X_C_Payment
 			if (!allow) {
 				m_processMsg = Msg.getMsg(getCtx(), "NotAllowReversalOfReconciledPayment");
 				return null;
+			}
+		}
+		
+		if (getC_DepositBatch_ID() != 0) 
+		{
+			MDepositBatchLine batchLine = new Query(getCtx(),
+					MDepositBatchLine.Table_Name, "C_Payment_ID = ? AND C_DepositBatch_ID = ?", get_TrxName())
+							.setParameters(getC_Payment_ID(), getC_DepositBatch_ID()).first();
+			
+			if (batchLine != null) {
+				batchLine.deleteEx(false, get_TrxName());
 			}
 		}
 		
@@ -2907,6 +2920,11 @@ public class MPayment extends X_C_Payment
 	{
 		if (log.isLoggable(Level.INFO)) log.info(toString());
 		
+		if (getC_DepositBatch_ID() != 0 && getC_DepositBatch().isProcessed()) {
+			m_processMsg = Msg.translate(getCtx(), "DepositBatchProcessed") + getC_DepositBatch();
+			return false;
+		}
+		
 		// Before reverseAccrual
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_BEFORE_REVERSEACCRUAL);
 		if (m_processMsg != null)
@@ -2939,8 +2957,38 @@ public class MPayment extends X_C_Payment
 		if (m_processMsg != null)
 			return false;	
 		
-		if (! reverseCorrectIt())
+		MPeriod.testPeriodOpen(getCtx(), getDateAcct(), getC_DocType_ID(), getAD_Org_ID());
+
+		MAllocationHdr[] allocations = MAllocationHdr.getOfPayment(getCtx(), getC_Payment_ID(), get_TrxName());
+		if (allocations.length > 0) {
+			m_processMsg = Msg.getMsg(getCtx(), "PaymentReactivationFailedAllocationLine");
 			return false;
+		}
+
+		if (DB.getSQLValueEx(get_TrxName(), "SELECT 1 FROM C_BankStatementLine WHERE C_Payment_ID = ?", getC_Payment_ID()) == 1) {
+			m_processMsg = Msg.getMsg(getCtx(), "PaymentReactivationFailedBankStatementLine");
+			return false;
+		}
+
+		if (getC_BankTransfer_ID() > 0) {
+			m_processMsg = Msg.getMsg(getCtx(), "PaymentReactivationFailedBankTransfer");
+			return false;
+		}
+
+		if (DB.getSQLValueEx(get_TrxName(), "SELECT 1 FROM C_DunningRunLine WHERE C_Payment_ID = ?", getC_Payment_ID()) == 1) {
+			m_processMsg = Msg.getMsg(getCtx(), "PaymentReactivationFailedDunningLine");
+			return false;
+		}
+
+		if (DB.getSQLValueEx(get_TrxName(), "SELECT 1 FROM R_Request WHERE C_Payment_ID = ?", getC_Payment_ID()) == 1) {
+			m_processMsg = Msg.getMsg(getCtx(), "PaymentReactivationFailedRequest");
+			return false;
+		}
+
+		MFactAcct.deleteEx(Table_ID, getC_Payment_ID(), get_TrxName());
+		setPosted(false);
+		setDocAction(DOCACTION_Complete);
+		setProcessed(false);
 
 		// After reActivate
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_REACTIVATE);
