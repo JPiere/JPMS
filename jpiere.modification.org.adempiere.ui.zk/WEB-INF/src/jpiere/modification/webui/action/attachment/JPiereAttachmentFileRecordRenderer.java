@@ -53,7 +53,7 @@ import jpiere.modification.webui.apps.form.AttachmentFileViewer;
  * @author Hideaki Hagiwara(h.hagiwara@oss-erp.co.jp)
  *
  */
-public class JPiereAttachmntFileRecordRenderer implements RowRenderer<Object[]> ,RowRendererExt, RendererCtrl,EventListener<Event>
+public class JPiereAttachmentFileRecordRenderer implements RowRenderer<Object[]> ,RowRendererExt, RendererCtrl,EventListener<Event>
 {
 
 	private JPiereAttachmentFileRecordListModel listModel;
@@ -63,7 +63,7 @@ public class JPiereAttachmntFileRecordRenderer implements RowRenderer<Object[]> 
 	private static List<String> autoPreviewList;
 	private Boolean isAccessEditRecord = false;
 
-	private JPiereAttchmentBaseWindow baseWindow;
+	private JPiereAttachmentBaseWindow baseWindow;
 
 	static {
 		autoPreviewList = new ArrayList<String>();
@@ -79,7 +79,7 @@ public class JPiereAttachmntFileRecordRenderer implements RowRenderer<Object[]> 
 		autoPreviewList.add(Medias.EXCEL_XML_MIME_TYPE);
 	}
 
-	public JPiereAttachmntFileRecordRenderer(JPiereAttachmentFileRecordListModel listModel, Boolean isAccessEditRecord, JPiereAttchmentBaseWindow baseWindow)
+	public JPiereAttachmentFileRecordRenderer(JPiereAttachmentFileRecordListModel listModel, Boolean isAccessEditRecord, JPiereAttachmentBaseWindow baseWindow)
 	{
 		this.listModel = listModel;
 		this.isAccessEditRecord = isAccessEditRecord;

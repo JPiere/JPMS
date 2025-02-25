@@ -63,7 +63,7 @@ import jpiere.modification.org.adempiere.model.MAttachmentFileRecord;
 * @author Hideaki Hagiwara(h.hagiwara@oss-erp.co.jp)
 *
 */
-public class JPiereAttchmentBaseWindow extends Window implements EventListener<Event>{
+public class JPiereAttachmentBaseWindow extends Window implements EventListener<Event>{
 
 	private static final long serialVersionUID = -5237020323915426689L;
 	protected ADWindow adWindow;
@@ -79,7 +79,7 @@ public class JPiereAttchmentBaseWindow extends Window implements EventListener<E
 	protected Button btnZoomAcross = new Button();
 
 
-	public JPiereAttchmentBaseWindow(ADWindow adWindow, EventListener<Event> eventListener)
+	public JPiereAttachmentBaseWindow(ADWindow adWindow, EventListener<Event> eventListener)
 	{
 		super();
 
@@ -218,7 +218,7 @@ public class JPiereAttchmentBaseWindow extends Window implements EventListener<E
 
 	        grid.setModel(listModel);
 
-	        JPiereAttachmntFileRecordRenderer renderer = new JPiereAttachmntFileRecordRenderer(listModel,isAccessEditRecord, this);
+	        JPiereAttachmentFileRecordRenderer renderer = new JPiereAttachmentFileRecordRenderer(listModel,isAccessEditRecord, this);
 
 	        grid.setRowRenderer(renderer);
 	        grid.setMold("paging");

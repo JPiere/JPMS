@@ -67,7 +67,7 @@ public class JPiereAttachment implements IAction {
 			}
 		};
 
-		new JPiereAttchmentBaseWindow(adWindow,listener);
+		new JPiereAttachmentBaseWindow(adWindow,listener);
 	}
 
 
