@@ -179,7 +179,7 @@ public class JPiereAttchmentBaseWindow extends Window implements EventListener<E
 //        ZKUpdateUtil.setHeight(this, "250px");
 
 
-        this.setWidgetAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "findWindow");
+        this.setClientAttribute(AdempiereWebUI.WIDGET_INSTANCE_NAME, "findWindow");
         this.setId("findWindow_"+adWindowContent.getWindowNo());
         LayoutUtils.addSclass("find-window", this);
         this.setZindex(100);
