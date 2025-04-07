@@ -410,24 +410,21 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 					}else {
 						JP_LimitCount = maxRows;
 					}
-					if(JP_LimitCount > 0)
-					{
-							tr = new tr();
-							tr.setClass("tr-parameter");
-							td td = new td();
-							tr.addElement(td);
-							td.addElement(Msg.getElement(Env.getCtx(), "JP_LimitCount"));
-							
-							td = new td();
-							tr.addElement(td);
-							td.addElement("=");
-							
-							td = new td();
-							tr.addElement(td);
-							td.addElement(Msg.getMsg(Env.getCtx(),"JP_UpToRows",new Object[]{JP_LimitCount}));
-							
-							w.print(compress(tr.toString(), minify));
-					}
+
+					tr = new tr();
+					tr.setClass("tr-parameter");
+					td td = new td();
+					tr.addElement(td);
+					td.addElement(Msg.getElement(Env.getCtx(), "JP_LimitCount"));
+					
+					td = new td();
+					tr.addElement(td);
+					td.addElement("=");
+					
+					td = new td();
+					tr.addElement(td);
+					td.addElement(Msg.getMsg(Env.getCtx(),"JP_UpToRows",new Object[]{JP_LimitCount <= 0 ? " ∞ " : JP_LimitCount}));					
+					w.print(compress(tr.toString(), minify));
 					//JPIERE-0264
 					
 					w.print("</table>");
