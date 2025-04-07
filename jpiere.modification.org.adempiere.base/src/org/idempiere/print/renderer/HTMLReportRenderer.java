@@ -58,11 +58,13 @@ import org.compiere.model.MColumn;
 import org.compiere.model.MLocation;//JPIERE
 import org.compiere.model.MImage;
 import org.compiere.model.MQuery;
+import org.compiere.model.MReportView;
 import org.compiere.model.MRole;
 import org.compiere.model.MStyle;
 import org.compiere.model.MSysConfig;
 import org.compiere.model.MTable;
 import org.compiere.model.X_AD_StyleLine;
+import org.compiere.print.DataEngine;
 import org.compiere.print.IHTMLExtension;
 import org.compiere.print.MPrintColor;
 import org.compiere.print.MPrintFont;
@@ -395,6 +397,39 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 						w.print(compress(tr.toString(), minify));
 					}
 										
+					//JPIERE-0264:Limit Report Rows
+					int maxRows = MSysConfig.getIntValue(MSysConfig.GLOBAL_MAX_REPORT_RECORDS, DataEngine.DEFAULT_GLOBAL_MAX_REPORT_RECORDS, Env.getAD_Client_ID(Env.getCtx()));
+					int JP_LimitCount = 0;
+					int AD_ReportView_ID = printFormat.getAD_ReportView_ID();
+					if(AD_ReportView_ID > 0)
+					{
+						MReportView rv = MReportView.get(AD_ReportView_ID);
+						JP_LimitCount = rv.get_ValueAsInt("JP_LimitCount");
+						if(JP_LimitCount <= 0 )
+							JP_LimitCount = maxRows;
+					}else {
+						JP_LimitCount = maxRows;
+					}
+					if(JP_LimitCount > 0)
+					{
+							tr = new tr();
+							tr.setClass("tr-parameter");
+							td td = new td();
+							tr.addElement(td);
+							td.addElement(Msg.getElement(Env.getCtx(), "JP_LimitCount"));
+							
+							td = new td();
+							tr.addElement(td);
+							td.addElement("=");
+							
+							td = new td();
+							tr.addElement(td);
+							td.addElement(Msg.getMsg(Env.getCtx(),"JP_UpToRows",new Object[]{JP_LimitCount}));
+							
+							w.print(compress(tr.toString(), minify));
+					}
+					//JPIERE-0264
+					
 					w.print("</table>");
 					w.print("</details>");
 				}

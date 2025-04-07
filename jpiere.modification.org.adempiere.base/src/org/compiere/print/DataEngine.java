@@ -1358,14 +1358,6 @@ public class DataEngine
 		else
 			if (log.isLoggable(Level.INFO)) log.info("Rows=" + pd.getRowCount()
 				+ " - ms=" + (System.currentTimeMillis()-m_startTime));
-
-		//JPIERE-0264
-		if(getLimitCount() > 0 && rowNo >= getLimitCount())
-		{
-			pd.addRow(true, 0);
-			pd.addNode(new PrintDataElement(pdc.getAD_PrintFormatItem_ID(), pd.getColumnInfo()[0].getColumnName(), Msg.getMsg(Env.getCtx(),"JP_UpToRows",new Object[]{getLimitCount()}), DisplayType.String, null));
-		}
-
 	}	//	loadPrintData
 
 	/**
