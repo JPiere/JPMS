@@ -357,7 +357,7 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 				cssInfo = new CSSInfo(newFont, null);
 				styleBuild.append(".tr-level-2 td").append(cssInfo.getCssRule());
 				
-				styleBuild = new StringBuilder(styleBuild.toString().replaceAll(";", "!important;"));
+				styleBuild = new StringBuilder(styleBuild.toString().replace(";", "!important;"));
 				appendInlineCss (doc, styleBuild);
 				
 				w.print(compress(doc.toString(), minify));
@@ -459,7 +459,7 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 			int printColIndex = -1;
 			HashMap<Integer, th> suppressMap = new HashMap<>();
 			
-			//TODO: JPIERE-XXXX: create headerColumnSet that is Sorted by display column order.
+			//headerColumnSet is map that sorted header column by display order.
 			TreeSet<Integer> headerColumnSet = new TreeSet<>();
 			for (int col = 0; col < columns.size(); col++)
 			{
@@ -480,6 +480,7 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 				{
 					if (item.isNextLine() && item.getBelowColumn() >= 1)
 					{
+						//Column that is set BelowColumn, must be added to header column.
 						headerColumnSet.add(item.getBelowColumn()-1);
 					}else {
 						headerColumnSet.add(col);
@@ -487,7 +488,8 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 				}
 			}
 			
-			//TODO: JPIERE-XXXX: create belowColumnMap that is list of next line + below column items List<below column:column>.
+			//belowColumnMap is List of next line.
+			//This list include map <display order of header column : next line item(col)>.
 			List<Map<Integer, Integer>> belowColumnMap = new ArrayList<>();
 			for (int col = 0; col < columns.size(); col++)
 			{
@@ -508,7 +510,7 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 				{
 					if (item.isNextLine() && item.getBelowColumn() >= 1)
 					{
-						//Get display column order from value of BelowColumn.
+						//Get display order of header column from value of BelowColumn.
 						int belowColumn = item.getBelowColumn()-1;
 						int i = 0;
 						for(Integer headerCol : headerColumnSet)
@@ -541,7 +543,7 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 						}
 					}
 				}
-			}//TODO
+			}
 			
 			//	for all rows (-1 = header row)
 			for (int row = -1; row < printData.getRowCount(); row++)
@@ -634,6 +636,37 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 								}
 							}
 							//JPiere-0453-End
+							
+							//JPIERE-0650 Multi line header of HTML Report
+							if (!belowColumnMap.isEmpty())
+							{
+								for(Map<Integer, Integer> map : belowColumnMap)
+								{
+									for (int col2 = 0; col2 < columns.size(); col2++) 
+									{
+										if (map.containsValue(col2))
+											continue;
+										if (!map.containsKey(printColIndex))
+											continue;
+										int mapTo = map.get(printColIndex);
+										Object colObj2 = columns.get(mapTo);
+										MPrintFormatItem item2 = null;
+										InstanceAttributeColumn instanceAttributeColumn2 = null;
+										if (colObj2 instanceof MPrintFormatItem) {
+											item2 = (MPrintFormatItem) colObj2;
+										} else if (colObj2 instanceof InstanceAttributeColumn) {
+											instanceAttributeColumn2 = (InstanceAttributeColumn) colObj2;
+											item2 = instanceAttributeColumn2.getPrintFormatItem();
+										}
+										if (item2 != null) {
+											String columnHeader2 = instanceAttributeColumn2 != null ? instanceAttributeColumn2.getName() : item2.getPrintName(language);
+											th.addElement("<br />");
+											th.addElement(columnHeader2);
+											break;
+										}
+									}
+								}
+							}//JPIERE-0650
 						}
 						else 
 						{							
@@ -642,7 +675,7 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 							tdMap.put(printColIndex, td);
 							if (item.isNextLine() && item.getBelowColumn() >= 1 && headerColumnSet.contains(col))
 							{
-								;//This case do not print because printing from belowColumnMap
+								;//This case need not to print here, will print with belowColumnMap.
 							}else {
 								printColumn(reportEngine, language, extension, isExport, td, item, instanceAttributeColumn, row, printData,
 										colSuppressRepeats, printColIndex, preValues, suppressMap, cssPrefix, contextPath);
@@ -659,7 +692,7 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 				}
 				
 				//render next line+below column items
-				if (!belowColumnMap.isEmpty() && row != -1)//複数行表示でヘッダー行ではない
+				if (!belowColumnMap.isEmpty() && row != -1)
 				{
 					for(Map<Integer, Integer> map : belowColumnMap)
 					{
