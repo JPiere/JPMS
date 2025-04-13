@@ -978,7 +978,7 @@ public class DataEngine
 			pstmt = DB.prepareNormalReadReplicaStatement(sql, m_trxName);
 			if (maxRows > 0 && ! DB.getDatabase().isPagingSupported() && getLimitCount() <= 0)//JPIERE-0264:Limit Report Rows
 				pstmt.setMaxRows(maxRows+1);
-			if (timeout > 0 && getLimitCount() <= 0)//JPIERE-0264:Limit Report Rows
+			if (timeout > 0)
 				pstmt.setQueryTimeout(timeout);
 			rs = pstmt.executeQuery();
 
