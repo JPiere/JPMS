@@ -1932,8 +1932,9 @@ public class LayoutEngine implements Pageable, Printable, Doc
 	 */
 	private PrintElement layoutParameter ()
 	{
-		if (m_query == null || !m_query.isActive() || (m_query.getReportProcessQuery() != null && !m_query.getReportProcessQuery().isActive()))
-			return null;
+		//JPIERE-0264:Limit Report Rows
+		//if (m_query == null || !m_query.isActive() || (m_query.getReportProcessQuery() != null && !m_query.getReportProcessQuery().isActive()))
+			//return null; JPIERE-0264
 		//
 		m_printCtx.setProperty("AD_ReportView_ID", String.valueOf(m_format.getAD_ReportView_ID()));//JPIERE-0264:Limit Report Rows
 		ParameterElement pe = new ParameterElement(m_query, m_printCtx, m_format.getTableFormat());
