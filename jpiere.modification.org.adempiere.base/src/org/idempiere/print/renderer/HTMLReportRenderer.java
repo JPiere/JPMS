@@ -222,17 +222,17 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 			
 			table parameterTable = null;
 			if (!printFormat.isForm()) {
-				if (reportEngineQuery != null && reportEngineQuery.isActive()) {
-					int rows = reportEngineQuery.getReportProcessQuery() != null ? reportEngineQuery.getReportProcessQuery().getRestrictionCount() : reportEngineQuery.getRestrictionCount();
-					if (rows > 0) {
+//				if (reportEngineQuery != null && reportEngineQuery.isActive()) {//JPIERE-0264:Limit Report Rows
+//					int rows = reportEngineQuery.getReportProcessQuery() != null ? reportEngineQuery.getReportProcessQuery().getRestrictionCount() : reportEngineQuery.getRestrictionCount();
+//					if (rows > 0) {
 						parameterTable = new table();
 						if (cssPrefix != null)
 							parameterTable.setClass(cssPrefix + "-parameter-table");
 						else
 							parameterTable.setClass("parameter-table");
 						parameterTable.setNeedClosingTag(false);
-					}
-				}
+//					}
+//				}//JPIERE-0264
 			}
 			
 			table table = new table();
