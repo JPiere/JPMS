@@ -269,7 +269,13 @@ public class MMailText extends X_R_MailText
 			}
 
 			token = inStr.substring(0, j);
-			outStr.append(parseVariable(token, po, keepEscapeSequence));		// replace context
+			String parseValue = parseVariable(token, po, keepEscapeSequence);
+			if (keepEscapeSequence && !(("@"+token+"@").equals(parseValue))) 
+			{
+				if (parseValue.contains("@"))
+					parseValue = parseValue.replace("@", "@@");
+			}
+			outStr.append(parseValue);		// replace context
 
 			inStr = inStr.substring(j+1, inStr.length());	// from second @
 			i = inStr.indexOf('@');
