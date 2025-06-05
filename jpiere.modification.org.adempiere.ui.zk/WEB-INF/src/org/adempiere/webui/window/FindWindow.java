@@ -138,6 +138,8 @@ import org.zkoss.zul.Space;
 import org.zkoss.zul.Tab;
 import org.zkoss.zul.Vlayout;
 
+import static org.adempiere.webui.LayoutUtils.isLabelAboveInputForSmallWidth;
+
 /**
  *  Find/Search Records dialog.
  *
@@ -365,7 +367,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         this.setShadow(false);
         ZKUpdateUtil.setWidth(this, "900px");
         ZKUpdateUtil.setHeight(this, "350px");
-        this.setTitle(Msg.getMsg(Env.getCtx(), "Find").replaceAll("&", "") + ": " + title);
+        this.setTitle(Msg.getMsg(Env.getCtx(), "Find").replace("&", "") + ": " + title);
         this.setClosable(false);
         this.setSizable(true);  
         this.setMaximizable(false);
@@ -532,19 +534,27 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         
         Columns columns = new Columns();
         Column column = new Column();
-        column.setAlign("right");
-        ZKUpdateUtil.setWidth(column, "30%");
+        if (isLabelAboveInputForSmallWidth()) {
+            ZKUpdateUtil.setWidth(column, "100%");
+        } else {
+            column.setAlign("right");
+            ZKUpdateUtil.setWidth(column, "30%");
+        }
         columns.appendChild(column);
-        
-        column = new Column();
-        column.setAlign("left");
-        ZKUpdateUtil.setWidth(column, "50%");
-        columns.appendChild(column);
-        
-        column = new Column();
-        ZKUpdateUtil.setWidth(column, "20%");
-        columns.appendChild(column);
-        
+
+        if (!isLabelAboveInputForSmallWidth()) {
+            column = new Column();
+            column.setAlign("left");
+            ZKUpdateUtil.setWidth(column, "50%");
+            columns.appendChild(column);
+
+            column = new Column();
+            ZKUpdateUtil.setWidth(column, "20%");
+            columns.appendChild(column);
+        } else {
+            contentSimple.setSclass("form-label-above-input");
+        }
+
         contentSimple.appendChild(columns);
 
         contentSimpleRows = new Rows();
@@ -794,7 +804,7 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         tabPanel.setStyle("height: 100%; width: 100%;");
         tabPanel.appendChild(winLookupRecord);
         tabPanel.setId("simpleSearch");
-        winMain.addTab(tabPanel, Msg.getMsg(Env.getCtx(), "Find").replaceAll("&", ""),false, true);
+        winMain.addTab(tabPanel, Msg.getMsg(Env.getCtx(), "Find").replace("&", ""),false, true);
         tabPanel = new Tabpanel();
         tabPanel.setStyle("height: 100%; width: 100%");
         tabPanel.appendChild(winAdvanced);
@@ -1689,6 +1699,12 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 
         Row panel = new Row();
         panel.appendChild(label);
+        if (isLabelAboveInputForSmallWidth()) {
+            contentSimpleRows.appendChild(panel);
+            if (group != null)
+                panel.setGroup(group);
+            panel = new Row();
+        }
         Div div = new Div();
         panel.appendChild(div);
         div.appendChild(fieldEditor);
@@ -1726,7 +1742,8 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         	editor.fillHorizontal();
         	editor.updateStyle(false);
         }
-        panel.appendChild(new Space());
+        if (!isLabelAboveInputForSmallWidth())
+            panel.appendChild(new Space());
         if (group != null)
         	panel.setGroup(group);
 
@@ -2074,6 +2091,8 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
      */
 	protected void onSimpleTabSelected() {
 		historyCombo.setDisabled(false);
+		if (m_findFields != null && m_findFields.length > 0 && m_findFields[0].getGridTab() != m_gridTab)
+        	m_gridTab = m_findFields[0].getGridTab();
 		if (m_sEditors.size() > 0)
 			Clients.response(new AuFocus(m_sEditors.get(0).getComponent()));
 	}
