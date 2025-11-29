@@ -9,4 +9,11 @@
 	<version>${revision}</version>
 	<relativePath>../../../../../../../src/eclipse202412_JPiere12/org.idempiere.parent/pom.xml</relativePath>
   </parent>
+  <dependencies>
+  	<dependency>
+  		<groupId>org.idempiere</groupId>
+  		<artifactId>jpiere.base.plugin</artifactId>
+  		<version>12.0.0-SNAPSHOT</version>
+  	</dependency>
+  </dependencies>
 </project>

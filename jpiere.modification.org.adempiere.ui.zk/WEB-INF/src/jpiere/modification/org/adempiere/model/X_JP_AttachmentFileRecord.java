@@ -21,24 +21,20 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.Properties;
-
-import org.compiere.model.I_Persistent;
-import org.compiere.model.MTable;
-import org.compiere.model.PO;
-import org.compiere.model.POInfo;
+import org.compiere.model.*;
 import org.compiere.util.Env;
 
 /** Generated Model for JP_AttachmentFileRecord
- *  @author iDempiere (generated) 
- *  @version Release 9 - $Id$ */
+ *  @author iDempiere (generated)
+ *  @version Release 12 - $Id$ */
 @org.adempiere.base.Model(table="JP_AttachmentFileRecord")
-public class X_JP_AttachmentFileRecord extends PO implements I_JP_AttachmentFileRecord, I_Persistent 
+public class X_JP_AttachmentFileRecord extends PO implements I_JP_AttachmentFileRecord, I_Persistent
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20220706L;
+	private static final long serialVersionUID = 20251129L;
 
     /** Standard Constructor */
     public X_JP_AttachmentFileRecord (Properties ctx, int JP_AttachmentFileRecord_ID, String trxName)
@@ -70,6 +66,36 @@ public class X_JP_AttachmentFileRecord extends PO implements I_JP_AttachmentFile
         } */
     }
 
+    /** Standard Constructor */
+    public X_JP_AttachmentFileRecord (Properties ctx, String JP_AttachmentFileRecord_UU, String trxName)
+    {
+      super (ctx, JP_AttachmentFileRecord_UU, trxName);
+      /** if (JP_AttachmentFileRecord_UU == null)
+        {
+			setIsDeleteable (true);
+// Y
+			setIsSOTrx (false);
+// N
+			setJP_AttachmentFileName (null);
+			setJP_AttachmentFileRecord_ID (0);
+        } */
+    }
+
+    /** Standard Constructor */
+    public X_JP_AttachmentFileRecord (Properties ctx, String JP_AttachmentFileRecord_UU, String trxName, String ... virtualColumns)
+    {
+      super (ctx, JP_AttachmentFileRecord_UU, trxName, virtualColumns);
+      /** if (JP_AttachmentFileRecord_UU == null)
+        {
+			setIsDeleteable (true);
+// Y
+			setIsSOTrx (false);
+// N
+			setJP_AttachmentFileName (null);
+			setJP_AttachmentFileRecord_ID (0);
+        } */
+    }
+
     /** Load Constructor */
     public X_JP_AttachmentFileRecord (Properties ctx, ResultSet rs, String trxName)
     {
@@ -77,7 +103,7 @@ public class X_JP_AttachmentFileRecord extends PO implements I_JP_AttachmentFile
     }
 
     /** AccessLevel
-      * @return 7 - System - Client - Org 
+      * @return 7 - System - Client - Org
       */
     protected int get_AccessLevel()
     {
@@ -431,10 +457,10 @@ public class X_JP_AttachmentFileRecord extends PO implements I_JP_AttachmentFile
 	public boolean isDeleteable()
 	{
 		Object oo = get_Value(COLUMNNAME_IsDeleteable);
-		if (oo != null) 
+		if (oo != null)
 		{
-			 if (oo instanceof Boolean) 
-				 return ((Boolean)oo).booleanValue(); 
+			 if (oo instanceof Boolean)
+				 return ((Boolean)oo).booleanValue();
 			return "Y".equals(oo);
 		}
 		return false;
@@ -454,10 +480,10 @@ public class X_JP_AttachmentFileRecord extends PO implements I_JP_AttachmentFile
 	public boolean isSOTrx()
 	{
 		Object oo = get_Value(COLUMNNAME_IsSOTrx);
-		if (oo != null) 
+		if (oo != null)
 		{
-			 if (oo instanceof Boolean) 
-				 return ((Boolean)oo).booleanValue(); 
+			 if (oo instanceof Boolean)
+				 return ((Boolean)oo).booleanValue();
 			return "Y".equals(oo);
 		}
 		return false;

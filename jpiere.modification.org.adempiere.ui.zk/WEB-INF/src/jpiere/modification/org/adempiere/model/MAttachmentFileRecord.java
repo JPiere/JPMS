@@ -50,6 +50,12 @@ public class MAttachmentFileRecord extends X_JP_AttachmentFileRecord {
 		super(ctx, JP_AttachmentFileRecord_ID, trxName);
 		initAttachmentStoreDetails(ctx, trxName);
 	}
+	
+	public MAttachmentFileRecord(Properties ctx, String JP_AttachmentFileRecord_UU, String trxName)
+	{
+		super(ctx, JP_AttachmentFileRecord_UU, trxName);
+		initAttachmentStoreDetails(ctx, trxName);
+	}
 
 	public MAttachmentFileRecord(Properties ctx, ResultSet rs, String trxName)
 	{
