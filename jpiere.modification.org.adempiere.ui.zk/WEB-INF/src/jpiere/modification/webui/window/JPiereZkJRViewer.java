@@ -21,8 +21,10 @@ import org.adempiere.webui.window.Dialog;
 import org.adempiere.webui.window.ZkJRViewer;
 import org.compiere.model.MClientInfo;
 import org.compiere.model.MTable;
+import org.compiere.model.MToolBarButton;
 import org.compiere.model.PO;
 import org.compiere.model.PrintInfo;
+import org.compiere.model.Query;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
@@ -34,6 +36,7 @@ import org.zkoss.zul.Borderlayout;
 import org.zkoss.zul.North;
 import org.zkoss.zul.Separator;
 import org.zkoss.zul.Toolbar;
+import org.zkoss.zul.Toolbarbutton;
 
 import jpiere.modification.org.adempiere.model.MAttachmentFileRecord;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -41,8 +44,9 @@ import net.sf.jasperreports.engine.JasperPrint;
 
 /**
 *
-* JPIERE-0599: JPiere Attachment File at Jasper Report
-*
+* JPIERE-0599: JPiere JasperReport Viewer
+* *JPiere Attachment File at Report
+* *Hide Non Active ToolBar iCon
 *
 * @author Hideaki Hagiwara(h.hagiwara@oss-erp.co.jp)
 *
@@ -100,6 +104,25 @@ public class JPiereZkJRViewer extends ZkJRViewer {
 			btn_JPiereAttachment.addEventListener(Events.ON_CLICK, this);
 			btn_JPiereAttachment.setPressed(false);
 		}
+		
+		//JPIERE-Hide Non Active ToolBar iCon-START
+		getNonActiveToolbarButtons();
+		for(MToolBarButton nonActiveButton : nonActivebuttons)
+		{
+			String cName =nonActiveButton.getComponentName();
+			for (Component p = toolbar.getFirstChild(); p != null; p = p.getNextSibling()) 
+			{
+				if (p instanceof Toolbarbutton) 
+				{
+					String pName = ((ToolBarButton)p).getName();
+					if (cName.equals(pName) ) 
+					{
+						toolbar.removeChild(p);
+						break;
+					}
+				}
+			}
+		}//JPIERE-Hide Non Active ToolBar iCon-END
 	}
 
 	public JPiereZkJRViewer(List<JasperPrint> jasperPrintList, String title, PrintInfo printInfo) 
@@ -164,8 +187,28 @@ public class JPiereZkJRViewer extends ZkJRViewer {
 			Dialog.error(0, "Error", Msg.getMsg(Env.getCtx(), "JP_UnexpectedError"));
 		}
 		
-		
 	}
 	
+	/**
+	 * JPIERE-Non Active ToolBar iCon
+	 */
+	private static MToolBarButton[] nonActivebuttons = null;
+	private static MToolBarButton[] getNonActiveToolbarButtons()
+	{
+		if(nonActivebuttons != null)
+			return nonActivebuttons;
+		
+		Query query = new Query(Env.getCtx(), MTable.get(Env.getCtx(), MToolBarButton.Table_ID),
+				"Action='R' AND (AD_ToolbarButton_ID<=? OR ActionClassName IS NOT NULL) AND AD_Tab_ID IS NULL AND IsActive='N' ", null);
+		
+		List<MToolBarButton> list = query.setParameters(MTable.MAX_OFFICIAL_ID)
+				.setOrderBy("CASE WHEN COALESCE(SeqNo,0)=0 THEN AD_ToolBarButton_ID ELSE SeqNo END")
+				.list();
+		
+		nonActivebuttons = new MToolBarButton[list.size()];
+		list.toArray(nonActivebuttons);
+		
+		return nonActivebuttons;
+	}
 	
 }
