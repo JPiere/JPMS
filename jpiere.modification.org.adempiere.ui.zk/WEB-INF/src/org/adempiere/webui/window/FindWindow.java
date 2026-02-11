@@ -17,13 +17,13 @@
 
 package org.adempiere.webui.window;
 
-import static org.compiere.model.SystemIDs.REFERENCE_YESNO;
+import static org.compiere.model.SystemIDs.*;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +37,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import org.adempiere.exceptions.DBException;
 import org.adempiere.webui.AdempiereWebUI;
 import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.LayoutUtils;
@@ -2292,24 +2293,66 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 
         //  Execute Qusery
         m_total = 999999;
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet rs = null;
+        Connection conn = null;
         try
         {
-            stmt = DB.createStatement();
-            rs = stmt.executeQuery(finalSQL);
+        	pstmt = DB.prepareStatement(finalSQL, null);
+        	conn =  pstmt.getConnection();
+        	conn.setAutoCommit(false);
+        	conn.setReadOnly(true);
+            rs = pstmt.executeQuery();
             if (rs.next())
                 m_total = rs.getInt(1);
         }
         catch (SQLException e)
         {
-            log.log(Level.SEVERE, finalSQL, e);
+    		if (conn != null)
+    		{
+    			try {
+					conn.rollback();
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+    		}
+            //log.log(Level.SEVERE, finalSQL, e);
+    		throw new DBException(e);
         }
         finally
         {
-        	DB.close(rs, stmt);
+        	DB.close(rs, pstmt);
         	rs = null;
-        	stmt = null;
+        	pstmt = null;
+
+        	if (conn != null)
+        	{
+        		boolean isClosedconn = false;
+	    		try {
+	    			isClosedconn = conn.isClosed();
+	    		} catch (SQLException e) {
+	    			e.printStackTrace();
+	    		}
+
+	    		if(!isClosedconn)
+	    		{
+		    		try {
+		    			conn.setAutoCommit(true);
+		    		} catch (SQLException e) {
+		    			e.printStackTrace();
+		    		}
+		    		try {
+		    			conn.setReadOnly(false);
+		    		} catch (SQLException e) {
+		    			e.printStackTrace();
+		    		}
+		    		try {
+		    			conn.close();
+		    		} catch (SQLException e) {
+		    			e.printStackTrace();
+		    		}
+	    		}
+        	}
         }
         MRole role = MRole.getDefault();
         //  No Records
