@@ -1778,6 +1778,11 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
             Object parsedValue = parseValue(field, value);
             if (parsedValue == null)
                 continue;
+
+
+        	if(isContainProhibitedStringsInContext (parsedValue))//JPIERE-0181
+        		continue;
+
             String infoDisplay = value.toString();
             if (field.isLookup())
                 infoDisplay = field.getLookup().getDisplay(value);
@@ -1813,6 +1818,10 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
                 	String infoDisplay_to = value2.toString();
                 	if (parsedValue2 == null)
                     	continue;
+
+	            	if(isContainProhibitedStringsInContext (parsedValue2))//JPIERE-0181
+	            		continue;
+
                 	m_query.addRangeRestriction(ColumnSQL, parsedValue, parsedValue2,
                     	infoName, infoDisplay, infoDisplay_to, and, openBrackets);
             	}
@@ -1844,6 +1853,33 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 		}
 
 	}	//	cmd_saveAdvanced
+
+    /**
+     * JPIERE-0181
+     *
+     * @param value
+     * @return
+     */
+    private boolean isContainProhibitedStringsInContext (Object value)
+    {
+    	 if (value.toString().indexOf('@') == -1)
+    		 return false;
+
+    	String context = Env.parseContext(Env.getCtx(), m_targetWindowNo, value.toString(), false);
+    	//Prohibited strings in Context
+    	if(context.contains("--")
+    			|| context.contains("/*")
+    			|| context.contains(";")
+    			|| context.contains("'")
+    			)
+    	{
+    		log.log(Level.WARNING,
+    			"A prohibited string was detected during context parsing from [" +  value.toString() + "] to [" + context + "]");
+    		return true;
+    	}
+
+    	return false;
+    }
 
     private void appendCode(StringBuilder code, String columnName,
 			String operator, String value1, String value2, String andOr,
@@ -2298,11 +2334,11 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         //  save pending
         cmd_saveSimple(false, false);
 
-        /** JPIERE-0181 unnecessary count
+        // JPIERE-0181 unnecessary count
         //  Test for no records
         if (getNoOfRecords(m_query, true) != 0)
           dispose();
-        */
+
 
     }   //  cmd_ok_Simple
 
@@ -2375,10 +2411,10 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
         	addHistoryRestriction(historyCombo.getSelectedItem());
         }
 
-        /** JPIERE-0181 unnecessary count
+        // JPIERE-0181 unnecessary count
         if (getNoOfRecords(m_query, true) != 0)
           dispose();
-        */
+
 
     }   //  cmd_ok_Advanced
 
