@@ -1877,7 +1877,11 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
             Object parsedValue = parseValue(field, value);
             if (parsedValue == null)
                 continue;
-	            String infoDisplay = (value == null ? "" : value.toString());
+
+        	if(isContainProhibitedStringsInContext (parsedValue))//JPIERE-0181
+        		continue;
+
+	        String infoDisplay = (value == null ? "" : value.toString());
             if (field.isLookup())
                 infoDisplay = field.getLookup().getDisplay(value);
             else if (field.getDisplayType() == DisplayType.YesNo)
@@ -1912,6 +1916,10 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
                 	String infoDisplay_to = value2.toString();
                 	if (parsedValue2 == null)
                     	continue;
+
+	            	if(isContainProhibitedStringsInContext (parsedValue2))//JPIERE-0181
+	            		continue;
+
                 	m_query.addRangeRestriction(ColumnSQL, parsedValue, parsedValue2,
                     	infoName, infoDisplay, infoDisplay_to, and, openBrackets);
             	}
@@ -1943,6 +1951,33 @@ public class FindWindow extends Window implements EventListener<Event>, ValueCha
 		}
 
 	}	//	cmd_saveAdvanced
+
+    /**
+     * JPIERE-0181
+     *
+     * @param value
+     * @return
+     */
+    private boolean isContainProhibitedStringsInContext (Object value)
+    {
+    	 if (value.toString().indexOf('@') == -1)
+    		 return false;
+
+    	String context = Env.parseContext(Env.getCtx(), m_targetWindowNo, value.toString(), false);
+    	//Prohibited strings in Context
+    	if(context.contains("--")
+    			|| context.contains("/*")
+    			|| context.contains(";")
+    			|| context.contains("'")
+    			)
+    	{
+    		log.log(Level.WARNING,
+    			"A prohibited string was detected during context parsing from [" +  value.toString() + "] to [" + context + "]");
+    		return true;
+    	}
+
+    	return false;
+    }
 
     private void appendCode(StringBuilder code, String columnName,
 			String operator, String value1, String value2, String andOr,
