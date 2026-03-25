@@ -2748,7 +2748,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 				adTabbox.getSelectedGridTab().getName(),
 	            adTabbox.getSelectedGridTab().getAD_Table_ID(), 
 	            adTabbox.getSelectedGridTab().getTableName(),
-	            adTabbox.getSelectedGridTab().getWhereExtended(), 
+	            adTabbox.getSelectedGridTab().getExtendedFilter(), 
 	            findFields, 
 	            1, 
 	            adTabbox.getSelectedGridTab().getAD_Tab_ID());
@@ -4652,7 +4652,7 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
 			findWindow = Extensions.getFindWindow(adTabbox.getSelectedGridTab().getWindowNo(), adTabbox.getSelectedGridTab().getTabNo(), adTabbox.getSelectedGridTab().getName(),
 					adTabbox.getSelectedGridTab().getAD_Table_ID(), adTabbox.getSelectedGridTab().getTableName(),
-					adTabbox.getSelectedGridTab().getWhereExtended(), findFields, 1, adTabbox.getSelectedGridTab().getAD_Tab_ID(), this);
+					adTabbox.getSelectedGridTab().getExtendedFilter(), findFields, 1, adTabbox.getSelectedGridTab().getAD_Tab_ID(), this);
 			
 			setupEmbeddedFindwindow(findWindow);
 			if (!findWindow.initialize()) {
