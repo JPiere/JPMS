@@ -61,6 +61,7 @@ import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
 import org.compiere.util.ValueNamePair;
+import org.idempiere.db.util.SQLFragment;
 import org.zkoss.addon.chosenbox.Chosenbox;
 import org.zkoss.zk.au.out.AuFocus;
 import org.zkoss.zk.ui.Component;
@@ -581,7 +582,7 @@ public class WChosenboxSearchEditor extends WEditor implements ContextMenuListen
 		 */
 
 		//  Validation
-		String whereClause = getWhereClause();
+		SQLFragment whereClause = getSQLFilter();
 
 		if (m_tableName == null)	//	sets table name & key column
 			setTableAndKeyColumn();
@@ -665,12 +666,13 @@ public class WChosenboxSearchEditor extends WEditor implements ContextMenuListen
 	/**
 	 * @return where clause from {@link #lookup} validation code.
 	 */
-	private String getWhereClause()
+	private SQLFragment getSQLFilter()
 	{
 		String whereClause = "";
+		List<Object> params = new ArrayList<>();
 
 		if (lookup == null)
-			return "";
+			return null;
 
 		String validation = lookup.getValidation();
 
@@ -685,7 +687,7 @@ public class WChosenboxSearchEditor extends WEditor implements ContextMenuListen
 		if (whereClause.indexOf('@') != -1)
 		{
 			Properties ctx = lookup instanceof MLookup ? ((MLookup)lookup).getLookupInfo().ctx : Env.getCtx();
-			String validated = Env.parseContext(ctx, lookup.getWindowNo(), whereClause, false);
+			String validated = Env.parseContextForSql(ctx, lookup.getWindowNo(), whereClause, false, params);
 
 			if (validated.length() == 0)
 				log.severe(getColumnName() + " - Cannot Parse=" + whereClause);
@@ -693,10 +695,10 @@ public class WChosenboxSearchEditor extends WEditor implements ContextMenuListen
 			{
 				if (log.isLoggable(Level.FINE))
 					log.fine(getColumnName() + " - Parsed: " + validated);
-				return validated;
+				whereClause = validated;
 			}
 		}
-		return whereClause;
+		return new SQLFragment(whereClause, params);
 	}	//	getWhereClause
 
 	@Override
@@ -1096,7 +1098,7 @@ public class WChosenboxSearchEditor extends WEditor implements ContextMenuListen
 
 		@Override
 		public ListModel<ValueNamePair> getSubModel(Object value, int nRows) {
-			subModel.setWhereClause(getWhereClause());
+			subModel.setSQLFilter(getSQLFilter());
 			int maxRows = MSysConfig.getIntValue(MSysConfig.ZK_SEARCH_AUTO_COMPLETE_MAX_ROWS, DEFAULT_MAX_AUTO_COMPLETE_ROWS, Env.getAD_Client_ID(Env.getCtx()));
 			ListModel<ValueNamePair> model = subModel.getSubModel(value, maxRows);
 			getComponent().getChosenbox().setSubListModel(model);
