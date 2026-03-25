@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.compiere.model.MLocation;//JPIERE
 import org.compiere.model.MSysConfig;
 import org.compiere.print.MPrintFormat;
 import org.compiere.print.MPrintFormatItem;
@@ -45,6 +46,7 @@ import org.compiere.util.FragmentDisplayType;
 import org.compiere.util.Ini;
 import org.compiere.util.KeyNamePair;
 import org.compiere.util.Language;
+import org.compiere.util.NamePair;//JPIERE
 import org.compiere.util.Util;
 
 /**
