@@ -1478,6 +1478,25 @@ public class MCostDetail extends X_M_CostDetail
 		}
 
 		MCost cost = MCost.get(product, M_ASI_ID, as, Org_ID, ce.getM_CostElement_ID(), get_TrxName());
+		MCostDetail cd = null;
+		boolean isOrderLandedCost = getC_OrderLine_ID() > 0 && getM_CostElement_ID() > 0;
+		boolean isReversedOrderLandedCost = isOrderLandedCost 
+				&& isDelta() && getDeltaQty().signum() == -1 && getDeltaAmt().signum() == -1
+				&& (ce.isAveragePO() || ce.isAverageInvoice());
+		if (isOrderLandedCost && !isReversedOrderLandedCost) {	
+			// order landed cost, get the cost info from previous order or order landed cost
+			StringBuilder whereClause = new StringBuilder();
+			whereClause.append("C_OrderLine_ID = ? ");
+			whereClause.append(" AND TRUNC(DateAcct) = "+DB.TO_DATE(getDateAcct(), true));
+			whereClause.append(" AND M_Product_ID = ?");
+			whereClause.append(" AND M_AttributeSetInstance_ID = ?");
+			whereClause.append(" AND C_AcctSchema_ID = ?");
+			whereClause.append(" AND M_CostDetail_ID < ?");
+			cd = new Query(as.getCtx(), I_M_CostDetail.Table_Name, whereClause.toString(), get_TrxName())
+					.setParameters(getC_OrderLine_ID(), product.get_ID(), M_ASI_ID, as.get_ID(), this.get_ID())
+					.setOrderBy("M_CostDetail_ID DESC")
+					.first();
+		}
 		
 		if (getC_InvoiceLine_ID() > 0 && getM_CostElement_ID() == 0) {
 			MInvoiceLine il = new MInvoiceLine(getCtx(), getC_InvoiceLine_ID(), get_TrxName());
