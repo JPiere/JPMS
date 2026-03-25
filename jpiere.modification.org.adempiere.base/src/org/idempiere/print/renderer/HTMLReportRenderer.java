@@ -59,13 +59,13 @@ import org.compiere.model.MColumn;
 import org.compiere.model.MLocation;//JPIERE
 import org.compiere.model.MImage;
 import org.compiere.model.MQuery;
-import org.compiere.model.MReportView;
+import org.compiere.model.MReportView;//JPIERE
 import org.compiere.model.MRole;
 import org.compiere.model.MStyle;
 import org.compiere.model.MSysConfig;
 import org.compiere.model.MTable;
 import org.compiere.model.X_AD_StyleLine;
-import org.compiere.print.DataEngine;
+import org.compiere.print.DataEngine;//JPIERE
 import org.compiere.print.IHTMLExtension;
 import org.compiere.print.MPrintColor;
 import org.compiere.print.MPrintFont;
@@ -548,7 +548,6 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 			//	for all rows (-1 = header row)
 			for (int row = -1; row < printData.getRowCount(); row++)
 			{
-
 				//print column index:td
 				Map<Integer, td> tdMap = new HashMap<>();
 				tr tr = new tr();
@@ -669,7 +668,7 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 							}//JPIERE-0650
 						}
 						else 
-						{							
+						{
 							td td = new td();
 							tr.addElement(td);
 							tdMap.put(printColIndex, td);
@@ -993,7 +992,7 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 		}
 		else if (item.isImageIsAttached())
 		{
-			MAttachment attachment = MAttachment.get(Env.getCtx(), MPrintFormatItem.Table_ID, item.get_ID(), null, null);
+			try (MAttachment attachment = MAttachment.get(Env.getCtx(), MPrintFormatItem.Table_ID, item.get_ID(), null, null);) {
 			if (attachment != null)
 			{
 				if (attachment.getEntryCount() != 1)
@@ -1003,7 +1002,7 @@ public class HTMLReportRenderer implements IReportRenderer<HTMLReportRendererCon
 				}
 				byte[] imageData = attachment.getEntryData(0);
 				createDataURLImageElement(td, imageData, item);
-			}
+			}}
 		}
 		else if (!Util.isEmpty(item.getImageURL(), true))
 		{
