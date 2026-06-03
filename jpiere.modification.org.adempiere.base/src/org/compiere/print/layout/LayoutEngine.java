@@ -49,6 +49,7 @@ import javax.print.DocFlavor;
 import javax.print.attribute.DocAttributeSet;
 
 import org.adempiere.base.Core;
+import org.compiere.model.MPrintHeaderFooter;
 import org.compiere.model.MLocation;				//JPIERE-3 Import MLocation to LayoutEngine
 import org.compiere.model.MQuery;
 import org.compiere.model.MTable;
@@ -299,7 +300,8 @@ public class LayoutEngine implements Pageable, Printable, Doc
 					headerFooter.getHeaderHeight(), headerFooter.getFooterHeight());
 		}
 		else if (m_format.getAD_PrintHeaderFooter_ID() > 0) {
-			IPrintHeaderFooter printHeaderFooter = Core.getPrintHeaderFooter(m_format.getAD_PrintHeaderFooter());
+			MPrintHeaderFooter phf = new MPrintHeaderFooter(m_format.getCtx(), m_format.getAD_PrintHeaderFooter_ID(), m_format.get_TrxName());
+			IPrintHeaderFooter printHeaderFooter = Core.getPrintHeaderFooter(phf);
 			if (printHeaderFooter != null) {
 				setPaper(mPaper.getCPaper(), 
 						printHeaderFooter.getHeaderHeight(), printHeaderFooter.getFooterHeight());
@@ -498,7 +500,8 @@ public class LayoutEngine implements Pageable, Printable, Doc
 				StandardHeaderFooter headerFooter = new StandardHeaderFooter();
 				headerFooter.createHeaderFooter(m_format, m_headerFooter, m_header, m_footer, m_query);
 			} else if (m_format.getAD_PrintHeaderFooter_ID() > 0) {
-				IPrintHeaderFooter printHeaderFooter = Core.getPrintHeaderFooter(m_format.getAD_PrintHeaderFooter());
+				MPrintHeaderFooter phf = new MPrintHeaderFooter(m_format.getCtx(), m_format.getAD_PrintHeaderFooter_ID(), m_format.get_TrxName());
+				IPrintHeaderFooter printHeaderFooter = Core.getPrintHeaderFooter(phf);
 				if (printHeaderFooter != null) {
 					printHeaderFooter.createHeaderFooter(m_format, m_headerFooter, m_header, m_footer, m_query);
 				} else {
@@ -1077,7 +1080,10 @@ public class LayoutEngine implements Pageable, Printable, Doc
 						lineAligned = true;
 					}
 				}
-				
+
+				if (item.isFixedWidth() && item.getMaxWidth() > 0) {
+					maxWidth = item.getMaxWidth();
+				}
 				//	Type
 				PrintElement element = null;
 				if ( !PrintDataEvaluatee.hasPageLogic(item.getDisplayLogic()) && !isDisplayed(m_data, item) )
@@ -1165,6 +1171,12 @@ public class LayoutEngine implements Pageable, Printable, Doc
 						m_lastWidth[m_area] = element.getWidth();
 					m_lastHeight[m_area] = element.getHeight();
 				}
+				else if (element == null && item.isFixedWidth() && maxWidth > 0)
+				{
+					somethingPrinted = true;
+					m_lastWidth[m_area] = maxWidth;
+					m_lastHeight[m_area] = 0f;
+				}
 				else
 				{
 					somethingPrinted = false;
@@ -1198,18 +1210,20 @@ public class LayoutEngine implements Pageable, Printable, Doc
 				}
 				//	We know Position and Size
 				if (element != null)
-					element.setLocation(m_position[m_area]);
-				//	Add to Area
-				if (m_area == AREA_CONTENT)
-					m_currPage.addElement (element);
-				else
-					m_headerFooter.addElement (element);
-				
-				if (PrintDataEvaluatee.hasPageLogic(item.getDisplayLogic()))
 				{
-					element.setPrintData(m_data);
-					element.setRowIndex(row);
-					element.setPageLogic(item.getDisplayLogic());
+					element.setLocation(m_position[m_area]);
+					//	Add to Area
+					if (m_area == AREA_CONTENT)
+						m_currPage.addElement (element);
+					else
+						m_headerFooter.addElement (element);
+					
+					if (PrintDataEvaluatee.hasPageLogic(item.getDisplayLogic()))
+					{
+						element.setPrintData(m_data);
+						element.setRowIndex(row);
+						element.setPageLogic(item.getDisplayLogic());
+					}
 				}
 				
 				//
