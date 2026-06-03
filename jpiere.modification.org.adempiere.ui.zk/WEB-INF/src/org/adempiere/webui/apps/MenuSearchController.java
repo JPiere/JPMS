@@ -29,6 +29,7 @@ import org.adempiere.webui.desktop.FavouriteController;
 import org.adempiere.webui.panel.AbstractMenuPanel;
 import org.adempiere.webui.panel.MenuTreePanel;
 import org.adempiere.webui.theme.ThemeManager;
+import org.adempiere.webui.util.Icon;
 import org.adempiere.webui.util.TreeItemAction;
 import org.adempiere.webui.util.TreeNodeAction;
 import org.adempiere.webui.util.TreeUtils;
@@ -550,8 +551,8 @@ public class MenuSearchController implements EventListener<Event>{
 			newModel = model;
 		} else {
 			@SuppressWarnings("unchecked")
-			ListSubModel<MenuItem> subModel = (ListSubModel<MenuItem>) ListModels.toListSubModel(model, new MenuListComparator(value), model.size());
-			newModel = (ListModelList<MenuItem>) subModel.getSubModel(null, -1);
+			ListSubModel<MenuItem> subModel = (ListSubModel<MenuItem>) ListModels.toListSubModel(model, new MenuListComparator(), model.size());
+			newModel = (ListModelList<MenuItem>) subModel.getSubModel(new MenuItem(value), -1);
 		}
 		updateListboxModel(newModel);
 	}
@@ -582,22 +583,17 @@ public class MenuSearchController implements EventListener<Event>{
 	 */
 	private class MenuListComparator implements Comparator<MenuItem> {
 
-		/**
-		 * Text to filter menu items by label.
-		 * Use startsWith if length of compare is < 3, otherwise use contains for filter.
-		 */
-		private String compare;
-
-		/**
-		 * @param compare filter text
-		 */
-		private MenuListComparator(String compare) {
-			this.compare = Util.deleteAccents(compare.toLowerCase().trim());
-		}
-		
 		@Override
-		public int compare(MenuItem o1, MenuItem o2) {			
-			String label2 = Util.deleteAccents(o2.getLabel().toLowerCase());
+		public int compare(MenuItem o1, MenuItem o2) {
+			if (o1 == null || o2 == null)
+				return -1;
+			
+			String label2 = o2.getLabel();
+			label2 = Util.deleteAccents(label2.toLowerCase());
+			
+			String compare = o1.getLabel();			
+			compare = Util.deleteAccents(compare.toLowerCase());
+			
 			boolean match = false;
 			if (compare.length() < 3)
 			{
@@ -776,7 +772,7 @@ public class MenuSearchController implements EventListener<Event>{
 			if (isWindow) {
 				ToolBarButton newBtn = new ToolBarButton();
 				if (ThemeManager.isUseFontIconForImage())
-					newBtn.setIconSclass("z-icon-New");
+					newBtn.setIconSclass(Icon.getIconSclass(Icon.NEW));
 				else
 					newBtn.setImage(ThemeManager.getThemeResource("images/New16.png"));
 				newBtn.addEventListener(Events.ON_CLICK, MenuSearchController.this);
