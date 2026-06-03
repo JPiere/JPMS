@@ -46,6 +46,7 @@ import org.adempiere.webui.LayoutUtils;
 import org.adempiere.webui.WArchive;
 import org.adempiere.webui.WRequest;
 import org.adempiere.webui.WZoomAcross;
+import org.adempiere.webui.acct.WAcctViewer;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEvent;
 import org.adempiere.webui.adwindow.validator.WindowValidatorEventType;
 import org.adempiere.webui.adwindow.validator.WindowValidatorManager;
@@ -91,6 +92,7 @@ import org.adempiere.webui.window.LabelAction;
 import org.adempiere.webui.window.WChat;
 import org.adempiere.webui.window.WPostIt;
 import org.adempiere.webui.window.WRecordAccessDialog;
+import org.adempiere.webui.window.WTableAttribute;
 import org.compiere.grid.ICreateFrom;
 import org.compiere.model.DataStatusEvent;
 import org.compiere.model.DataStatusListener;
@@ -109,9 +111,11 @@ import org.compiere.model.MRecentItem;
 import org.compiere.model.MRole;
 import org.compiere.model.MSysConfig;
 import org.compiere.model.MTable;
+import org.compiere.model.MTableAttributeSet;
 import org.compiere.model.MWindow;
 import org.compiere.model.PO;
 import org.compiere.model.StateChangeEvent;
+import org.compiere.model.SystemIDs;
 import org.compiere.model.SystemProperties;
 import org.compiere.model.X_AD_CtxHelp;
 import org.compiere.process.DocAction;
@@ -1510,6 +1514,14 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 		AEnv.showWindow(form);
 	} // onQuickForm
 
+	/**
+	 * Open Table Attribute Window
+	 */
+	public void onAttributeForm()
+	{
+		new WTableAttribute(adTabbox.getSelectedGridTab());
+	}
+
     /**
      * @param event
      * @see EventListener#onEvent(Event)
@@ -1846,8 +1858,9 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
 		toolbar.enableQuickForm(adTabbox.getSelectedTabpanel().isEnableQuickFormButton() && !adTabbox.getSelectedGridTab().isReadOnly());
 
+		toolbar.enableAttributeForm(MTableAttributeSet.hasTableAttributeSet(adTabbox.getSelectedGridTab().getAD_Table_ID()));
+		
 		boolean isNewRow = adTabbox.getSelectedGridTab().getRowCount() == 0 || adTabbox.getSelectedGridTab().isNew();
-        
 		IADTabpanel adtab = adTabbox.getSelectedTabpanel();
         toolbar.enableProcessButton(adtab != null && adtab.isEnableProcessButton());
         toolbar.enableCustomize(adtab.isEnableCustomizeButton());
@@ -3939,8 +3952,9 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 
 			if (ps != null && ps.equals("Y"))
 			{
-				new org.adempiere.webui.acct.WAcctViewer(Env.getContextAsInt (ctx, curWindowNo, "AD_Client_ID"),
-						tableId, recordId);
+				ADForm form = ADForm.openForm(SystemIDs.FORM_ACCOUNT_INFO,
+						WAcctViewer.INITIAL_AD_TABLE_ID + "=" + tableId + "\n" + WAcctViewer.INITIAL_RECORD_ID + "=" + recordId);
+				AEnv.showWindow(form);
 			}
 			else
 			{
@@ -4455,13 +4469,6 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 	 */
 	public IADTabbox getADTab() {
 		return adTabbox;
-	}
-
-	/**
-	 * @param pi
-	 */
-	@Deprecated(forRemoval = true, since = "11")
-	public void executeASync(ProcessInfo pi) {
 	}
 
 	/**
