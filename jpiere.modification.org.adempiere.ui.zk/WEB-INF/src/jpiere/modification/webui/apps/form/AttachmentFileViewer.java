@@ -34,7 +34,7 @@ import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zul.Borderlayout;
 import org.zkoss.zul.Center;
-import org.zkoss.zul.Hbox;
+import org.zkoss.zul.Hlayout;
 import org.zkoss.zul.Iframe;
 
 import jpiere.modification.org.adempiere.model.MAttachmentFileRecord;
@@ -172,8 +172,8 @@ public class AttachmentFileViewer extends CustomForm implements EventListener<Ev
 			}
 
 			fCharset.addEventListener(Events.ON_SELECT, this);
-			Hbox hbox = new Hbox();
-			hbox.setAlign("center");
+			Hlayout hbox = new Hlayout();
+			hbox.setHflex("1");
 			hbox.setStyle("padding:4px;");
 			hbox.appendChild(new Label(Msg.getElement(Env.getCtx(), "CharacterSet")));
 			hbox.appendChild(fCharset);

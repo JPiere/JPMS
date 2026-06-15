@@ -49,7 +49,6 @@ import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.event.UploadEvent;
 import org.zkoss.zul.Borderlayout;
 import org.zkoss.zul.Center;
-import org.zkoss.zul.Hbox;
 import org.zkoss.zul.Hlayout;
 import org.zkoss.zul.Iframe;
 import org.zkoss.zul.North;
@@ -88,7 +87,7 @@ public class JPiereAttachmentWindow extends Window implements EventListener<Even
 
 	private Borderlayout mainPanel = new Borderlayout();
 
-	private Hbox toolBar = new Hbox();
+	private Hlayout toolBar = new Hlayout();
 
 	private Hlayout confirmPanel = new Hlayout();
 
@@ -234,8 +233,8 @@ public class JPiereAttachmentWindow extends Window implements EventListener<Even
 
 
 		ZKUpdateUtil.setHflex(confirmPanel, "1");
-		Hbox hbox = new Hbox();
-		hbox.setPack("end");
+		Hlayout hbox = new Hlayout();
+		hbox.setStyle("justify-content:flex-end");
 		ZKUpdateUtil.setHflex(hbox, "1");
 		confirmPanel.appendChild(hbox);
 		hbox.appendChild(bLoad);
